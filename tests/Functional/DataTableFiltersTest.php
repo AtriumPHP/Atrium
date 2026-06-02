@@ -70,6 +70,23 @@ final class DataTableFiltersTest extends KernelTestCase
         self::assertSame([], $instance->filterValues);
     }
 
+    public function testNarrowingTheResultsCorrectsAnOutOfRangePage(): void
+    {
+        $component = $this->table();
+        // 12 tags at the default page size of 10 → 2 pages.
+        $component->call('gotoPage', ['page' => 2]);
+        self::assertSame(2, $this->instance($component)->page);
+
+        // Filtering to 4 fruit tags leaves a single page; the table must not be
+        // stranded on the now-empty page two.
+        $component->set('filterValues', ['kind' => 'fruit']);
+        $component->render();
+
+        $instance = $this->instance($component);
+        self::assertSame(1, $instance->page);
+        self::assertNotSame([], $instance->getRows());
+    }
+
     public function testForgedFilterKeyIsIgnored(): void
     {
         $component = $this->table();

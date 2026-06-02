@@ -22,6 +22,7 @@ use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
+use Symfony\UX\LiveComponent\Attribute\PreReRender;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 /**
@@ -79,6 +80,9 @@ final class DataTable
 
     /** @var list<object>|null */
     private ?array $pageRecords = null;
+
+    /** @var array<string, scalar|bool|null>|null */
+    private ?array $resolvedFilters = null;
 
     private ?int $totalCount = null;
 
@@ -143,6 +147,17 @@ final class DataTable
     public function resetPage(): void
     {
         $this->page = 1;
+    }
+
+    /**
+     * Keep the page within range before every render, so narrowing the result set
+     * (a filter or a search) never leaves the table stranded on an empty page —
+     * independent of which interaction changed the state.
+     */
+    #[PreReRender]
+    public function clampPage(): void
+    {
+        $this->page = max(1, min($this->page, $this->getPageCount()));
     }
 
     /**
@@ -607,12 +622,18 @@ final class DataTable
 
     /**
      * Resolve each configured filter's current value into the equality conditions
-     * to apply. Values for unconfigured filter names are ignored.
+     * to apply (memoised for the request). Values for unconfigured filter names
+     * are ignored. Conditions are a field => value map, so at most one equality
+     * per field — two filters over the same field would collapse to the last.
      *
      * @return array<string, scalar|bool|null>
      */
     private function resolvedFilters(): array
     {
+        if (null !== $this->resolvedFilters) {
+            return $this->resolvedFilters;
+        }
+
         $conditions = [];
         foreach ($this->getFilters() as $filter) {
             foreach ($filter->conditions($this->filterValue($filter->getName())) as $field => $value) {
@@ -620,7 +641,7 @@ final class DataTable
             }
         }
 
-        return $conditions;
+        return $this->resolvedFilters = $conditions;
     }
 
     private function filterValue(string $name): string
