@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Atrium\Twig\Components;
 
+use Atrium\Action\Action;
+use Atrium\Action\ActionContext;
+use Atrium\Action\ActionContract;
+use Atrium\Action\Concern\InteractsWithActions;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataQuery;
+use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Table\Column;
@@ -27,6 +32,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 final class DataTable
 {
     use DefaultActionTrait;
+    use InteractsWithActions;
 
     #[LiveProp]
     public string $resource = '';
@@ -46,21 +52,32 @@ final class DataTable
     #[LiveProp]
     public int $perPage = 10;
 
+    /**
+     * Panel path prefix, kept in state so record-action URLs survive re-renders.
+     */
+    #[LiveProp]
+    public string $pathPrefix = '';
+
     /** @var list<Column>|null */
     private ?array $columns = null;
+
+    /** @var list<ActionContract>|null */
+    private ?array $recordActions = null;
 
     private ?int $totalCount = null;
 
     public function __construct(
         private readonly ResourceRegistry $registry,
         private readonly DataProviderInterface $dataProvider,
+        private readonly DataWriterInterface $writer,
         private readonly PropertyAccessorInterface $accessor,
     ) {
     }
 
-    public function mount(string $resource, int $perPage = 10): void
+    public function mount(string $resource, string $pathPrefix = '', int $perPage = 10): void
     {
         $this->resource = $resource;
+        $this->pathPrefix = $pathPrefix;
         $this->perPage = $perPage;
     }
 
@@ -103,13 +120,67 @@ final class DataTable
     }
 
     /**
-     * Pre-rendered rows: each row is an ordered list of formatted cell strings.
+     * The resource's record actions (per-row actions and action groups).
      *
-     * @return list<array{cells: list<string>}>
+     * @return list<ActionContract>
+     */
+    public function getRecordActions(): array
+    {
+        return $this->recordActions ??= array_values($this->resource()->recordActions());
+    }
+
+    public function hasRecordActions(): bool
+    {
+        return [] !== $this->getRecordActions();
+    }
+
+    protected function findAction(string $name): ?Action
+    {
+        foreach ($this->getRecordActions() as $item) {
+            foreach ($item->flatten() as $action) {
+                if ($action->getName() === $name) {
+                    return $action;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    protected function canExecuteAction(Action $action, string $subjectId): bool
+    {
+        $record = $this->dataProvider->find($this->entityClass(), $subjectId);
+
+        return null !== $record && $action->isVisibleFor($record);
+    }
+
+    protected function executeAction(Action $action, string $subjectId): void
+    {
+        $handler = $action->getHandler();
+        $record = $this->dataProvider->find($this->entityClass(), $subjectId);
+        if (null === $handler || null === $record || !$action->isVisibleFor($record)) {
+            return;
+        }
+
+        $handler($record, $this->writer);
+
+        // The row set may have shrunk (e.g. a delete) — refresh the count and
+        // keep the page in range.
+        $this->totalCount = null;
+        $this->page = min($this->page, $this->getPageCount());
+    }
+
+    /**
+     * Pre-rendered rows: formatted cell strings plus the record id and the
+     * per-record actions resolved (for visibility, URL, style) into render-ready
+     * descriptors — a plain action, or a `kind: 'group'` dropdown of them.
+     *
+     * @return list<array{id: ?string, cells: list<string>, actions: list<array<string, mixed>>}>
      */
     public function getRows(): array
     {
         $columns = $this->getColumns();
+        $items = $this->getRecordActions();
         $rows = [];
 
         foreach ($this->dataProvider->fetch($this->entityClass(), $this->query()) as $record) {
@@ -117,7 +188,18 @@ final class DataTable
             foreach ($columns as $column) {
                 $cells[] = $column->renderValue($record, $this->accessor);
             }
-            $rows[] = ['cells' => $cells];
+
+            $id = $this->recordId($record);
+            $context = new ActionContext($this->pathPrefix, $this->resource, $id ?? '');
+
+            $rowActions = [];
+            foreach ($items as $item) {
+                if ($item->isVisibleFor($record)) {
+                    $rowActions[] = $item->toView($record, $context, $id);
+                }
+            }
+
+            $rows[] = ['id' => $id, 'cells' => $cells, 'actions' => $rowActions];
         }
 
         return $rows;
@@ -141,6 +223,17 @@ final class DataTable
     private function resource(): AdminResource
     {
         return $this->registry->getBySlug($this->resource);
+    }
+
+    private function recordId(object $record): ?string
+    {
+        if (!$this->accessor->isReadable($record, 'id')) {
+            return null;
+        }
+
+        $id = $this->accessor->getValue($record, 'id');
+
+        return \is_scalar($id) ? (string) $id : null;
     }
 
     /**

@@ -1,0 +1,57 @@
+{#
+    Renders one resolved action descriptor (see Action::toView). A link descriptor
+    is an <a>; a server action is a <button> that calls the host's requestAction.
+
+    Params:
+      - action   : descriptor (name, label, icon, color, style, badge, url, id, confirm)
+      - menuItem : when true, render as a full-width dropdown menu item (style override)
+#}
+{% set textColors = {
+    gray:    'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
+    primary: 'text-primary-600 hover:text-primary-700 dark:text-primary-400',
+    red:     'text-red-600 hover:text-red-700 dark:text-red-400',
+    green:   'text-green-600 hover:text-green-700 dark:text-green-400',
+    amber:   'text-amber-600 hover:text-amber-700 dark:text-amber-400',
+    sky:     'text-sky-600 hover:text-sky-700 dark:text-sky-400',
+} %}
+{% set buttonColors = {
+    gray:    'bg-gray-600 text-white hover:bg-gray-500',
+    primary: 'bg-primary-600 text-white hover:bg-primary-500',
+    red:     'bg-red-600 text-white hover:bg-red-500',
+    green:   'bg-green-600 text-white hover:bg-green-500',
+    amber:   'bg-amber-500 text-white hover:bg-amber-400',
+    sky:     'bg-sky-600 text-white hover:bg-sky-500',
+} %}
+{% set badgeColors = {
+    gray:    'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    primary: 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300',
+    red:     'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
+    green:   'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300',
+    amber:   'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+    sky:     'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+} %}
+{% set color = action.color|default('gray') %}
+{% set style = menuItem|default(false) ? 'menu' : action.style|default('link') %}
+{% set classes = {
+    button: 'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold shadow-sm transition-colors ' ~ (buttonColors[color]|default(buttonColors.gray)),
+    link:   'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ' ~ (textColors[color]|default(textColors.gray)),
+    icon:   'inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ' ~ (textColors[color]|default(textColors.gray)),
+    menu:   'flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ' ~ (textColors[color]|default(textColors.gray)),
+} %}
+{% set cls = classes[style] %}
+{% set iconOnly = style == 'icon' %}
+{% set inner %}
+    {% if action.icon %}{{ include('@Atrium/icon.html.twig', { name: action.icon, class: 'h-4 w-4 shrink-0' }) }}{% endif %}
+    {% if not iconOnly %}<span>{{ action.label }}</span>{% endif %}
+    {% if action.badge is not null and action.badge is not same as(false) and action.badge != '' %}
+        <span class="ml-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold leading-none {{ badgeColors[color]|default(badgeColors.gray) }}">{{ action.badge }}</span>
+    {% endif %}
+{% endset %}
+{% if action.url %}
+    <a href="{{ action.url }}" class="{{ cls }}"{% if iconOnly %} aria-label="{{ action.label }}" title="{{ action.label }}"{% endif %}>{{ inner }}</a>
+{% else %}
+    <button type="button"
+            data-action="live#action" data-live-action-param="requestAction"
+            data-live-name-param="{{ action.name }}" data-live-id-param="{{ action.id }}"
+            class="{{ cls }}"{% if iconOnly %} aria-label="{{ action.label }}" title="{{ action.label }}"{% endif %}>{{ inner }}</button>
+{% endif %}

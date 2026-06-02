@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Atrium\Resource;
 
+use Atrium\Action\ActionContract;
+use Atrium\Action\ActionGroup;
 use Atrium\Form\Schema;
 use Atrium\Layout\Component;
 use Atrium\Layout\Wizard;
@@ -11,6 +13,7 @@ use Atrium\Page\CreatePage;
 use Atrium\Page\EditPage;
 use Atrium\Page\ListPage;
 use Atrium\Page\Page;
+use Atrium\Table\Action\EditAction;
 use Atrium\Table\Column;
 
 /**
@@ -50,6 +53,18 @@ abstract class AdminResource
     public function form(Schema $schema): Schema
     {
         return $schema;
+    }
+
+    /**
+     * Per-row table actions (record actions) and/or {@see ActionGroup}s.
+     * Defaults to an Edit link; override to add Delete, custom links, server
+     * actions or grouped dropdowns. Returning `[]` hides the actions column.
+     *
+     * @return list<ActionContract>
+     */
+    public function recordActions(): array
+    {
+        return [EditAction::make()];
     }
 
     /**

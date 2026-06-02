@@ -10,6 +10,7 @@ use Atrium\DataProvider\ArrayDataWriter;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Tests\Fixtures\Data\SampleData;
+use Atrium\Tests\Fixtures\Resource\ActionsTagResource;
 use Atrium\Tests\Fixtures\Resource\ConfirmTagResource;
 use Atrium\Tests\Fixtures\Resource\DehydrateTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
@@ -98,6 +99,10 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(WizardTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(ActionsTagResource::class)
             ->autoconfigure()
             ->autowire();
 

@@ -97,6 +97,7 @@ phase done.
 
 ## Definition of done (per change)
 
+- [ ] Code reviewed by a senior engineer
 - [ ] Tests added/updated and passing
 - [ ] PHPStan clean at max (baseline only for pre-existing debt)
 - [ ] PHP-CS-Fixer clean

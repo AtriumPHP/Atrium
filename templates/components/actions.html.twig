@@ -1,0 +1,14 @@
+{#
+    Renders a host's resolved action descriptors (see Action::toView). Each item
+    carries its own `template` (Action::getTemplate / ActionGroup::getTemplate),
+    so the host renders any action or group — including custom ones — without a
+    central switch. Reusable by any host (the table today; forms / pages later).
+    Params: actions (list of descriptors).
+#}
+{% if actions %}
+    <div class="inline-flex items-center justify-end gap-1">
+        {% for item in actions %}
+            {{ include(item.template, { action: item }) }}
+        {% endfor %}
+    </div>
+{% endif %}

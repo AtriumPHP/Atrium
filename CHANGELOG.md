@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Table **record actions** + a generic, view-agnostic **`Atrium\Action`**
+  subsystem (the shared base for table actions today; header/page/bulk actions
+  next).
+  - `Atrium\Action\Action` — a fluent action (`label`/`icon`/`color`,
+    `button()`/`link()`/`iconButton()` styles, `badge()`, `visible()`/`hidden()`,
+    `requiresConfirmation()`); it is either a **link** (`url()`) or a **server
+    action** (`action(Closure)`). `Atrium\Action\ActionGroup` renders a set as a
+    no-JS `<details>` dropdown. Both implement `ActionContract` so a host renders
+    and runs them polymorphically, and each declares its own `getTemplate()` so
+    custom actions/groups can ship their own renderer.
+  - Built-in table actions `Atrium\Table\Action\EditAction` (link to the edit
+    page) and `DeleteAction` (a confirmed server action that deletes through
+    `DataWriterInterface`). `AdminResource::recordActions()` declares them
+    (defaults to Edit); a resource picks any mix of links, server actions and
+    groups.
+  - `DataTable` renders the actions column and runs server actions via the
+    reusable `Atrium\Action\Concern\InteractsWithActions` trait: a **server-driven
+    confirmation** (no client JavaScript) gated by visibility on both request and
+    run, so a crafted request can neither surface nor execute a hidden action.
+    Rendering lives in reusable `components/action{,s,_group}.html.twig` partials.
 - Phase 0 boilerplate: installable Symfony 8.1 bundle skeleton.
   - `AtriumBundle` (`AbstractBundle`) with `path_prefix` / `brand` configuration
     and `atrium.resource` autoconfiguration.

@@ -10,6 +10,9 @@ namespace Atrium\DataProvider;
  */
 final class ArrayDataWriter implements DataWriterInterface
 {
+    /** @var list<object> entities passed to delete(), in order — for assertions */
+    public array $deleted = [];
+
     /**
      * @param array<class-string, list<object>> $records records indexed by entity class
      */
@@ -32,6 +35,7 @@ final class ArrayDataWriter implements DataWriterInterface
 
     public function delete(object $entity): void
     {
+        $this->deleted[] = $entity;
         $class = $entity::class;
         $this->records[$class] = array_values(array_filter(
             $this->records[$class] ?? [],
