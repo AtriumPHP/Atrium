@@ -4,9 +4,11 @@ How to build an admin panel with Atrium. These pages are written for developers
 **integrating** Atrium into a Symfony application — they document *how to use* the
 public API, not how it is implemented.
 
-> New to Atrium? Start with [`resources/overview.md`](resources/overview.md): a
-> resource is the single PHP class that describes how an entity appears in the
-> panel, and everything else hangs off it.
+> **New to Atrium?** Start with **[Getting started](getting-started.md)** — install
+> the bundle, mount the panel, and build your first resource end to end. Then read
+> [`resources/overview.md`](resources/overview.md): a resource is the single PHP
+> class that describes how an entity appears in the panel, and everything else
+> hangs off it.
 
 ## Modules
 
@@ -14,12 +16,13 @@ The guide is split by module (these mirror the planned package split):
 
 | Module | Covers |
 | --- | --- |
-| [`resources/`](resources/) | `AdminResource`, lifecycle hooks, authorization, navigation |
-| [`tables/`](tables/) | `TableConfiguration`, [`Column`](tables/columns.md) (incl. [relation columns](tables/columns.md#relation-columns)), filters, sorting, pagination |
-| [`forms/`](forms/) | `Schema`, fields, layout components, wizards |
-| [`actions/`](actions/) | `Action`, `ActionGroup`, record/header/bulk actions |
-| [`pages/`](pages/) | `Page` and the default List/Create/Edit pages |
-| [`data/`](data/) | `DataProviderInterface`, `DataWriterInterface`, `DataQuery`, [query scoping](data/query-scoping.md) |
+| [Getting started](getting-started.md) | Install, configure the panel, first resource |
+| [`resources/`](resources/overview.md) | [`AdminResource`](resources/overview.md), [authorization](resources/authorization.md), [lifecycle hooks](resources/lifecycle-hooks.md), [navigation](resources/navigation.md) |
+| [`tables/`](tables/table-configuration.md) | [Table configuration](tables/table-configuration.md), [columns](tables/columns.md) (incl. [relation columns](tables/columns.md#relation-columns)), [filters](tables/filters.md), [actions](tables/actions.md) |
+| [`forms/`](forms/overview.md) | [Overview](forms/overview.md), [fields](forms/fields.md), [layout](forms/layout.md), [tabs & wizards](forms/tabs-and-wizards.md), [validation](forms/validation.md), [reactivity](forms/reactivity.md), [content](forms/content.md) |
+| [`actions/`](actions/overview.md) | [`Action`, `ActionGroup`](actions/overview.md), record/header/bulk actions, built-ins |
+| [`pages/`](pages/overview.md) | [`Page`](pages/overview.md) and the default List/Create/Edit pages, post-save redirects |
+| [`data/`](data/providers.md) | [`DataProviderInterface`, `DataWriterInterface`, `DataQuery`](data/providers.md), [query scoping](data/query-scoping.md) |
 
 ## Page format (canonical template)
 
