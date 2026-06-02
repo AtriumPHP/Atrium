@@ -52,7 +52,7 @@ final class DataTable
     #[LiveProp(writable: true)]
     public int $page = 1;
 
-    #[LiveProp]
+    #[LiveProp(writable: true, onUpdated: 'onPerPageUpdated')]
     public int $perPage = 10;
 
     /**
@@ -79,11 +79,12 @@ final class DataTable
     ) {
     }
 
-    public function mount(string $resource, string $pathPrefix = '', int $perPage = 10): void
+    public function mount(string $resource, string $pathPrefix = '', ?int $perPage = null): void
     {
         $this->resource = $resource;
         $this->pathPrefix = $pathPrefix;
-        $this->perPage = $perPage;
+        // An explicit mount arg wins; otherwise take the resource's configured size.
+        $this->perPage = $perPage ?? $this->tableConfig()->getPerPage();
     }
 
     #[LiveAction]
@@ -93,15 +94,17 @@ final class DataTable
             return;
         }
 
-        if ($this->sortField === $field) {
-            $this->sortDirection = DataQuery::SORT_ASC === $this->sortDirection
-                ? DataQuery::SORT_DESC
-                : DataQuery::SORT_ASC;
+        // Toggle against the *active* sort, so clicking the column shown as sorted
+        // (even when that comes from the configured default) flips its direction.
+        if ($this->getActiveSortField() === $field) {
+            $this->sortDirection = DataQuery::SORT_DESC === $this->getActiveSortDirection()
+                ? DataQuery::SORT_ASC
+                : DataQuery::SORT_DESC;
         } else {
-            $this->sortField = $field;
             $this->sortDirection = DataQuery::SORT_ASC;
         }
 
+        $this->sortField = $field;
         $this->page = 1;
     }
 
@@ -109,6 +112,21 @@ final class DataTable
     public function gotoPage(#[LiveArg] int $page): void
     {
         $this->page = max(1, min($page, $this->getPageCount()));
+    }
+
+    /**
+     * Clamp a client-supplied page size to a configured choice (so a forged
+     * value cannot request an arbitrarily large page) and return to page one.
+     */
+    public function onPerPageUpdated(): void
+    {
+        $options = $this->tableConfig()->getPerPageOptions();
+        $allowed = [] !== $options ? $options : [$this->tableConfig()->getPerPage()];
+        if (!\in_array($this->perPage, $allowed, true)) {
+            $this->perPage = $this->tableConfig()->getPerPage();
+        }
+
+        $this->page = 1;
     }
 
     public function resetPage(): void
@@ -365,6 +383,37 @@ final class DataTable
         return $this->resource()->getLabel();
     }
 
+    /**
+     * The field the table is currently sorted by: the user's explicit sort if any,
+     * otherwise the resource's configured default (which need not be a sortable
+     * column). Null when neither applies.
+     */
+    public function getActiveSortField(): ?string
+    {
+        if (null !== $this->sortField && $this->isSortable($this->sortField)) {
+            return $this->sortField;
+        }
+
+        return $this->tableConfig()->getDefaultSortField();
+    }
+
+    public function getActiveSortDirection(): string
+    {
+        if (null !== $this->sortField && $this->isSortable($this->sortField)) {
+            return $this->sortDirection;
+        }
+
+        return $this->tableConfig()->getDefaultSortDirection();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function getPerPageOptions(): array
+    {
+        return $this->tableConfig()->getPerPageOptions();
+    }
+
     private function resource(): AdminResource
     {
         return $this->registry->getBySlug($this->resource);
@@ -429,15 +478,11 @@ final class DataTable
      */
     private function allMatchingQuery(): DataQuery
     {
-        $sortField = null !== $this->sortField && $this->isSortable($this->sortField)
-            ? $this->sortField
-            : null;
-
         return new DataQuery(
             search: $this->search,
             searchableFields: $this->searchableFields(),
-            sortField: $sortField,
-            sortDirection: $this->sortDirection,
+            sortField: $this->getActiveSortField(),
+            sortDirection: $this->getActiveSortDirection(),
             offset: 0,
             limit: max(1, $this->getTotalCount()),
         );
@@ -466,15 +511,11 @@ final class DataTable
 
     private function query(): DataQuery
     {
-        $sortField = null !== $this->sortField && $this->isSortable($this->sortField)
-            ? $this->sortField
-            : null;
-
         return new DataQuery(
             search: $this->search,
             searchableFields: $this->searchableFields(),
-            sortField: $sortField,
-            sortDirection: $this->sortDirection,
+            sortField: $this->getActiveSortField(),
+            sortDirection: $this->getActiveSortDirection(),
             offset: (max(1, $this->page) - 1) * $this->perPage,
             limit: $this->perPage,
         );

@@ -37,6 +37,15 @@ final class TableConfiguration
     /** @var list<Action> */
     private array $bulkActions = [];
 
+    private ?string $defaultSortField = null;
+
+    private string $defaultSortDirection = 'asc';
+
+    private int $perPage = 10;
+
+    /** @var list<int> */
+    private array $perPageOptions = [];
+
     public function __construct()
     {
         $this->recordActions = [EditAction::make()];
@@ -97,11 +106,68 @@ final class TableConfiguration
     }
 
     /**
+     * Sort the table by this field on first load, until the user picks another.
+     * The field need not be a `sortable()` column — it is trusted developer
+     * configuration. Direction is `asc` (default) or `desc`.
+     */
+    public function defaultSort(string $field, string $direction = 'asc'): static
+    {
+        $this->defaultSortField = $field;
+        $this->defaultSortDirection = 'desc' === strtolower($direction) ? 'desc' : 'asc';
+
+        return $this;
+    }
+
+    /**
+     * Set the page size, and optionally the choices offered in a per-page
+     * selector. Passing options renders the selector (the current `$perPage` is
+     * added to the choices if missing).
+     *
+     * @param list<int> $perPageOptions
+     */
+    public function paginated(int $perPage, array $perPageOptions = []): static
+    {
+        $this->perPage = max(1, $perPage);
+
+        $options = $perPageOptions;
+        if ([] !== $options && !\in_array($this->perPage, $options, true)) {
+            $options[] = $this->perPage;
+        }
+        sort($options);
+        $this->perPageOptions = $options;
+
+        return $this;
+    }
+
+    /**
      * @return list<Column>
      */
     public function getColumns(): array
     {
         return $this->columns;
+    }
+
+    public function getDefaultSortField(): ?string
+    {
+        return $this->defaultSortField;
+    }
+
+    public function getDefaultSortDirection(): string
+    {
+        return $this->defaultSortDirection;
+    }
+
+    public function getPerPage(): int
+    {
+        return $this->perPage;
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function getPerPageOptions(): array
+    {
+        return $this->perPageOptions;
     }
 
     /**

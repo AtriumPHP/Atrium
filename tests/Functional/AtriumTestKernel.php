@@ -14,6 +14,7 @@ use Atrium\Tests\Fixtures\Resource\ActionsTagResource;
 use Atrium\Tests\Fixtures\Resource\ConfirmTagResource;
 use Atrium\Tests\Fixtures\Resource\DehydrateTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
+use Atrium\Tests\Fixtures\Resource\PaginatedTagResource;
 use Atrium\Tests\Fixtures\Resource\TabsTagResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Atrium\Tests\Fixtures\Resource\WizardTagResource;
@@ -99,6 +100,10 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(WizardTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(PaginatedTagResource::class)
             ->autoconfigure()
             ->autowire();
 

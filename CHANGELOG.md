@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Table-level **default sort** and **configurable page size** on
+  `TableConfiguration`: `->defaultSort('field', 'desc')` orders the first load
+  (until the user sorts; the field need not be a sortable column), and
+  `->paginated(25, [10, 25, 50])` sets the page size and, given options, renders a
+  per-page selector. A client-supplied page size is clamped to a configured
+  choice, so a forged value cannot request an arbitrarily large page.
 - Table **header actions** and **bulk / row-selection actions** (TBL-09, TBL-10),
   built on the existing `Atrium\Action` subsystem.
   - Configured via `TableConfiguration::headerActions()` (defaults to a
