@@ -7,11 +7,22 @@ polished, reactive UI with **no JavaScript build step and no separate API**.
 Reactivity is delivered server-side via Symfony UX Live Components; styling via
 Tailwind.
 
-> **Status: Phase 0 boilerplate.** This package currently contains the bundle
-> skeleton, the core value objects/contracts, and the engineering harness. The
-> reactive panel, tables, forms, actions, infolists, widgets and notifications
-> arrive in subsequent phases. See [`docs/PRD.md`](docs/PRD.md) for the full
-> roadmap and [`CLAUDE.md`](CLAUDE.md) for the conventions.
+> **Status: pre-1.0, under active development.** The reactive panel, tables,
+> forms (fields, layout, tabs/wizards, validation, reactivity), actions, query
+> scoping and the full resource lifecycle are implemented and tested. See the
+> **[integration guide](docs/integration-guide/)** to build with it, the
+> [`CHANGELOG`](CHANGELOG.md) for what's landed, and [`docs/PRD.md`](docs/PRD.md)
+> for the roadmap.
+
+## Documentation
+
+The **[integration guide](docs/integration-guide/)** is the place to start —
+[install and build your first resource](docs/integration-guide/getting-started.md),
+then dive into [resources](docs/integration-guide/resources/overview.md),
+[tables](docs/integration-guide/tables/table-configuration.md),
+[forms](docs/integration-guide/forms/overview.md),
+[actions](docs/integration-guide/actions/overview.md) and
+[data](docs/integration-guide/data/providers.md).
 
 ## Requirements
 
@@ -34,14 +45,18 @@ return [
 ];
 ```
 
-## Defining a resource (target DX)
+## Defining a resource
 
-The framework's promise is "configured in PHP like Filament". Small resources
-inline their configuration:
+A resource is one PHP class per entity — point it at the entity, describe the
+table and the form, and Atrium discovers it automatically (no tags, no YAML) and
+serves a full CRUD screen:
 
 ```php
+use Atrium\Form\Field\TextField;
+use Atrium\Form\Schema;
 use Atrium\Resource\AdminResource;
 use Atrium\Table\Column;
+use Atrium\Table\TableConfiguration;
 
 final class TagResource extends AdminResource
 {
@@ -50,30 +65,29 @@ final class TagResource extends AdminResource
         return Tag::class;
     }
 
-    public function columns(): array
+    public function table(TableConfiguration $table): TableConfiguration
     {
-        return [
+        return $table->columns([
             Column::make('name')->sortable()->searchable(),
             Column::make('slug'),
-        ];
+        ]);
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema->fields([
+            TextField::make('name')->required(),
+            TextField::make('slug')->required(),
+        ]);
     }
 }
 ```
 
-Resources are auto-discovered via autoconfiguration — no manual registration,
-tags, or YAML. Non-trivial resources delegate to dedicated `Tables/`, `Schemas/`
-and `Pages/` classes (see the PRD §9b); that layout lands with the forms phase.
-
-## What's in the box today
-
-| Component | Description |
-| --- | --- |
-| `Atrium\AtriumBundle` | The bundle: configuration + autoconfiguration wiring. |
-| `Atrium\Resource\AdminResource` | Abstract base for resources (public API contract). |
-| `Atrium\Resource\ResourceRegistry` | Slug + class lookup, fed by the `atrium.resource` tag. |
-| `Atrium\Table\Column` | Fluent, Doctrine-agnostic column value object. |
-| `Atrium\DataProvider\DataProviderInterface` | Backend-agnostic read contract. |
-| `Atrium\DataProvider\DoctrineDataProvider` | Default Doctrine ORM adapter (stub). |
+That's a searchable, sortable, paginated list with Edit/New actions and a
+validated create/edit form, at `/admin/tag`. Non-trivial resources delegate to
+dedicated `Tables/`, `Schemas/` and `Pages/` classes; small ones inline as above.
+See the [getting-started guide](docs/integration-guide/getting-started.md) for the
+full walkthrough.
 
 ## Quality gates
 
