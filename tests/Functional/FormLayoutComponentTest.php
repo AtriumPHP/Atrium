@@ -46,6 +46,32 @@ final class FormLayoutComponentTest extends KernelTestCase
         self::assertStringContainsString('atrium_kind', $html);
     }
 
+    public function testClosureVisibilityReactsToALiveField(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag']);
+
+        // "cultivar" is hidden until kind is "fruit".
+        $hidden = $component->render()->toString();
+        self::assertStringNotContainsString('atrium_cultivar', $hidden);
+
+        $shown = $component->set('formData', ['kind' => 'fruit'])->render()->toString();
+        self::assertStringContainsString('atrium_cultivar', $shown);
+
+        $gone = $component->set('formData', ['kind' => 'tool'])->render()->toString();
+        self::assertStringNotContainsString('atrium_cultivar', $gone);
+    }
+
+    public function testOperationVisibility(): void
+    {
+        $create = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag'])
+            ->render()->toString();
+        self::assertStringNotContainsString('atrium_notes', $create);
+
+        $edit = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag', 'entityId' => '3'])
+            ->render()->toString();
+        self::assertStringContainsString('atrium_notes', $edit);
+    }
+
     public function testLayoutFormStillPersists(): void
     {
         $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag']);

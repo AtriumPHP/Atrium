@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atrium\Form\Field;
 
+use Atrium\Form\Concern\HasVisibility;
 use Atrium\Layout\Component;
 use Atrium\Layout\Concern\HasColumnSpan;
 use Atrium\Layout\Concern\HasGrow;
@@ -29,6 +30,7 @@ abstract class Field implements Component
 {
     use HasColumnSpan;
     use HasGrow;
+    use HasVisibility;
 
     protected ?string $label = null;
 

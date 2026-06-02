@@ -86,6 +86,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     in responsive grids; grid utilities are safelisted in `assets/atrium.css`
     (`@source inline(...)`) since they're composed in PHP.
   - Forms v2 PRD addendum updated to mark M1 delivered.
+- Forms v2 / M2 — conditional field visibility (`FRM-08`, `FRM-09`) + the `Get`
+  state accessor (`FRM-11`).
+  - `Atrium\Form\Get` — an invokable read accessor over the form state
+    (`$get('field')`), handed to field callbacks.
+  - `Atrium\Form\Concern\HasVisibility` on `Field`: `visible(bool|Closure)`,
+    `hidden(bool|Closure)`, `visibleOn(op)`, `hiddenOn(op)` — all
+    **server-evaluated** during the Live Component re-render (no client logic).
+  - The `Form` component filters hidden fields out of the render tree (cloning
+    containers, dropping any left empty) and skips them in validation/hydration;
+    it exposes `operation()` (`create`/`edit`).
 - Content components (`CNT-01..03`) — static building blocks for a schema
   (`Atrium\Content\Text`, `UnorderedList`, `Image`). They implement the shared
   `Atrium\Layout\Component` contract but carry no form state: never hydrated or

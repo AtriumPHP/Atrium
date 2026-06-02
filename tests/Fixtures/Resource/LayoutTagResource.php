@@ -8,6 +8,7 @@ use Atrium\Content\Text;
 use Atrium\Form\Field\CheckboxField;
 use Atrium\Form\Field\SelectField;
 use Atrium\Form\Field\TextField;
+use Atrium\Form\Get;
 use Atrium\Form\Schema;
 use Atrium\Layout\Flex;
 use Atrium\Layout\Section;
@@ -42,10 +43,14 @@ final class LayoutTagResource extends AdminResource
                         ->columnSpanFull(),
                     TextField::make('name')->required(),
                     TextField::make('slug')->columnSpanFull(),
+                    // Operation-aware visibility (FRM-09): only shown when editing.
+                    TextField::make('notes')->visibleOn('edit')->columnSpanFull(),
                 ]),
             Flex::make()->from('md')->schema([
                 CheckboxField::make('active'),
                 SelectField::make('kind')->options(['fruit' => 'Fruit', 'tool' => 'Tool'])->live()->grow(false),
+                // Conditional visibility (FRM-08): only when kind is "fruit".
+                TextField::make('cultivar')->visible(static fn (Get $get): bool => 'fruit' === $get('kind')),
             ]),
         ]);
     }

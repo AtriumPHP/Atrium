@@ -8,8 +8,10 @@ use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Form\Field\Field;
 use Atrium\Form\Field\SelectField;
+use Atrium\Form\Get;
 use Atrium\Form\Schema;
 use Atrium\Layout\Component;
+use Atrium\Layout\LayoutComponent;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -79,8 +81,14 @@ final class Form
         $this->errors = [];
         $this->saved = false;
         $normalized = [];
+        $get = new Get($this->formData);
+        $operation = $this->operation();
 
         foreach ($this->getFields() as $field) {
+            if (!$field->isVisible($get, $operation)) {
+                continue; // hidden fields are not validated (FRM-08)
+            }
+
             $value = $field->normalize($this->formData[$field->getName()] ?? null);
             $normalized[$field->getName()] = $value;
 
@@ -97,8 +105,8 @@ final class Form
         $entity = $this->loadEntity() ?? $this->newEntity();
 
         foreach ($this->getFields() as $field) {
-            if ($field->isDisabled()) {
-                continue;
+            if ($field->isDisabled() || !$field->isVisible($get, $operation)) {
+                continue; // hidden fields are not persisted
             }
             if ($this->accessor->isWritable($entity, $field->getName())) {
                 $this->accessor->setValue($entity, $field->getName(), $normalized[$field->getName()]);
@@ -122,13 +130,26 @@ final class Form
     }
 
     /**
-     * The top-level schema tree, for rendering (fields + layout containers).
+     * The schema tree for rendering, with fields hidden by `visible()`/
+     * `hiddenOn()` filtered out (and containers left empty by them dropped).
      *
      * @return list<Component>
      */
     public function getComponents(): array
     {
-        return $this->schema()->getComponents();
+        return $this->filterVisible(
+            $this->schema()->getComponents(),
+            new Get($this->formData),
+            $this->operation(),
+        );
+    }
+
+    /**
+     * The current form operation: `create` (new record) or `edit` (FRM-09).
+     */
+    public function operation(): string
+    {
+        return null === $this->entityId ? 'create' : 'edit';
     }
 
     /**
@@ -184,6 +205,46 @@ final class Form
         }
 
         return $data;
+    }
+
+    /**
+     * Recursively drop hidden fields and any container they leave empty. Layout
+     * containers are cloned so the cached schema is never mutated.
+     *
+     * @param list<Component> $components
+     *
+     * @return list<Component>
+     */
+    private function filterVisible(array $components, Get $get, string $operation): array
+    {
+        $visible = [];
+
+        foreach ($components as $component) {
+            if ($component instanceof Field) {
+                if ($component->isVisible($get, $operation)) {
+                    $visible[] = $component;
+                }
+
+                continue;
+            }
+
+            if ($component instanceof LayoutComponent) {
+                $children = $this->filterVisible($component->getChildComponents(), $get, $operation);
+                if ([] === $children) {
+                    continue;
+                }
+
+                $clone = clone $component;
+                $clone->schema($children);
+                $visible[] = $clone;
+
+                continue;
+            }
+
+            $visible[] = $component; // content nodes are always visible (M2)
+        }
+
+        return $visible;
     }
 
     private function schema(): Schema

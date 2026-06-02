@@ -116,20 +116,21 @@ the keystone change here; everything else composes onto it.
 
 ### 4.2 Field-level capabilities — `FRM` (continued)
 
-- **FRM-08** **Conditional visibility** — `->visible(bool|Closure)` /
+- **FRM-08** **Conditional visibility — ✅ delivered.** `->visible(bool|Closure)` /
   `->hidden(bool|Closure)`. The closure is **server-evaluated** during render and
-  receives a `Get` accessor (and the current operation). Hidden fields are not
-  rendered and **not validated**.
-- **FRM-09** **Operation-aware visibility** — `->visibleOn(string|array)` /
-  `->hiddenOn(string|array)` where operation ∈ `create` | `edit` | `view`. The
-  `Form` component exposes the current operation (it already knows `isEdit()`).
+  receives a `Get` accessor. Hidden fields are not rendered, **not validated**
+  and not persisted; a container left empty by hidden fields is dropped.
+- **FRM-09** **Operation-aware visibility — ✅ delivered.** `->visibleOn(string|array)` /
+  `->hiddenOn(string|array)` where operation ∈ `create` | `edit` (`view` arrives
+  with view pages). The `Form` component exposes `operation()`.
 - **FRM-10** **Cross-field reactivity** — `->afterStateUpdated(Closure)` on a
   `->live()` field. Receives `($state, Get $get, Set $set)` and may mutate other
   fields (e.g. derive `slug` from `name`). Runs during the live re-render.
 - **FRM-11** **State accessors** — a `Get` and `Set` value object over the form
   state, replacing raw `$formData` array access in callbacks
   (`optionsUsing`, `visible`, `afterStateUpdated`). `$get('field')` reads;
-  `$set('field', value)` writes. (Stretch: typed reads `$get->int()`,
+  `$set('field', value)` writes. **`Get` ✅ delivered** (`Atrium\Form\Get`,
+  invokable); `Set` lands with M3. (Stretch: typed reads `$get->int()`,
   `$get->bool()`, …, matching Filament.)
 - **FRM-12** **Fluent validation helpers** compiling to Symfony constraints, so
   common rules read fluently and are IDE-discoverable instead of
@@ -303,9 +304,13 @@ Phase 2), before Actions.
   works inside a grid); nested layout works; flat `fields([...])` is unchanged.
   *Deferred to a later milestone:* responsive `columnSpan` arrays,
   `columnStart`/`columnOrder`, Section `aside`/`icon`, Tabs/Wizard (`SCH-10`).
-- **M2 — Conditional visibility (`FRM-08, FRM-09, FRM-11 Get`).** Server-evaluated
-  `visible/hidden/visibleOn/hiddenOn`; hidden fields skip validation. *Acceptance:*
-  a field appears/disappears on a `->live()` change and per operation.
+- **M2 — Conditional visibility (`FRM-08, FRM-09, `Get` of `FRM-11`) — ✅ delivered.**
+  Server-evaluated `visible/hidden/visibleOn/hiddenOn` via the invokable
+  `Atrium\Form\Get`; the Form filters hidden fields from the render tree and skips
+  them in validation/hydration; empty containers are dropped. Also covered: the
+  three content components from §4.4 (`CNT-01..03`). *Verified:* a field
+  appears/disappears on a `->live()` change (subcategory follows category) and per
+  operation (`visibleOn('edit')`); hidden fields are not validated.
 - **M3 — Reactivity + validation DX (`FRM-10, FRM-11 Set, FRM-12, FRM-13`).**
   `afterStateUpdated`, `Get`/`Set`, fluent validation helpers, placeholder/
   autofocus/hiddenLabel. *Acceptance:* name→slug demo works; `maxLength()` rejects.
