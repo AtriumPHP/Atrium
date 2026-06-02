@@ -58,4 +58,26 @@ final class ArrayDataProviderTest extends TestCase
         self::assertInstanceOf(Tag::class, $rows[0]);
         self::assertSame(30, $rows[0]->id);
     }
+
+    public function testFindResolvesByIdAndMissesAreNull(): void
+    {
+        $found = $this->provider->find(Tag::class, '7');
+
+        self::assertInstanceOf(Tag::class, $found);
+        self::assertSame(7, $found->id);
+        self::assertNull($this->provider->find(Tag::class, '999'));
+    }
+
+    public function testFindAppliesScopeFilters(): void
+    {
+        $provider = new ArrayDataProvider([Tag::class => [
+            new Tag(1, 'Mine', 'mine', kind: 'a'),
+            new Tag(2, 'Theirs', 'theirs', kind: 'b'),
+        ]]);
+
+        // In scope: resolves as usual.
+        self::assertNotNull($provider->find(Tag::class, '1', ['kind' => 'a']));
+        // Out of scope: invisible even though the id exists.
+        self::assertNull($provider->find(Tag::class, '2', ['kind' => 'a']));
+    }
 }

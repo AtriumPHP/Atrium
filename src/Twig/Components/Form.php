@@ -555,9 +555,17 @@ class Form
 
     private function loadEntity(): ?object
     {
-        return null === $this->entityId
-            ? null
-            : $this->dataProvider->find($this->entityClass(), $this->entityId);
+        if (null === $this->entityId) {
+            return null;
+        }
+
+        // Resolve within the resource's scope: an id outside scopeQuery() is not
+        // editable through this form even when posted straight to its endpoint.
+        return $this->dataProvider->find(
+            $this->entityClass(),
+            $this->entityId,
+            $this->resourceObject()->scopeFilters(),
+        );
     }
 
     private function newEntity(): object

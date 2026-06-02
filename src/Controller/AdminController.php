@@ -71,7 +71,13 @@ final readonly class AdminController
         $resourceObject = $this->requireResource($resource);
 
         if (null !== $this->dataProvider) {
-            $record = $this->dataProvider->find($resourceObject->getEntityClass(), $id);
+            // Scoped resolution: an id outside the resource's scope is a 404 here,
+            // the same as it is absent from the list.
+            $record = $this->dataProvider->find(
+                $resourceObject->getEntityClass(),
+                $id,
+                $resourceObject->scopeFilters(),
+            );
             if (null === $record) {
                 throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
             }

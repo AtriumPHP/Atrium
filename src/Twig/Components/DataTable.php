@@ -309,7 +309,7 @@ final class DataTable
 
     protected function canExecuteAction(Action $action, string $subjectId): bool
     {
-        $record = $this->dataProvider->find($this->entityClass(), $subjectId);
+        $record = $this->findRecord($subjectId);
 
         return null !== $record && $action->isVisibleFor($record) && $this->actionAuthorized($action, $record);
     }
@@ -317,7 +317,7 @@ final class DataTable
     protected function executeAction(Action $action, string $subjectId): void
     {
         $handler = $action->getHandler();
-        $record = $this->dataProvider->find($this->entityClass(), $subjectId);
+        $record = $this->findRecord($subjectId);
         if (null === $handler || null === $record
             || !$action->isVisibleFor($record) || !$this->actionAuthorized($action, $record)) {
             return;
@@ -629,7 +629,7 @@ final class DataTable
 
         $records = [];
         foreach ($this->selected as $id) {
-            $record = $this->dataProvider->find($class, $id);
+            $record = $this->findRecord($id);
             if (null !== $record) {
                 $records[] = $record;
             }
@@ -639,12 +639,22 @@ final class DataTable
     }
 
     /**
+     * Resolve a single record by id within the resource's scope — an id outside
+     * {@see AdminResource::scopeQuery()} resolves to null, so a forged action
+     * request cannot reach a record the list would never show.
+     */
+    private function findRecord(string $id): ?object
+    {
+        return $this->dataProvider->find($this->entityClass(), $id, $this->resource()->scopeFilters());
+    }
+
+    /**
      * The current query without pagination, to enumerate every matching record
      * for a select-all bulk action.
      */
     private function allMatchingQuery(): DataQuery
     {
-        return new DataQuery(
+        return $this->resource()->scopeQuery(new DataQuery(
             search: $this->search,
             searchableFields: $this->searchableFields(),
             sortField: $this->getActiveSortField(),
@@ -652,7 +662,7 @@ final class DataTable
             offset: 0,
             limit: max(1, $this->getTotalCount()),
             filters: $this->resolvedFilters(),
-        );
+        ));
     }
 
     /**
@@ -678,7 +688,7 @@ final class DataTable
 
     private function query(): DataQuery
     {
-        return new DataQuery(
+        return $this->resource()->scopeQuery(new DataQuery(
             search: $this->search,
             searchableFields: $this->searchableFields(),
             sortField: $this->getActiveSortField(),
@@ -686,7 +696,7 @@ final class DataTable
             offset: (max(1, $this->page) - 1) * $this->perPage,
             limit: $this->perPage,
             filters: $this->resolvedFilters(),
-        );
+        ));
     }
 
     /**

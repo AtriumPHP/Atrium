@@ -35,4 +35,30 @@ final class DataQueryTest extends TestCase
         self::assertSame('desc', (new DataQuery(sortDirection: 'DESC'))->normalizedSortDirection());
         self::assertSame('asc', (new DataQuery(sortDirection: 'nonsense'))->normalizedSortDirection());
     }
+
+    public function testWithFiltersMergesAndPreservesTheRestOfTheQuery(): void
+    {
+        $base = new DataQuery(
+            search: 'abc',
+            searchableFields: ['name'],
+            sortField: 'name',
+            sortDirection: 'desc',
+            offset: 10,
+            limit: 5,
+            filters: ['tenantId' => 7],
+        );
+
+        $scoped = $base->withFilters(['deletedAt' => null, 'tenantId' => 9]);
+
+        // Other facets are carried over untouched...
+        self::assertSame('abc', $scoped->search);
+        self::assertSame(['name'], $scoped->searchableFields);
+        self::assertSame('name', $scoped->sortField);
+        self::assertSame(10, $scoped->offset);
+        self::assertSame(5, $scoped->limit);
+        // ...and the new conditions merge, last value winning per field.
+        self::assertSame(['tenantId' => 9, 'deletedAt' => null], $scoped->filters);
+        // The original is untouched (immutable).
+        self::assertSame(['tenantId' => 7], $base->filters);
+    }
 }

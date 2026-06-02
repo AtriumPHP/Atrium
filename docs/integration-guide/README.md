@@ -19,7 +19,7 @@ The guide is split by module (these mirror the planned package split):
 | [`forms/`](forms/) | `Schema`, fields, layout components, wizards |
 | [`actions/`](actions/) | `Action`, `ActionGroup`, record/header/bulk actions |
 | [`pages/`](pages/) | `Page` and the default List/Create/Edit pages |
-| [`data/`](data/) | `DataProviderInterface`, `DataWriterInterface`, `DataQuery` |
+| [`data/`](data/) | `DataProviderInterface`, `DataWriterInterface`, `DataQuery`, [query scoping](data/query-scoping.md) |
 
 ## Page format (canonical template)
 

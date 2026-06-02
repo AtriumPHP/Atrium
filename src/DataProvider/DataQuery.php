@@ -34,6 +34,27 @@ final readonly class DataQuery
     }
 
     /**
+     * A copy of this query with extra equality conditions merged in, last value
+     * winning per field. Used by {@see \Atrium\Resource\AdminResource::scopeQuery()}
+     * to add scope (tenant, ownership, soft-delete) without reconstructing the
+     * whole immutable query.
+     *
+     * @param array<string, scalar|bool|null> $filters
+     */
+    public function withFilters(array $filters): self
+    {
+        return new self(
+            search: $this->search,
+            searchableFields: $this->searchableFields,
+            sortField: $this->sortField,
+            sortDirection: $this->sortDirection,
+            offset: $this->offset,
+            limit: $this->limit,
+            filters: [...$this->filters, ...$filters],
+        );
+    }
+
+    /**
      * Whether a non-empty search term should be applied to at least one field.
      */
     public function hasSearch(): bool

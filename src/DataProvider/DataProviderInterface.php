@@ -35,7 +35,15 @@ interface DataProviderInterface
     /**
      * Load a single record by its identifier, or null if not found.
      *
-     * @param class-string $entityClass
+     * When `$filters` is non-empty the record must also satisfy every equality
+     * condition (the same field => value contract as {@see DataQuery::$filters}),
+     * so a resource's {@see \Atrium\Resource\AdminResource::scopeQuery()} scope
+     * applies to record resolution too: an id outside the scope resolves to null,
+     * not just an unactionable row. Implementations MUST bind the values as
+     * parameters; the field names come from trusted developer configuration.
+     *
+     * @param class-string                    $entityClass
+     * @param array<string, scalar|bool|null> $filters     trusted field => equality value scope conditions
      */
-    public function find(string $entityClass, int|string $id): ?object;
+    public function find(string $entityClass, int|string $id, array $filters = []): ?object;
 }

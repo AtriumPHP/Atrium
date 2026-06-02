@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Query scoping** via `AdminResource::scopeQuery(DataQuery): DataQuery` (default
+  no-op). Returns a query narrowed to the records the resource exposes
+  (multi-tenancy, ownership, soft-deletes) using `DataQuery::withFilters([...])`.
+  The scope is applied to the list, the count, select-all bulk actions, **and**
+  single-record resolution — so an out-of-scope id resolves to `null` (the edit
+  page 404s; a forged action finds nothing). Unlike the authorization hooks
+  (which hide actions on a still-visible row), scoping removes rows entirely.
+  Docs: `docs/integration-guide/data/query-scoping.md`. **Public Resource API
+  addition.**
+
 - **Authorization hooks** on `AdminResource` (`canViewAny`, `canCreate`,
   `canEdit`, `canDelete`, `canView`, dispatched via `can()`). Enforced server-side
   in three places: the controller returns **403** for a denied list/create/edit
@@ -29,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`DataProviderInterface::find()` gained an optional `array $filters = []`**
+  parameter so record resolution can be scoped (see query scoping above). Callers
+  are unaffected; custom data-provider implementations must add the parameter.
+  Both built-in providers (Doctrine, array) honour it. **Public contract change.**
 - **Table configuration is now a single `table(TableConfiguration $table)` hook**
   on `AdminResource`, mirroring `form(Schema $schema): Schema`. It replaces the
   separate `columns()` / `recordActions()` / `headerActions()` / `bulkActions()`

@@ -44,13 +44,23 @@ final class ArrayDataProvider implements DataProviderInterface
         return \count($this->filtered($entityClass, $query));
     }
 
-    public function find(string $entityClass, int|string $id): ?object
+    public function find(string $entityClass, int|string $id, array $filters = []): ?object
     {
         foreach ($this->records[$entityClass] ?? [] as $record) {
             $recordId = $this->read($record, 'id');
-            if (null !== $recordId && (string) $id === $this->scalarToString($recordId)) {
-                return $record;
+            if (null === $recordId || (string) $id !== $this->scalarToString($recordId)) {
+                continue;
             }
+
+            // A scoped lookup: the record must also satisfy every scope condition,
+            // otherwise an out-of-scope id is invisible (resolves to null).
+            foreach ($filters as $field => $value) {
+                if (!$this->matchesFilter($record, $field, $value)) {
+                    return null;
+                }
+            }
+
+            return $record;
         }
 
         return null;

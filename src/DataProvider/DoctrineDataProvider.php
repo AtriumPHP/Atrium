@@ -48,9 +48,24 @@ final readonly class DoctrineDataProvider implements DataProviderInterface
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function find(string $entityClass, int|string $id): ?object
+    public function find(string $entityClass, int|string $id, array $filters = []): ?object
     {
-        return $this->entityManager->find($entityClass, $id);
+        // No scope: the identity map makes em->find the fast, cache-friendly path.
+        if ([] === $filters) {
+            return $this->entityManager->find($entityClass, $id);
+        }
+
+        // A scoped lookup: the record must match its id *and* every scope
+        // condition, so an out-of-scope id resolves to null.
+        $idField = $this->entityManager->getClassMetadata($entityClass)->getSingleIdentifierFieldName();
+        $qb = $this->entityManager->getRepository($entityClass)->createQueryBuilder(self::ALIAS);
+        $qb->where($qb->expr()->eq(self::ALIAS.'.'.$idField, ':atrium_id'))
+            ->setParameter('atrium_id', $id);
+        $this->applyFilters($qb, $filters);
+
+        $result = $qb->getQuery()->getOneOrNullResult();
+
+        return \is_object($result) ? $result : null;
     }
 
     /**
@@ -71,8 +86,21 @@ final readonly class DoctrineDataProvider implements DataProviderInterface
             $qb->andWhere($orX);
         }
 
+        $this->applyFilters($qb, $query->filters);
+
+        return $qb;
+    }
+
+    /**
+     * Apply equality (and IS NULL) scope/filter conditions, binding every value
+     * as a parameter — field names come from trusted developer configuration.
+     *
+     * @param array<string, scalar|bool|null> $filters
+     */
+    private function applyFilters(QueryBuilder $qb, array $filters): void
+    {
         $index = 0;
-        foreach ($query->filters as $field => $value) {
+        foreach ($filters as $field => $value) {
             $column = self::ALIAS.'.'.$field;
             if (null === $value) {
                 $qb->andWhere($qb->expr()->isNull($column));
@@ -84,7 +112,5 @@ final readonly class DoctrineDataProvider implements DataProviderInterface
             $qb->andWhere($qb->expr()->eq($column, ':'.$parameter));
             $qb->setParameter($parameter, $value);
         }
-
-        return $qb;
     }
 }

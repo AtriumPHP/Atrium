@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atrium\Resource;
 
+use Atrium\DataProvider\DataQuery;
 use Atrium\Form\Schema;
 use Atrium\Layout\Component;
 use Atrium\Layout\Wizard;
@@ -106,6 +107,41 @@ abstract class AdminResource
             'delete' => null !== $record && $this->canDelete($record),
             default => true,
         };
+    }
+
+    // -- Query scoping ---------------------------------------------------------
+    //
+    // Override scopeQuery() to constrain *which* records this resource exposes —
+    // multi-tenancy, ownership, soft-deletes. Unlike the authorization hooks
+    // (which hide actions on a row the user can still see), scoping removes the
+    // rows entirely: it is applied to the list, the count, select-all, and to
+    // record resolution (edit/actions), so an out-of-scope id resolves to null.
+
+    /**
+     * Narrow the records this resource exposes by returning a query with extra
+     * equality conditions. Use {@see DataQuery::withFilters()} to add them, e.g.
+     * `return $query->withFilters(['tenantId' => $this->tenant, 'deletedAt' => null]);`.
+     *
+     * Scope is expressed as `field => value` equality (with `null` meaning IS
+     * NULL) — enough for tenant/owner/soft-delete. Returns the query unchanged by
+     * default (no scoping). Field names must be trusted developer configuration;
+     * values are bound as parameters by the data provider.
+     */
+    public function scopeQuery(DataQuery $query): DataQuery
+    {
+        return $query;
+    }
+
+    /**
+     * The scope's equality conditions alone, derived from {@see scopeQuery()} —
+     * used to scope single-record resolution (`find`) so the same boundary that
+     * filters the list also hides out-of-scope ids. Not an extension point.
+     *
+     * @return array<string, scalar|bool|null>
+     */
+    final public function scopeFilters(): array
+    {
+        return $this->scopeQuery(new DataQuery())->filters;
     }
 
     // -- Record lifecycle hooks ------------------------------------------------
