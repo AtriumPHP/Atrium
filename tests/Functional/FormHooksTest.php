@@ -58,6 +58,35 @@ final class FormHooksTest extends KernelTestCase
         self::assertSame([], $this->writer()->records[Tag::class] ?? []);
     }
 
+    public function testEditingAVanishedRecordWritesNothing(): void
+    {
+        // entityId that no longer resolves must not create a blank entity.
+        $component = $this->createLiveComponent('Atrium:Form', [
+            'resource' => 'hooked-tag',
+            'entityId' => '999999',
+        ]);
+        $component->set('formData', ['name' => 'Ghost', 'slug' => '']);
+        $component->call('save');
+
+        self::assertSame([], HookedTagResource::$beforeSaved);
+        self::assertSame([], $this->writer()->records[Tag::class] ?? []);
+    }
+
+    public function testEditFormDoesNotExposeAnUneditableRecord(): void
+    {
+        HookedTagResource::$allowEdit = false;
+
+        $component = $this->createLiveComponent('Atrium:Form', [
+            'resource' => 'hooked-tag',
+            'entityId' => '3',
+        ]);
+
+        // The record's data must not be hydrated into the form.
+        $instance = $component->component();
+        self::assertInstanceOf(\Atrium\Twig\Components\Form::class, $instance);
+        self::assertSame([], $instance->formData);
+    }
+
     private function writer(): ArrayDataWriter
     {
         $writer = self::getContainer()->get(ArrayDataWriter::class);

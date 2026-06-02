@@ -71,6 +71,27 @@ final class DataTableAuthorizationTest extends KernelTestCase
         self::assertContains('tag-03', HookedTagResource::$deleted);
     }
 
+    public function testBulkActionRefusedWhenPanelAbilityDenied(): void
+    {
+        HookedTagResource::$allowCreate = false;
+
+        $component = $this->table();
+        $component->call('toggleRecord', ['id' => '3']);
+        // 'touch' is gated by the 'create' ability — a forged request must not run it.
+        $component->call('requestBulkAction', ['name' => 'touch']);
+
+        self::assertFalse(HookedTagResource::$bulkRan);
+    }
+
+    public function testBulkActionRunsWhenPanelAbilityAllowed(): void
+    {
+        $component = $this->table();
+        $component->call('toggleRecord', ['id' => '3']);
+        $component->call('requestBulkAction', ['name' => 'touch']);
+
+        self::assertTrue(HookedTagResource::$bulkRan);
+    }
+
     private function table(): TestLiveComponent
     {
         return $this->createLiveComponent('Atrium:DataTable', [

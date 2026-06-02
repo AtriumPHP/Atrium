@@ -368,6 +368,13 @@ final class DataTable
         return $this->resource()->can($ability, null);
     }
 
+    protected function bulkActionAuthorized(Action $action): bool
+    {
+        // Panel-level abilities are decided here; record-scoped ones are filtered
+        // per record in runBulkAction().
+        return $this->standaloneAuthorized($action);
+    }
+
     protected function findBulkAction(string $name): ?Action
     {
         foreach ($this->getBulkActions() as $action) {

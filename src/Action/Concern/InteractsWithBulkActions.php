@@ -284,7 +284,21 @@ trait InteractsWithBulkActions
      */
     private function canRunBulkAction(Action $action): bool
     {
-        return $action->isServerAction() && $action->isVisible() && $this->hasSelection();
+        return $action->isServerAction()
+            && $action->isVisible()
+            && $this->hasSelection()
+            && $this->bulkActionAuthorized($action);
+    }
+
+    /**
+     * Whether the host authorizes this bulk action at execution. Default allows;
+     * a host that gates actions by a resource ability overrides this so a forged
+     * `requestBulkAction` cannot run an action hidden from the bar. Record-scoped
+     * abilities are still filtered per record by the host when it runs the action.
+     */
+    protected function bulkActionAuthorized(Action $action): bool
+    {
+        return true;
     }
 
     /**

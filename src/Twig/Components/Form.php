@@ -124,7 +124,14 @@ class Form
             return null; // invalid: keep the last values, surface errors
         }
 
-        $entity = $this->loadEntity() ?? $this->newEntity();
+        if (null === $this->entityId) {
+            $entity = $this->newEntity();
+        } else {
+            $entity = $this->loadEntity();
+            if (null === $entity) {
+                return null; // the record vanished between load and save — never write a blank one
+            }
+        }
 
         // Authorize server-side: the page guard can be bypassed by posting
         // straight to this Live action, so re-check the ability here.
@@ -322,6 +329,13 @@ class Form
     private function initialFormData(): array
     {
         $entity = $this->loadEntity();
+
+        // Do not expose a record's data to someone who may not edit it — the Form
+        // can be mounted directly via its Live endpoint, bypassing the page guard.
+        if (null !== $entity && !$this->resourceObject()->canEdit($entity)) {
+            return [];
+        }
+
         $data = [];
 
         foreach ($this->getFields() as $field) {

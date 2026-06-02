@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Atrium\Tests\Fixtures\Resource;
 
+use Atrium\Action\Action;
+use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Form\Field\TextField;
 use Atrium\Form\Schema;
 use Atrium\Resource\AdminResource;
@@ -39,6 +41,8 @@ final class HookedTagResource extends AdminResource
     /** @var list<string> */
     public static array $deleted = [];
 
+    public static bool $bulkRan = false;
+
     public static function reset(): void
     {
         self::$allowCreate = true;
@@ -47,6 +51,7 @@ final class HookedTagResource extends AdminResource
         self::$beforeSaved = [];
         self::$afterSaved = [];
         self::$deleted = [];
+        self::$bulkRan = false;
     }
 
     public function getEntityClass(): string
@@ -63,7 +68,15 @@ final class HookedTagResource extends AdminResource
     {
         return $table
             ->columns([Column::make('name')->searchable()])
-            ->recordActions([EditAction::make(), DeleteAction::make()]);
+            ->recordActions([EditAction::make(), DeleteAction::make()])
+            // A bulk action gated by a panel-level ability — must be refused at
+            // execution (not merely hidden) when creation is denied.
+            ->bulkActions([
+                Action::make('touch')->label('Touch')->authorize('create')
+                    ->action(static function (array $records, DataWriterInterface $writer): void {
+                        self::$bulkRan = true;
+                    }),
+            ]);
     }
 
     public function form(Schema $schema): Schema
