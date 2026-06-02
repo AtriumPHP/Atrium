@@ -10,3 +10,13 @@
 @import "tailwindcss" source(none);
 
 @source "../templates";
+
+/*
+ * Layout grid utilities are composed in PHP (Atrium\Layout\LayoutComponent), so
+ * the Tailwind scanner never sees them as literals in the templates. Safelist the
+ * bounded set the schema renderer can emit: 1–6 columns and spans, at the base
+ * and every breakpoint, plus full-width spans.
+ */
+@source inline("{sm:,md:,lg:,xl:,2xl:,}grid-cols-{1,2,3,4,5,6}");
+@source inline("{sm:,md:,lg:,xl:,2xl:,}col-span-{1,2,3,4,5,6}");
+@source inline("col-span-full");

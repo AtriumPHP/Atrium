@@ -10,6 +10,7 @@ use Atrium\DataProvider\ArrayDataWriter;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Tests\Fixtures\Data\SampleData;
+use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -73,6 +74,10 @@ final class AtriumTestKernel extends Kernel
         $services = $container->services();
 
         $services->set(TagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(LayoutTagResource::class)
             ->autoconfigure()
             ->autowire();
 

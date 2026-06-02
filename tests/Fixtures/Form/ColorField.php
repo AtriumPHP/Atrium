@@ -17,7 +17,7 @@ final class ColorField extends Field
         return 'color';
     }
 
-    public function getTemplate(): string
+    public function getWidgetTemplate(): string
     {
         return '@Acme/fields/color.html.twig';
     }

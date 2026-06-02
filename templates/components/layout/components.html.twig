@@ -1,0 +1,15 @@
+{#
+    Generic layout renderer: lays a list of components out in a responsive grid,
+    delegating each node to its own template. View-agnostic — the same partial
+    renders form fields, layout containers and (future) dashboard widgets.
+
+    Params: components (list), gridClass (Tailwind grid-cols classes, optional).
+#}
+<div class="grid gap-4 {{ gridClass|default('grid-cols-1') }}">
+    {% for component in components %}
+        {% set span = component.getColumnSpanClass() %}
+        <div{% if span %} class="{{ span }}"{% endif %}>
+            {{ include(component.getTemplate(), { component: component }) }}
+        </div>
+    {% endfor %}
+</div>

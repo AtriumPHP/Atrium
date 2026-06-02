@@ -70,10 +70,15 @@ the keystone change here; everything else composes onto it.
 
 ### 4.1 Schema tree & layout — `SCH`
 
-- **SCH-01** A `Schema` is a **tree of schema components**. A schema component is
-  either a **field** (`Atrium\Form\Field\Field`) or a **layout component**
-  (`Atrium\Form\Layout\*`). Both implement a shared `SchemaComponent` contract
-  exposing child components (a leaf field returns none).
+- **SCH-01** A `Schema` is a **tree of components**. A component is either a
+  **field** (`Atrium\Form\Field\Field`) or a **layout container**
+  (`Atrium\Layout\*`). Both implement a shared `Atrium\Layout\Component` contract
+  exposing child components (a leaf field returns none). **Layout lives at the
+  top level (`Atrium\Layout`), not under `Atrium\Form`**, because the same
+  grid/section machinery is intended to power dashboards, infolists and other
+  views — not just forms. The generic renderer is view-agnostic: every node
+  renders via its own `getTemplate()` (for a field, the wrapper; the field's
+  input widget is `getWidgetTemplate()`).
 - **SCH-02** `Schema::components([...])` accepts a mixed list of fields and layout
   components. `Schema::fields([...])` **remains valid** as the flat shortcut
   (single implicit full-width column) — `FRM-01` and §9a/§9b are unaffected.
@@ -180,9 +185,11 @@ Roadmap / out of scope for the first milestones, catalogued for completeness:
   precompiled `assets/dist/atrium.css` (scan templates, `composer build-css`).
   Consumers need zero Tailwind config — same model as today.
 - **BC discipline (PRD §9, CLAUDE.md #4).** `Schema` and `Field` are public API.
-  Introducing `SchemaComponent`, `components()` and new fluent methods is
-  **additive**; flag in `CHANGELOG.md`. Changing the return shape of an existing
-  signature is not permitted — add, don't break.
+  Introducing `Atrium\Layout\Component`, `components()` and new fluent methods is
+  **additive**; flag in `CHANGELOG.md`. The one breaking rename in M1 —
+  `Field::getTemplate()` (widget) → `getWidgetTemplate()`, with `getTemplate()`
+  now returning the field's layout wrapper — is flagged below and was made before
+  any external release.
 
 ---
 
@@ -254,11 +261,15 @@ done (tests green, PHPStan max, CS clean, `CHANGELOG.md` + docs updated). This
 slots in as **Phase 2.5** (after the `make:atrium:resource` maker that closes
 Phase 2), before Actions.
 
-- **M1 — Schema tree + layout (`SCH-01..08`).** The keystone. `SchemaComponent`,
-  `components()`, `Grid`/`Section`/`Fieldset`, `columnSpan`, recursive renderer +
-  layout templates + CSS. *Acceptance:* a two-column section form renders and
-  saves; nested Grid-in-Section works; `fields([...])` is byte-for-byte
-  unchanged in behaviour.
+- **M1 — Schema tree + layout (`SCH-01..08`) — ✅ delivered.** The keystone.
+  `Atrium\Layout\Component`, `components()`, `Grid`/`Section`/`Fieldset`,
+  `columnSpan`/`columnSpanFull`, the view-agnostic recursive renderer + layout
+  templates + safelisted grid CSS. Layout was promoted to the top-level
+  `Atrium\Layout` namespace for reuse beyond forms. *Verified:* two-column
+  sections with full-width spans render and save (and a reactive dependent select
+  works inside a grid); nested Grid-in-Section works; flat `fields([...])` is
+  unchanged. *Deferred to a later milestone:* responsive `columnSpan` arrays,
+  `columnStart`/`columnOrder`, Section `aside`/`icon`, Tabs/Wizard (`SCH-10`).
 - **M2 — Conditional visibility (`FRM-08, FRM-09, FRM-11 Get`).** Server-evaluated
   `visible/hidden/visibleOn/hiddenOn`; hidden fields skip validation. *Acceptance:*
   a field appears/disappears on a `->live()` change and per operation.

@@ -9,6 +9,7 @@ use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Form\Field\Field;
 use Atrium\Form\Field\SelectField;
 use Atrium\Form\Schema;
+use Atrium\Layout\Component;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -118,6 +119,16 @@ final class Form
         }
 
         return null;
+    }
+
+    /**
+     * The top-level schema tree, for rendering (fields + layout containers).
+     *
+     * @return list<Component>
+     */
+    public function getComponents(): array
+    {
+        return $this->schema()->getComponents();
     }
 
     /**

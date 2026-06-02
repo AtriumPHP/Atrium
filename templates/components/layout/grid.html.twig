@@ -1,0 +1,5 @@
+{# A bare responsive grid — just arranges its children into columns. #}
+{{ include('@Atrium/components/layout/components.html.twig', {
+    components: component.getChildComponents(),
+    gridClass: component.getGridClass(),
+}) }}

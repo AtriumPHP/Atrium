@@ -22,7 +22,7 @@ You typically override three things:
 | Method | Purpose | Default |
 | --- | --- | --- |
 | `getType(): string` | Semantic id for the widget (used to derive the default template). | abstract — must implement |
-| `getTemplate(): string` | The Twig template that renders the widget. | `@Atrium/components/form/widget/{type}.html.twig` |
+| `getWidgetTemplate(): string` | The Twig template that renders the input widget. | `@Atrium/components/form/widget/{type}.html.twig` |
 | `rendersOwnLabel(): bool` | Return `true` if the widget draws its own `<label>` (e.g. an inline checkbox); the wrapper then skips its label. | `false` |
 
 For input/output conversion (string ⇆ model value) override:
@@ -94,7 +94,7 @@ final class CountrySelect extends SelectField
         return 'country';
     }
 
-    public function getTemplate(): string
+    public function getWidgetTemplate(): string
     {
         return 'admin/fields/country.html.twig';
     }

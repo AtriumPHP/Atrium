@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Atrium\Form\Field;
 
+use Atrium\Layout\Component;
+use Atrium\Layout\Concern\HasColumnSpan;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -16,10 +18,16 @@ use Symfony\Component\Validator\Constraints\NotBlank;
  *
  * Part of the public API contract (PRD §9).
  *
+ * A field is a leaf {@see Component} in a layout tree: it renders via its
+ * wrapper template ({@see getTemplate()}), which in turn renders the input
+ * widget ({@see getWidgetTemplate()}).
+ *
  * @phpstan-consistent-constructor
  */
-abstract class Field
+abstract class Field implements Component
 {
+    use HasColumnSpan;
+
     protected ?string $label = null;
 
     protected bool $required = false;
@@ -161,13 +169,32 @@ abstract class Field
     abstract public function getType(): string;
 
     /**
-     * The Twig template that renders this field's widget.
+     * Leaf nodes have no children.
      *
-     * Defaults to the built-in convention. Override in a custom field type to
-     * ship your own template from any bundle — this is the extension point that
-     * lets third-party apps add fields without touching the form renderer.
+     * @return list<Component>
+     */
+    public function getChildComponents(): array
+    {
+        return [];
+    }
+
+    /**
+     * The Twig template that renders this field as a layout node — the field
+     * wrapper (label, help, error, the widget). Shared by every field type.
      */
     public function getTemplate(): string
+    {
+        return '@Atrium/components/form/field.html.twig';
+    }
+
+    /**
+     * The Twig template that renders this field's input widget.
+     *
+     * Defaults to the built-in convention. Override in a custom field type to
+     * ship your own widget from any bundle — this is the extension point that
+     * lets third-party apps add fields without touching the form renderer.
+     */
+    public function getWidgetTemplate(): string
     {
         return '@Atrium/components/form/widget/'.$this->getType().'.html.twig';
     }

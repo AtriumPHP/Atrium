@@ -106,19 +106,25 @@ final class FieldTest extends TestCase
         self::assertNull($field->normalize(''));
     }
 
-    public function testBuiltInTemplatesFollowTheConvention(): void
+    public function testBuiltInWidgetTemplatesFollowTheConvention(): void
     {
-        self::assertSame('@Atrium/components/form/widget/text.html.twig', TextField::make('x')->getTemplate());
-        self::assertSame('@Atrium/components/form/widget/select.html.twig', SelectField::make('x')->getTemplate());
-        self::assertSame('@Atrium/components/form/widget/checkbox.html.twig', CheckboxField::make('x')->getTemplate());
+        self::assertSame('@Atrium/components/form/widget/text.html.twig', TextField::make('x')->getWidgetTemplate());
+        self::assertSame('@Atrium/components/form/widget/select.html.twig', SelectField::make('x')->getWidgetTemplate());
+        self::assertSame('@Atrium/components/form/widget/checkbox.html.twig', CheckboxField::make('x')->getWidgetTemplate());
     }
 
-    public function testCustomFieldShipsItsOwnTemplate(): void
+    public function testEveryFieldRendersThroughTheSharedWrapperNode(): void
+    {
+        self::assertSame('@Atrium/components/form/field.html.twig', TextField::make('x')->getTemplate());
+        self::assertSame('@Atrium/components/form/field.html.twig', CheckboxField::make('x')->getTemplate());
+    }
+
+    public function testCustomFieldShipsItsOwnWidgetTemplate(): void
     {
         $field = ColorField::make('brandColor');
 
         self::assertSame('color', $field->getType());
-        self::assertSame('@Acme/fields/color.html.twig', $field->getTemplate());
+        self::assertSame('@Acme/fields/color.html.twig', $field->getWidgetTemplate());
     }
 
     public function testOnlyCheckboxRendersItsOwnLabel(): void

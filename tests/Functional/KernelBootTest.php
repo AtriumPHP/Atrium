@@ -51,7 +51,8 @@ final class KernelBootTest extends KernelTestCase
 
         self::assertTrue($registry->hasSlug('tag'), 'The tagged resource should be discovered.');
         self::assertInstanceOf(TagResource::class, $registry->getBySlug('tag'));
-        self::assertCount(1, $registry->all());
+        self::assertTrue($registry->hasSlug('layout-tag'), 'Every tagged resource should be discovered.');
+        self::assertCount(2, $registry->all());
     }
 
     public function testBundleConfigurationIsExposedAsParameters(): void

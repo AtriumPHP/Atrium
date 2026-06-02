@@ -71,6 +71,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/custom-fields.md` — documents the custom field type extension point
   (the `getType()` / `getTemplate()` / `rendersOwnLabel()` contract, the widget
   template context, and a worked `CountrySelect` example).
+- Forms v2 / M1 — schema tree & layout (`SCH-01..08`). A form `Schema` is now a
+  tree of `Atrium\Layout\Component`s (fields + layout containers), not a flat
+  list.
+  - New top-level **`Atrium\Layout`** subsystem (view-agnostic, reusable by future
+    dashboards/infolists): `Component` contract, `LayoutComponent` base,
+    `Grid`/`Section`/`Fieldset`, and a `HasColumnSpan` concern
+    (`columnSpan()`/`columnSpanFull()`).
+  - `Schema::components([...])` builds the tree; `Schema::fields([...])` is kept
+    as the flat shortcut. `Schema::getFields()` flattens leaves depth-first for
+    hydration/validation; `getComponents()` exposes the tree for rendering.
+  - A generic recursive renderer (`components/layout/*.html.twig`) lays nodes out
+    in responsive grids; grid utilities are safelisted in `assets/atrium.css`
+    (`@source inline(...)`) since they're composed in PHP.
+  - Forms v2 PRD addendum updated to mark M1 delivered.
 
 ### Changed
 
@@ -81,3 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Form widgets now carry full dark-mode variants — labels, inputs, help/error
   text, the success notice and the checkbox — so forms are legible in dark mode.
 - The form page card is now full-width (removed the `max-w-2xl` constraint).
+- **BC (pre-release):** `Field::getTemplate()` now returns the field's layout
+  wrapper; the input widget moved to the new `Field::getWidgetTemplate()`. Custom
+  field types that shipped their own widget should override `getWidgetTemplate()`
+  instead of `getTemplate()` (see `docs/custom-fields.md`).

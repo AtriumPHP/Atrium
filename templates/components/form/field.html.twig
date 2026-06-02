@@ -1,9 +1,13 @@
 {#
-    Field wrapper: computes the shared rendering context (name, error, live model
-    binding, input classes) and delegates the actual widget to the template the
-    field declares via getTemplate(). Custom field types ship their own template
-    from any bundle — no central if/elseif ladder, no Atrium-namespace lock-in.
+    Field wrapper — the leaf node template every field renders through (it is what
+    Field::getTemplate() returns). Computes the shared rendering context (name,
+    error, live model binding, input classes) and delegates the actual input to
+    the widget the field declares via getWidgetTemplate(). Custom field types ship
+    their own widget from any bundle — no central if/elseif ladder.
+
+    Receives `component` (the field) from the generic layout renderer.
 #}
+{% set field = component %}
 {% set name = field.getName() %}
 {% set error = this.getError(name) %}
 {% set model = field.isLive() ? 'formData[' ~ name ~ ']' : 'norender|formData[' ~ name ~ ']' %}
@@ -11,14 +15,14 @@
     ? 'border-red-400 focus:border-red-500 focus:ring-red-500 dark:border-red-500/70'
     : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700') %}
 
-<div class="mb-4">
+<div>
     {% if not field.rendersOwnLabel() %}
         <label for="atrium_{{ name }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
             {{ field.getLabel() }}{% if field.isRequired() %} <span class="text-red-500">*</span>{% endif %}
         </label>
     {% endif %}
 
-    {{ include(field.getTemplate(), {
+    {{ include(field.getWidgetTemplate(), {
         field: field, name: name, model: model, inputClass: inputClass,
     }) }}
 

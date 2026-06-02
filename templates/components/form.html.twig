@@ -6,9 +6,7 @@
     {% endif %}
 
     <form data-action="live#action:prevent" data-live-action-param="save" novalidate>
-        {% for field in this.fields %}
-            {{ include('@Atrium/components/form/field.html.twig', { field: field }) }}
-        {% endfor %}
+        {{ include('@Atrium/components/layout/components.html.twig', { components: this.components }) }}
 
         <div class="mt-6 flex items-center gap-3">
             <button type="button" data-action="live#action" data-live-action-param="save"
