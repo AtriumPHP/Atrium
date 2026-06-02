@@ -20,6 +20,7 @@ final class Tag
         public bool $active = false,
         public array $labels = [],
         public array $meta = [],
+        public ?string $kind = null,
     ) {
     }
 }

@@ -15,9 +15,16 @@ final class SampleData
 {
     public static function provider(): ArrayDataProvider
     {
+        $kinds = ['fruit', 'tool', 'animal'];
         $tags = [];
         for ($i = 1; $i <= 12; ++$i) {
-            $tags[] = new Tag($i, \sprintf('Tag %02d', $i), \sprintf('tag-%02d', $i));
+            $tags[] = new Tag(
+                id: $i,
+                name: \sprintf('Tag %02d', $i),
+                slug: \sprintf('tag-%02d', $i),
+                active: 0 === $i % 2,
+                kind: $kinds[($i - 1) % 3],
+            );
         }
 
         return new ArrayDataProvider([Tag::class => $tags]);

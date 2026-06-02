@@ -8,6 +8,7 @@ use Atrium\Action\Action;
 use Atrium\Action\ActionContract;
 use Atrium\Table\Action\CreateAction;
 use Atrium\Table\Action\EditAction;
+use Atrium\Table\Filter\Filter;
 
 /**
  * Fluent description of a resource's list table: its columns plus its record,
@@ -36,6 +37,9 @@ final class TableConfiguration
 
     /** @var list<Action> */
     private array $bulkActions = [];
+
+    /** @var list<Filter> */
+    private array $filters = [];
 
     private ?string $defaultSortField = null;
 
@@ -120,6 +124,19 @@ final class TableConfiguration
     {
         $this->defaultSortField = $field;
         $this->defaultSortDirection = 'desc' === strtolower($direction) ? 'desc' : 'asc';
+
+        return $this;
+    }
+
+    /**
+     * Filters shown in the table's filter bar, narrowing the query as the user
+     * selects values.
+     *
+     * @param list<Filter> $filters
+     */
+    public function filters(array $filters): static
+    {
+        $this->filters = array_values($filters);
 
         return $this;
     }
@@ -226,5 +243,13 @@ final class TableConfiguration
     public function getBulkActions(): array
     {
         return $this->bulkActions;
+    }
+
+    /**
+     * @return list<Filter>
+     */
+    public function getFilters(): array
+    {
+        return $this->filters;
     }
 }

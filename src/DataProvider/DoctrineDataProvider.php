@@ -71,6 +71,20 @@ final readonly class DoctrineDataProvider implements DataProviderInterface
             $qb->andWhere($orX);
         }
 
+        $index = 0;
+        foreach ($query->filters as $field => $value) {
+            $column = self::ALIAS.'.'.$field;
+            if (null === $value) {
+                $qb->andWhere($qb->expr()->isNull($column));
+
+                continue;
+            }
+
+            $parameter = 'atrium_filter_'.$index++;
+            $qb->andWhere($qb->expr()->eq($column, ':'.$parameter));
+            $qb->setParameter($parameter, $value);
+        }
+
         return $qb;
     }
 }

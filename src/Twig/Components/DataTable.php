@@ -15,6 +15,7 @@ use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Table\Column;
+use Atrium\Table\Filter\Filter;
 use Atrium\Table\TableConfiguration;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -54,6 +55,16 @@ final class DataTable
 
     #[LiveProp(writable: true, onUpdated: 'onPerPageUpdated')]
     public int $perPage = 10;
+
+    /**
+     * Selected filter values, keyed by filter name. Writable so the filter-bar
+     * controls bind to it; non-string or unknown-name entries are ignored when
+     * resolving conditions, so a forged value cannot inject a condition.
+     *
+     * @var array<string, mixed>
+     */
+    #[LiveProp(writable: true, onUpdated: 'resetPage')]
+    public array $filterValues = [];
 
     /**
      * Panel path prefix, kept in state so record-action URLs survive re-renders.
@@ -131,6 +142,16 @@ final class DataTable
 
     public function resetPage(): void
     {
+        $this->page = 1;
+    }
+
+    /**
+     * Clear all filter selections and return to the first page.
+     */
+    #[LiveAction]
+    public function resetFilters(): void
+    {
+        $this->filterValues = [];
         $this->page = 1;
     }
 
@@ -219,6 +240,43 @@ final class DataTable
     public function getBulkActionViews(): array
     {
         return $this->standaloneViews($this->getBulkActions());
+    }
+
+    /**
+     * @return list<Filter>
+     */
+    public function getFilters(): array
+    {
+        return $this->tableConfig()->getFilters();
+    }
+
+    public function hasFilters(): bool
+    {
+        return [] !== $this->getFilters();
+    }
+
+    /**
+     * Whether any filter currently narrows the result set.
+     */
+    public function hasActiveFilters(): bool
+    {
+        return [] !== $this->resolvedFilters();
+    }
+
+    /**
+     * Render-ready descriptors for the filter-bar controls, each carrying its
+     * current value.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getFilterViews(): array
+    {
+        $views = [];
+        foreach ($this->getFilters() as $filter) {
+            $views[] = $filter->toView($this->filterValue($filter->getName()));
+        }
+
+        return $views;
     }
 
     protected function findAction(string $name): ?Action
@@ -509,6 +567,7 @@ final class DataTable
             sortDirection: $this->getActiveSortDirection(),
             offset: 0,
             limit: max(1, $this->getTotalCount()),
+            filters: $this->resolvedFilters(),
         );
     }
 
@@ -542,7 +601,33 @@ final class DataTable
             sortDirection: $this->getActiveSortDirection(),
             offset: (max(1, $this->page) - 1) * $this->perPage,
             limit: $this->perPage,
+            filters: $this->resolvedFilters(),
         );
+    }
+
+    /**
+     * Resolve each configured filter's current value into the equality conditions
+     * to apply. Values for unconfigured filter names are ignored.
+     *
+     * @return array<string, scalar|bool|null>
+     */
+    private function resolvedFilters(): array
+    {
+        $conditions = [];
+        foreach ($this->getFilters() as $filter) {
+            foreach ($filter->conditions($this->filterValue($filter->getName())) as $field => $value) {
+                $conditions[$field] = $value;
+            }
+        }
+
+        return $conditions;
+    }
+
+    private function filterValue(string $name): string
+    {
+        $value = $this->filterValues[$name] ?? '';
+
+        return \is_string($value) ? $value : '';
     }
 
     /**

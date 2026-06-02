@@ -63,11 +63,18 @@ final class ArrayDataProvider implements DataProviderInterface
      */
     private function filtered(string $entityClass, DataQuery $query): array
     {
-        $rows = $this->records[$entityClass] ?? [];
+        $rows = array_values($this->records[$entityClass] ?? []);
+
+        foreach ($query->filters as $field => $value) {
+            $rows = array_values(array_filter(
+                $rows,
+                fn (object $row): bool => $this->matchesFilter($row, $field, $value),
+            ));
+        }
 
         $term = $query->searchTerm();
         if (null === $term) {
-            return array_values($rows);
+            return $rows;
         }
 
         $needle = mb_strtolower($term);
@@ -82,6 +89,23 @@ final class ArrayDataProvider implements DataProviderInterface
 
             return false;
         }));
+    }
+
+    private function matchesFilter(object $row, string $field, string|int|float|bool|null $value): bool
+    {
+        $actual = $this->read($row, $field);
+
+        if (\is_bool($value)) {
+            return (bool) $actual === $value;
+        }
+
+        if (null === $value) {
+            return null === $actual;
+        }
+
+        $actualString = $actual instanceof \BackedEnum ? (string) $actual->value : $actual;
+
+        return \is_scalar($actualString) && (string) $actualString === (string) $value;
     }
 
     /**

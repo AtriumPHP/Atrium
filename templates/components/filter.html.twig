@@ -1,0 +1,17 @@
+{#
+    Renders one filter control: a labelled <select> bound to filterValues[name],
+    so changing it updates the table server-side. Param: filter (descriptor with
+    name, label, value, options — see Filter::toView).
+#}
+<label class="inline-flex flex-col gap-1">
+    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ filter.label }}</span>
+    <select
+        data-model="filterValues[{{ filter.name }}]"
+        name="{{ filter.name }}"
+        class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2 pr-8 text-sm text-gray-700 shadow-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200"
+    >
+        {% for option in filter.options %}
+            <option value="{{ option.value }}" {{ option.value == filter.value ? 'selected' : '' }}>{{ option.label }}</option>
+        {% endfor %}
+    </select>
+</label>

@@ -21,6 +21,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Table **filters** (TBL-11): `TableConfiguration::filters([...])` renders a filter
+  bar that narrows the query through the data provider. `SelectFilter` (a
+  categorical dropdown) and `TernaryFilter` (all / true / false over a boolean
+  field), both extending `Atrium\Table\Filter\Filter` and declaring their own
+  template for extensibility. Filters resolve to equality conditions carried on
+  `DataQuery::$filters` and applied by both `ArrayDataProvider` and
+  `DoctrineDataProvider` (parameter-bound). Selections live in a writable
+  `filterValues` LiveProp (with a Reset action); a value for an unconfigured
+  filter name is ignored, so a forged value cannot inject a condition.
 - **Column presentation** options on `Column`: `->alignment('right')`
   (`alignCenter()` / `alignRight()`), `->width('8rem')`, `->boolean()` (renders a
   check/cross icon instead of "Yes"/"No"), `->badge()` with `->color('green')` or

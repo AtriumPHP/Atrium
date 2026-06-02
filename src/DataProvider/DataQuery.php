@@ -19,7 +19,8 @@ final readonly class DataQuery
     public const string SORT_DESC = 'desc';
 
     /**
-     * @param list<string> $searchableFields field names search is matched against
+     * @param list<string>                    $searchableFields field names search is matched against
+     * @param array<string, scalar|bool|null> $filters          trusted field => equality value conditions
      */
     public function __construct(
         public ?string $search = null,
@@ -28,6 +29,7 @@ final readonly class DataQuery
         public string $sortDirection = self::SORT_ASC,
         public int $offset = 0,
         public int $limit = 25,
+        public array $filters = [],
     ) {
     }
 
