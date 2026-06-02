@@ -1,0 +1,11 @@
+/vendor/
+/composer.lock
+/config/reference.php
+/.phpunit.cache/
+/.php-cs-fixer.cache
+/.phpstan.cache/
+.phpunit.result.cache
+/var/
+.DS_Store
+/.idea/
+/.vscode/

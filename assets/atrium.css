@@ -1,0 +1,12 @@
+/*
+ * Atrium panel stylesheet source.
+ *
+ * This is compiled, scanning ONLY the bundle's own templates, into the shipped
+ * assets/dist/atrium.css. Consumers therefore get a fully styled panel without
+ * configuring Tailwind themselves. Rebuild with:
+ *
+ *     composer build-css   (see composer.json scripts / README)
+ */
+@import "tailwindcss" source(none);
+
+@source "../templates";

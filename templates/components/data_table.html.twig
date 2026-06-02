@@ -1,0 +1,82 @@
+<div {{ attributes }} class="atrium-datatable">
+    <div class="mb-3 flex items-center gap-3">
+        <input
+            type="search"
+            name="search"
+            value="{{ search }}"
+            data-model="debounce(300)|search"
+            placeholder="Search {{ this.resourceLabel|lower }}…"
+            autocomplete="off"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+        >
+        <span data-loading class="text-sm text-gray-500">Loading…</span>
+    </div>
+
+    <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                    {% for column in this.columns %}
+                        <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
+                            {% if column.isSortable() %}
+                                <button
+                                    type="button"
+                                    data-action="live#action"
+                                    data-live-action-param="sort"
+                                    data-live-field-param="{{ column.getName() }}"
+                                    class="inline-flex items-center gap-1 font-semibold hover:text-gray-900 dark:hover:text-white"
+                                >
+                                    {{ column.getLabel() }}
+                                    {%- if sortField == column.getName() %}
+                                        <span aria-hidden="true">{{ sortDirection == 'desc' ? '▼' : '▲' }}</span>
+                                    {%- endif %}
+                                </button>
+                            {% else %}
+                                {{ column.getLabel() }}
+                            {% endif %}
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
+                {% for row in this.rows %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        {% for cell in row.cells %}
+                            <td class="px-3 py-2 text-gray-800 dark:text-gray-200">{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="{{ this.columns|length }}" class="px-3 py-6 text-center text-gray-500">
+                            No {{ this.resourceLabel|lower }} found.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% set pageCount = this.pageCount %}
+    <div class="mt-3 flex items-center justify-between text-sm text-gray-500">
+        <span>{{ this.totalCount }} result{{ this.totalCount == 1 ? '' : 's' }}</span>
+        <span class="inline-flex items-center gap-2">
+            <button
+                type="button"
+                data-action="live#action"
+                data-live-action-param="gotoPage"
+                data-live-page-param="{{ page - 1 }}"
+                {{ page <= 1 ? 'disabled' : '' }}
+                class="rounded-md border border-gray-300 px-2.5 py-1 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:hover:bg-gray-800"
+            >Prev</button>
+            <span>Page {{ page }} of {{ pageCount }}</span>
+            <button
+                type="button"
+                data-action="live#action"
+                data-live-action-param="gotoPage"
+                data-live-page-param="{{ page + 1 }}"
+                {{ page >= pageCount ? 'disabled' : '' }}
+                class="rounded-md border border-gray-300 px-2.5 py-1 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:hover:bg-gray-800"
+            >Next</button>
+        </span>
+    </div>
+</div>

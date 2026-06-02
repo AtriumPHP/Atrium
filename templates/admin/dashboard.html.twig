@@ -1,0 +1,32 @@
+{% extends '@Atrium/admin/layout.html.twig' %}
+
+{% block title %}Dashboard · {{ panel.brand }}{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+
+{% block body %}
+    <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+        <h2 class="text-base font-semibold">Welcome to {{ panel.brand }}</h2>
+        <p class="mt-1 text-sm text-gray-500">
+            {% if panel.resources is empty %}
+                No resources are registered yet. Create a class extending
+                <code class="rounded bg-gray-100 px-1 py-0.5 dark:bg-gray-800">Atrium\Resource\AdminResource</code>
+                to see it here.
+            {% else %}
+                {{ panel.resources|length }} resource{{ panel.resources|length == 1 ? '' : 's' }} registered.
+            {% endif %}
+        </p>
+
+        {% if panel.resources is not empty %}
+            <ul class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {% for item in panel.resources %}
+                    <li>
+                        <a href="{{ item.url }}"
+                           class="block rounded-lg border border-gray-200 p-4 hover:border-indigo-400 hover:shadow-sm dark:border-gray-800">
+                            <span class="font-medium">{{ item.label }}</span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+{% endblock %}

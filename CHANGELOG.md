@@ -1,0 +1,51 @@
+# Changelog
+
+All notable changes to this project are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Phase 0 boilerplate: installable Symfony 8.1 bundle skeleton.
+  - `AtriumBundle` (`AbstractBundle`) with `path_prefix` / `brand` configuration
+    and `atrium.resource` autoconfiguration.
+  - Core contracts and value objects: `AdminResource`, `ResourceRegistry`,
+    `Column`, `DataProviderInterface`, `DoctrineDataProvider` (stub).
+  - Engineering harness: PHPUnit, PHPStan (max), PHP-CS-Fixer (Symfony ruleset),
+    GitHub Actions CI, and unit tests for `Column` and `ResourceRegistry`.
+- Phase 1 engineering harness — data-layer and functional coverage.
+  - `DoctrineDataProviderTest` exercising `count()` and `fetch()`
+    offset/limit pagination against a real in-memory SQLite `EntityManager`
+    (`EntityManagerFactory` + `Product` fixture entity).
+  - `KernelBootTest` + `AtriumTestKernel` (MicroKernel): boots
+    FrameworkBundle + TwigBundle + AtriumBundle and asserts bundle registration,
+    `ResourceRegistry` wiring, autoconfiguration-based resource discovery
+    (RES-02), exposed configuration parameters, and `@Atrium` Twig rendering.
+  - Added `symfony/var-exporter` (dev) and enabled Doctrine native lazy objects
+    in the test EntityManager (PHP 8.4+ requirement under ORM 3.6 / var-exporter 8).
+  - Open-source hygiene: `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), GitHub
+    issue templates (bug report, feature request) and a pull request template.
+- Reactive panel vertical slice (TBL-01..08, PNL-01..04, DAT-01..02).
+  - Backend-agnostic read layer: `DataQuery` value object; `DataProviderInterface`
+    now takes a query; `DoctrineDataProvider` builds a parameter-bound
+    QueryBuilder (search/sort/paginate/count); new in-memory `ArrayDataProvider`.
+  - `Column` value extraction + formatting (scalars, dates, enums, bool, arrays,
+    null) with a custom `formatStateUsing()` callback.
+  - `DataTable` Live Component (search bound to the URL, click-to-sort,
+    pagination, empty/loading states) and its Twig template.
+  - Panel shell: `AdminController` with parametric routes (`/admin`,
+    `/admin/{resource}`), Tailwind layout with registry-driven sidebar nav,
+    dashboard and resource pages. Doctrine wiring activates only when
+    DoctrineBundle is present.
+  - Self-contained styling: the bundle ships a precompiled Tailwind stylesheet
+    (`assets/dist/atrium.css`, built from its own templates via the standalone
+    CLI — no Node) exposed through an AssetMapper path and an `atrium_stylesheet()`
+    Twig helper, so consumers need no Tailwind configuration. The JS entrypoint
+    is rendered via `atrium_importmap()`.
+  - Functional tests: panel routes (WebTestCase) and reactive component behaviour
+    (search/sort/paginate via `InteractsWithLiveComponents`).
+  - Promoted `symfony/ux-live-component`, `symfony/ux-twig-component`,
+    `symfony/routing` and `symfony/http-foundation` to runtime requirements.

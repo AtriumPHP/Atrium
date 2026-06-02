@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ panel.brand }}{% endblock %}</title>
+    {% block stylesheets %}
+        {{ atrium_stylesheet() }}
+    {% endblock %}
+    {% block javascripts %}
+        {{ atrium_importmap('app') }}
+    {% endblock %}
+</head>
+<body class="h-full bg-gray-100 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+<div class="flex min-h-full">
+    <aside class="flex w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex h-16 items-center px-6 text-lg font-semibold tracking-tight">
+            <a href="{{ panel.pathPrefix }}">{{ panel.brand }}</a>
+        </div>
+        <nav class="flex-1 space-y-1 px-3 py-2 text-sm">
+            <a href="{{ panel.pathPrefix }}"
+               class="block rounded-md px-3 py-2 font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white">
+                Dashboard
+            </a>
+            {% for item in panel.resources %}
+                <a href="{{ item.url }}"
+                   class="block rounded-md px-3 py-2 font-medium {{ item.active
+                       ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white' }}">
+                    {{ item.label }}
+                </a>
+            {% endfor %}
+        </nav>
+    </aside>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+        <header class="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-8 dark:border-gray-800 dark:bg-gray-900">
+            <h1 class="text-lg font-semibold">{% block heading %}{% endblock %}</h1>
+            <div>{% block header_actions %}{% endblock %}</div>
+        </header>
+        <main class="flex-1 p-8">
+            {% block body %}{% endblock %}
+        </main>
+    </div>
+</div>
+</body>
+</html>

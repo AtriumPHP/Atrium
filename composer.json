@@ -1,0 +1,72 @@
+{
+    "name": "atrium/atrium",
+    "description": "A PHP-configured, modular admin panel framework for Symfony, powered by Live Components.",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "keywords": ["symfony", "admin", "admin-panel", "live-components", "ux", "crud", "dashboard"],
+    "homepage": "https://github.com/atrium/atrium",
+    "authors": [
+        {
+            "name": "Atrium Contributors",
+            "homepage": "https://github.com/atrium/atrium/graphs/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "symfony/config": "^8.1",
+        "symfony/dependency-injection": "^8.1",
+        "symfony/framework-bundle": "^8.1",
+        "symfony/http-foundation": "^8.1",
+        "symfony/http-kernel": "^8.1",
+        "symfony/property-access": "^8.1",
+        "symfony/routing": "^8.1",
+        "symfony/twig-bundle": "^8.1",
+        "symfony/ux-live-component": "^3.0",
+        "symfony/ux-twig-component": "^3.0"
+    },
+    "require-dev": {
+        "doctrine/orm": "^3.0",
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^11.5 || ^12.0 || ^13.0",
+        "symfony/asset": "^8.1",
+        "symfony/asset-mapper": "^8.1",
+        "symfony/browser-kit": "^8.1",
+        "symfony/css-selector": "^8.1",
+        "symfony/phpunit-bridge": "^8.1",
+        "symfony/var-exporter": "^8.1"
+    },
+    "suggest": {
+        "doctrine/orm": "Default DataProvider adapter (DoctrineDataProvider) for reading/writing entities.",
+        "symfony/asset-mapper": "Serves the panel's precompiled stylesheet and JavaScript with no build step.",
+        "symfony/ux-live-component": "Required for the reactive table, form and widget components.",
+        "symfony/ux-twig-component": "Required for the framework's Twig components."
+    },
+    "autoload": {
+        "psr-4": {
+            "Atrium\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Atrium\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1-dev"
+        }
+    },
+    "scripts": {
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix --diff",
+        "phpstan": "phpstan analyse --memory-limit=512M",
+        "test": "phpunit",
+        "build-css": "tailwindcss -i assets/atrium.css -o assets/dist/atrium.css --minify"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
