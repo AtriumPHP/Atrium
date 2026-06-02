@@ -36,9 +36,15 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
  * re-render the component so dependents (e.g. a dependent select) update.
  * Saving normalises + validates each field, persists through the writer, and
  * either redirects (when a page supplies a URL) or shows a success notice.
+ *
+ * Extensible: subclass it (with its own `AsLiveComponent` name + template) to add
+ * interaction on top of the same hydrate/validate/save core — see `WizardForm`.
+ * Reusable internals (`collectErrors()`, `fieldsIn()`, `schema()`) and the
+ * `focusContainer()` hook are `protected` for that purpose. A resource picks its
+ * form component via `AdminResource::getFormComponentName()`.
  */
 #[AsLiveComponent(name: 'Atrium:Form', template: '@Atrium/components/form.html.twig')]
-final class Form
+class Form
 {
     use DefaultActionTrait;
 
@@ -106,30 +112,14 @@ final class Form
     #[LiveAction]
     public function save(): ?Response
     {
-        $this->errors = [];
         $this->saved = false;
-        $normalized = [];
         $get = new Get($this->formData);
         $operation = $this->operation();
 
-        foreach ($this->getFields() as $field) {
-            if (!$field->isVisible($get, $operation)) {
-                continue; // hidden fields are not validated (FRM-08)
-            }
-
-            $value = $field->normalize($this->formData[$field->getName()] ?? null);
-            $normalized[$field->getName()] = $value;
-
-            $violations = $this->validator->validate($value, $field->getConstraints());
-            if (\count($violations) > 0) {
-                $this->errors[$field->getName()] = (string) $violations->get(0)->getMessage();
-            }
-        }
-
-        $this->validateComparisons($normalized, $get, $operation);
+        [$normalized, $this->errors] = $this->collectErrors($this->getFields(), $get, $operation);
 
         if ([] !== $this->errors) {
-            $this->focusErroredTabs($this->schema()->getComponents());
+            $this->focusErrors($this->schema()->getComponents());
 
             return null; // invalid: keep the last values, surface errors
         }
@@ -375,22 +365,42 @@ final class Form
     }
 
     /**
-     * Evaluate cross-field comparison rules (`same()`/`different()`, FRM-12)
-     * against the normalised state — a Symfony constraint can't see a sibling
-     * field's value. Skips a field that already failed its own constraints.
+     * Normalise and validate a set of fields: per-field Symfony constraints plus
+     * cross-field comparison rules (`same()`/`different()`, FRM-12) — the latter
+     * read sibling values a standalone constraint can't see. Hidden fields are
+     * skipped. Returns the normalised values and the per-field error messages.
      *
-     * @param array<string, mixed> $normalized
+     * @param list<Field> $fields
+     *
+     * @return array{0: array<string, mixed>, 1: array<string, string>}
      */
-    private function validateComparisons(array $normalized, Get $get, string $operation): void
+    protected function collectErrors(array $fields, Get $get, string $operation): array
     {
+        $normalized = [];
+        $errors = [];
+
+        foreach ($fields as $field) {
+            if (!$field->isVisible($get, $operation)) {
+                continue; // hidden fields are not validated (FRM-08)
+            }
+
+            $value = $field->normalize($this->formData[$field->getName()] ?? null);
+            $normalized[$field->getName()] = $value;
+
+            $violations = $this->validator->validate($value, $field->getConstraints());
+            if (\count($violations) > 0) {
+                $errors[$field->getName()] = (string) $violations->get(0)->getMessage();
+            }
+        }
+
         $labels = [];
         foreach ($this->getFields() as $field) {
             $labels[$field->getName()] = $field->getLabel();
         }
 
-        foreach ($this->getFields() as $field) {
+        foreach ($fields as $field) {
             $name = $field->getName();
-            if (isset($this->errors[$name]) || !$field->isVisible($get, $operation)) {
+            if (isset($errors[$name]) || !$field->isVisible($get, $operation)) {
                 continue;
             }
 
@@ -402,34 +412,47 @@ final class Form
                 }
 
                 $otherLabel = $labels[$rule['field']] ?? $rule['field'];
-                $this->errors[$name] = $rule['message'] ?? ('same' === $rule['type']
+                $errors[$name] = $rule['message'] ?? ('same' === $rule['type']
                     ? \sprintf('This value must match %s.', $otherLabel)
                     : \sprintf('This value must be different from %s.', $otherLabel));
                 break;
             }
         }
+
+        return [$normalized, $errors];
     }
 
     /**
-     * After a failed save, switch each {@see Tabs} container to the first tab
-     * that holds an errored field, so the error is visible without hunting
-     * (SCH-10). Walks nested containers too.
+     * After a failed save, reveal whichever container is hiding an errored field
+     * (SCH-10), walking the whole tree. The per-container logic is the
+     * {@see focusContainer()} hook so subclasses ({@see WizardForm}) can teach it
+     * about their own containers.
      *
      * @param list<Component> $components
      */
-    private function focusErroredTabs(array $components): void
+    protected function focusErrors(array $components): void
     {
         foreach ($components as $component) {
-            if ($component instanceof Tabs) {
-                foreach ($component->getTabs() as $tab) {
-                    if ([] !== array_intersect($this->fieldNamesIn($tab), array_keys($this->errors))) {
-                        $this->activeTabs[$component->getId()] = $tab->getId();
-                        break;
-                    }
+            $this->focusContainer($component, array_keys($this->errors));
+            $this->focusErrors($component->getChildComponents());
+        }
+    }
+
+    /**
+     * Reveal one container if it holds an errored field. The base handles
+     * {@see Tabs} (switch to the first errored tab); override to add containers.
+     *
+     * @param list<string> $erroredFields
+     */
+    protected function focusContainer(Component $component, array $erroredFields): void
+    {
+        if ($component instanceof Tabs) {
+            foreach ($component->getTabs() as $tab) {
+                if ([] !== array_intersect($this->fieldNamesIn($tab), $erroredFields)) {
+                    $this->activeTabs[$component->getId()] = $tab->getId();
+                    break;
                 }
             }
-
-            $this->focusErroredTabs($component->getChildComponents());
         }
     }
 
@@ -438,21 +461,36 @@ final class Form
      *
      * @return list<string>
      */
-    private function fieldNamesIn(Component $node): array
+    protected function fieldNamesIn(Component $node): array
     {
         $names = [];
-        foreach ($node->getChildComponents() as $child) {
-            if ($child instanceof Field) {
-                $names[] = $child->getName();
-
-                continue;
-            }
-            foreach ($this->fieldNamesIn($child) as $name) {
-                $names[] = $name;
-            }
+        foreach ($this->fieldsIn($node) as $field) {
+            $names[] = $field->getName();
         }
 
         return $names;
+    }
+
+    /**
+     * Fields anywhere under a layout node.
+     *
+     * @return list<Field>
+     */
+    protected function fieldsIn(Component $node): array
+    {
+        $fields = [];
+        foreach ($node->getChildComponents() as $child) {
+            if ($child instanceof Field) {
+                $fields[] = $child;
+
+                continue;
+            }
+            foreach ($this->fieldsIn($child) as $nested) {
+                $fields[] = $nested;
+            }
+        }
+
+        return $fields;
     }
 
     private function repeatable(string $name): ?RepeatableField
@@ -466,7 +504,7 @@ final class Form
         return null;
     }
 
-    private function schema(): Schema
+    protected function schema(): Schema
     {
         return $this->schemaCache ??= $this->resourceObject()->form(new Schema());
     }

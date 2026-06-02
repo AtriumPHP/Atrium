@@ -1,0 +1,95 @@
+{#
+    Wizard (SCH-10): a multi-step container. The current step is server state
+    (this.currentStep); Next (nextStep) validates the current step before
+    advancing, Back (previousStep) is free, and the header jumps backwards
+    (gotoStep) to a visited step. Every panel renders — inactive ones `hidden` —
+    so navigating keeps each step's in-progress input. The footer owns submit.
+#}
+{% set wizardId = component.getId() %}
+{% set steps = component.getSteps() %}
+{% set current = this.currentStep(component) %}
+{% set lastIndex = steps|length - 1 %}
+
+<div class="rounded-2xl border border-gray-200/80 bg-white shadow-sm dark:border-gray-800/80 dark:bg-gray-900">
+    <ol class="flex items-center gap-2 overflow-x-auto overflow-y-hidden border-b border-gray-100 px-6 py-5 dark:border-gray-800">
+        {% for step in steps %}
+            {% set i = loop.index0 %}
+            {% set state = i < current ? 'done' : (i == current ? 'current' : 'upcoming') %}
+            <li class="flex items-center gap-3 {{ not loop.last ? 'flex-1' }}">
+                <button type="button" {{ i < current ? '' : 'disabled' }}
+                        data-action="live#action" data-live-action-param="gotoStep"
+                        data-live-wizard-param="{{ wizardId }}" data-live-step-param="{{ i }}"
+                        class="group flex items-center gap-3 text-left {{ i < current ? 'cursor-pointer' : 'cursor-default' }}">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors {{ state == 'done'
+                        ? 'border-primary-600 bg-primary-600 text-white'
+                        : (state == 'current'
+                            ? 'border-primary-500 text-primary-600 ring-4 ring-primary-500/15 dark:text-primary-400'
+                            : 'border-gray-300 text-gray-400 dark:border-gray-700 dark:text-gray-500') }}">
+                        {% if state == 'done' %}
+                            {{ include('@Atrium/icon.html.twig', { name: 'check', class: 'h-4 w-4' }) }}
+                        {% elseif step.getIcon() %}
+                            {{ include('@Atrium/icon.html.twig', { name: step.getIcon(), class: 'h-4 w-4' }) }}
+                        {% else %}
+                            {{ i + 1 }}
+                        {% endif %}
+                    </span>
+                    <span class="min-w-0">
+                        <span class="block text-sm font-medium {{ state == 'upcoming' ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100' }}">{{ step.getLabel() }}</span>
+                        {% if step.getDescription() %}
+                            <span class="block truncate text-xs text-gray-400 dark:text-gray-500">{{ step.getDescription() }}</span>
+                        {% endif %}
+                    </span>
+                </button>
+                {% if not loop.last %}
+                    <span class="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+
+    {% for step in steps %}
+        <div class="px-6 py-5"{{ loop.index0 == current ? '' : ' hidden' }}>
+            {{ include('@Atrium/components/layout/components.html.twig', {
+                components: step.getChildComponents(),
+                gridClass: step.getGridClass(),
+            }) }}
+        </div>
+    {% endfor %}
+
+    <div class="flex items-center justify-between gap-3 border-t border-gray-100 px-6 py-4 dark:border-gray-800">
+        <div>
+            {% if current > 0 %}
+                <button type="button"
+                        data-action="live#action" data-live-action-param="previousStep"
+                        data-live-wizard-param="{{ wizardId }}"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white">
+                    {{ include('@Atrium/icon.html.twig', { name: 'arrow-left', class: 'h-4 w-4' }) }}
+                    Back
+                </button>
+            {% endif %}
+        </div>
+        <div class="flex items-center gap-3">
+            <span data-loading class="inline-flex items-center gap-1.5 text-sm text-gray-400">
+                <svg class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4Z"></path>
+                </svg>
+            </span>
+            {% if current < lastIndex %}
+                <button type="button"
+                        data-action="live#action" data-live-action-param="nextStep"
+                        data-live-wizard-param="{{ wizardId }}"
+                        class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-primary-600/20 transition-colors hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950">
+                    Next
+                    {{ include('@Atrium/icon.html.twig', { name: 'chevron-right', class: 'h-4 w-4' }) }}
+                </button>
+            {% else %}
+                <button type="button"
+                        data-action="live#action" data-live-action-param="save"
+                        class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-primary-600/20 transition-colors hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950">
+                    {{ this.isEdit() ? 'Save changes' : 'Create' }}
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>

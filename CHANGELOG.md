@@ -110,6 +110,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     stays the escape hatch.
   - Presentation: `placeholder()` (Text/Textarea/Number via `HasPlaceholder`),
     `autofocus()`, `hiddenLabel()` on `Field`; widgets + wrapper updated.
+- Forms v2 / M5 — **Wizard** (`SCH-10`). `Atrium\Layout\Wizard` + `Atrium\Layout\Step`,
+  a multi-step container, plus a `WizardForm` Live Component.
+  - `WizardForm extends Form`: the wizard interaction (Next/Back, gated
+    advancement, a header that jumps backwards) is layered on the unchanged
+    hydrate/validate/save core. `Form` was made extensible for this — non-`final`,
+    with `protected` `collectErrors()`/`fieldsIn()`/`schema()` and a
+    `focusContainer()` hook the subclass overrides to focus an errored step.
+  - The current step is **server state** (`currentSteps` prop); **Next**
+    validates only the current step's fields before advancing, **Back** is free,
+    and the wizard owns submit (Submit appears on the last step). All panels
+    render (inactive `hidden`), so navigating keeps in-progress input.
+  - A resource selects its form component via the new
+    `AdminResource::getFormComponentName()` — `Atrium:Form` by default, upgrading
+    to `Atrium:WizardForm` when the schema contains a `Wizard`. The form page
+    embeds it dynamically (`{{ component(resource.formComponentName, …) }}`).
+  - `Step::make('Label')->icon()->description()->columns()->schema([…])`.
 - Forms v2 / M5 — **Tabs** (`SCH-10`). `Atrium\Layout\Tabs` + `Atrium\Layout\Tab`,
   a tabbed container on the same schema tree.
   - The active tab is **server state** on the host Live Component (a `selectTab`

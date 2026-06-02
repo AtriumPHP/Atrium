@@ -15,6 +15,7 @@ use Atrium\Tests\Fixtures\Resource\DehydrateTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
 use Atrium\Tests\Fixtures\Resource\TabsTagResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
+use Atrium\Tests\Fixtures\Resource\WizardTagResource;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -93,6 +94,10 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(TabsTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(WizardTagResource::class)
             ->autoconfigure()
             ->autowire();
 

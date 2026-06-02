@@ -1,0 +1,9 @@
+{#
+    A lone Wizard step. Wizard renders its panels directly (see wizard.html.twig);
+    this is the defensive fallback if a Step is ever placed outside a Wizard — it
+    just lays out its children.
+#}
+{{ include('@Atrium/components/layout/components.html.twig', {
+    components: component.getChildComponents(),
+    gridClass: component.getGridClass(),
+}) }}

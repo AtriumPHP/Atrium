@@ -13,10 +13,12 @@
 
 {% block body %}
     <div class="mx-auto max-w-4xl">
-        <twig:Atrium:Form
-            :resource="resource.slug"
-            :entityId="entityId"
-            :redirectAfterSave="redirectUrl"
-        />
+        {# The resource picks its form component (plain Form, or WizardForm when
+           the schema has a Wizard) — see AdminResource::getFormComponentName(). #}
+        {{ component(resource.formComponentName, {
+            resource: resource.slug,
+            entityId: entityId,
+            redirectAfterSave: redirectUrl,
+        }) }}
     </div>
 {% endblock %}

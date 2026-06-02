@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Atrium\Resource;
 
 use Atrium\Form\Schema;
+use Atrium\Layout\Component;
+use Atrium\Layout\Wizard;
 use Atrium\Page\CreatePage;
 use Atrium\Page\EditPage;
 use Atrium\Page\ListPage;
@@ -48,6 +50,35 @@ abstract class AdminResource
     public function form(Schema $schema): Schema
     {
         return $schema;
+    }
+
+    /**
+     * The Live Component that renders this resource's form. Defaults to the
+     * plain `Atrium:Form`, upgrading to `Atrium:WizardForm` when the schema
+     * contains a {@see Wizard}. Override to use a fully custom form component.
+     */
+    public function getFormComponentName(): string
+    {
+        return $this->schemaContainsWizard($this->form(new Schema())->getComponents())
+            ? 'Atrium:WizardForm'
+            : 'Atrium:Form';
+    }
+
+    /**
+     * @param list<Component> $components
+     */
+    private function schemaContainsWizard(array $components): bool
+    {
+        foreach ($components as $component) {
+            if ($component instanceof Wizard) {
+                return true;
+            }
+            if ($this->schemaContainsWizard($component->getChildComponents())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

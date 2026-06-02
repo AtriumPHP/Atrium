@@ -111,8 +111,12 @@ the keystone change here; everything else composes onto it.
   Component (toggled by a `selectTab` action, kept across unrelated re-renders);
   every panel is rendered with inactive ones `hidden`, so switching never loses
   in-progress input, and a failed save focuses the tab holding the error. Tabs
-  take an optional `icon()`/`badge()`. **Wizard** (multi-step + step validation +
-  next/prev) remains a future step on the same machinery.
+  take an optional `icon()`/`badge()`. **Wizard — ✅ delivered too:**
+  `Wizard::make()->steps([Step::make('…')->schema([…])])`, rendered by a dedicated
+  `WizardForm` Live Component (`Form` subclass). Next validates the current step
+  before advancing, Back is free, the header jumps backwards, and submit lands on
+  the last step. A resource auto-selects the component via
+  `AdminResource::getFormComponentName()`.
 - **SCH-11** **Flex** — `Flex::make()->schema([...])->from('md')`; a flexbox row
   (children side by side from the `from()` breakpoint up, stacked below) where
   widths are content-driven. Children opt out of growing with `->grow(false)`
@@ -321,7 +325,7 @@ Phase 2), before Actions.
   full-width spans and a Flex row render and save (a reactive dependent select
   works inside a grid); nested layout works; flat `fields([...])` is unchanged.
   *Deferred to a later milestone:* responsive `columnSpan` arrays,
-  `columnStart`/`columnOrder`, Section `aside`/`icon`, Wizard (`SCH-10`).
+  `columnStart`/`columnOrder`, Section `aside`/`icon`.
 - **M2 — Conditional visibility (`FRM-08, FRM-09, `Get` of `FRM-11`) — ✅ delivered.**
   Server-evaluated `visible/hidden/visibleOn/hiddenOn` via the invokable
   `Atrium\Form\Get`; the Form filters hidden fields from the render tree and skips
@@ -343,7 +347,7 @@ Phase 2), before Actions.
 - **M5 — delivered.** ✅ `FLD-06` Tags, `FLD-07` Key-value (full add/remove row
   editors), `FRM-14` `dehydrated(false)`, **container-level visibility**, the
   `same()`/`different()` cross-field validators, `inlineLabel`, and `SCH-10`
-  **Tabs**. *Remaining (own pass):* **Wizard** (multi-step) on the same tree.
+  **Tabs** + **Wizard** (the latter via a `WizardForm` subclass of `Form`).
 - **Future (`FLD-10..13`).** Repeater, Builder, File upload, Rich/Markdown — each
   its own PRD addendum when scheduled.
 
