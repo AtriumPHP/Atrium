@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Atrium\Form;
 
+use Atrium\Layout\StateAccessor;
+
 /**
  * A read accessor over the current form state (FRM-11), handed to field
  * callbacks (`visible()`, `optionsUsing()`, …) so they can react to other
@@ -11,7 +13,7 @@ namespace Atrium\Form;
  *
  * Invoke it with a field name: `$get('country')`.
  */
-final readonly class Get
+final readonly class Get implements StateAccessor
 {
     /**
      * @param array<string, mixed> $data

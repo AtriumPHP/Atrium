@@ -110,6 +110,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     stays the escape hatch.
   - Presentation: `placeholder()` (Text/Textarea/Number via `HasPlaceholder`),
     `autofocus()`, `hiddenLabel()` on `Field`; widgets + wrapper updated.
+- Forms v2 / M5 (partial) — container visibility, `dehydrated(false)`, and the
+  Tags / Key-value fields.
+  - **Container-level visibility:** `visible()`/`hidden()`/`visibleOn()`/`hiddenOn()`
+    now apply to layout containers too (a hidden `Section`/`Grid`/`Flex`/`Fieldset`
+    drops its whole subtree). Visibility moved to
+    `Atrium\Layout\Concern\HasVisibility` over a generic `Atrium\Layout\StateAccessor`
+    (implemented by `Atrium\Form\Get`), keeping `Atrium\Layout` free of any form
+    dependency.
+  - **`Field::dehydrated(false)`** (`FRM-14`) — a field shown and validated but not
+    written to the model on save.
+  - **`TagsField`** (`FLD-06`, `list<string>`) and **`KeyValueField`** (`FLD-07`,
+    `array<string,string>`) — zero-JS, server-driven (comma string / `key: value`
+    lines) with chip / preview rendering.
 - Forms v2 / M4 — new field types (`FLD-01..05`): `RadioField`,
   `ToggleButtonsField` (both extend `SelectField`), `ToggleField` (a switch,
   extends `CheckboxField`), `ColorField`, and `HiddenField`. `Field::rendersInLayout()`

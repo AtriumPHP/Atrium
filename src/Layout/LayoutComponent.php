@@ -6,6 +6,7 @@ namespace Atrium\Layout;
 
 use Atrium\Layout\Concern\HasColumnSpan;
 use Atrium\Layout\Concern\HasGrow;
+use Atrium\Layout\Concern\HasVisibility;
 
 /**
  * Base class for layout containers (Grid, Flex, Section, Fieldset).
@@ -18,6 +19,7 @@ abstract class LayoutComponent implements Component
 {
     use HasColumnSpan;
     use HasGrow;
+    use HasVisibility;
 
     /** @var list<Component> */
     protected array $components = [];

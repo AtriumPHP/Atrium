@@ -141,10 +141,16 @@ the keystone change here; everything else composes onto it.
 - **FRM-13** **Presentation niceties — ✅ delivered (partly).** `->placeholder(string)`
   (Text/Textarea/Number), `->autofocus()`, `->hiddenLabel()` (a11y-only label).
   *Deferred:* `->inlineLabel()` (needs a flex wrapper layout).
-- **FRM-14** **Dehydration control** — `->dehydrated(false)` (a field shown but
-  not written to the model) and confirm the existing `normalize()` /
-  `toFormValue()` cover Filament's `dehydrateStateUsing()` / `formatStateUsing()`
-  (they do; document the mapping).
+- **FRM-14** **Dehydration control — ✅ delivered.** `->dehydrated(false)` — a field
+  shown and validated but not written to the model (the save hydrate loop skips
+  it). The existing `normalize()` / `toFormValue()` already cover Filament's
+  `dehydrateStateUsing()` / `formatStateUsing()`.
+
+> **Container-level visibility — ✅ delivered.** `visible()`/`hidden()`/`visibleOn()`/
+> `hiddenOn()` now also work on **layout containers** (`Section`/`Grid`/`Flex`/
+> `Fieldset`): a hidden container drops its whole subtree. To keep `Atrium\Layout`
+> independent of `Atrium\Form`, visibility moved to `Atrium\Layout\Concern\HasVisibility`
+> over a generic `Atrium\Layout\StateAccessor` (which `Atrium\Form\Get` implements).
 
 > Note: `FRM-07` (field-level authorization) is unchanged and orthogonal —
 > authorization gates and `visible()` compose (a field hidden by either is hidden).
@@ -163,8 +169,11 @@ Cheap, native-input field types via the existing widget-template pattern:
 - **FLD-04** **Color picker** — `ColorField` (`<input type=color>` + hex preview).
 - **FLD-05** **Toggle buttons** — `ToggleButtonsField` (segmented single choice;
   extends `SelectField`). Multi-select is a later extension.
-- **FLD-06** **Tags input** — `TagsField` (string list).
-- **FLD-07** **Key-value** — `KeyValueField` (string map).
+- **FLD-06** **Tags input — ✅ delivered.** `TagsField` (`list<string>`; edited as a
+  comma-separated string with a chip preview — zero-JS, server-driven; a richer
+  chip-input is a future enhancement).
+- **FLD-07** **Key-value — ✅ delivered.** `KeyValueField` (`array<string,string>`;
+  edited as `key: value` lines with a preview; a row-based editor is future).
 
 Roadmap / out of scope for the first milestones, catalogued for completeness:
 
@@ -324,7 +333,9 @@ Phase 2), before Actions.
   native-input widgets. `Field::rendersInLayout()` lets `HiddenField` stay in the
   state while drawing nothing. *Verified:* each renders/normalizes/round-trips;
   hidden is filtered from the layout but kept in `getFields()`.
-- **M5 — Stretch (`SCH-10` Tabs/Wizard, `FLD-06..07`, `FRM-14`).**
+- **M5 — partly delivered.** ✅ `FLD-06` Tags, `FLD-07` Key-value, `FRM-14`
+  `dehydrated(false)`, and **container-level visibility**. *Remaining:* `SCH-10`
+  Tabs/Wizard, `same()` validator, `inlineLabel`, richer Tags/KeyValue editors.
 - **Future (`FLD-10..13`).** Repeater, Builder, File upload, Rich/Markdown — each
   its own PRD addendum when scheduled.
 

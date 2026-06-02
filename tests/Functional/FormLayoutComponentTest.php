@@ -58,9 +58,42 @@ final class FormLayoutComponentTest extends KernelTestCase
         self::assertStringContainsString('type="color"', $html);   // ColorField
         self::assertStringContainsString('peer sr-only', $html);   // Toggle / ToggleButtons switch inputs
         self::assertStringContainsString('atrium_size', $html);
+        self::assertStringContainsString('atrium_labels', $html);  // TagsField
+        self::assertStringContainsString('atrium_meta', $html);    // KeyValueField
 
         // HiddenField renders no widget …
         self::assertStringNotContainsString('atrium_source', $html);
+    }
+
+    public function testContainerVisibilityDropsAWholeSection(): void
+    {
+        $create = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag'])
+            ->render()->toString();
+        // The "Audit" section is visibleOn('edit') — absent (heading + field) on create.
+        self::assertStringNotContainsString('atrium_auditNote', $create);
+        self::assertStringNotContainsString('Audit', $create);
+
+        $edit = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag', 'entityId' => '3'])
+            ->render()->toString();
+        self::assertStringContainsString('atrium_auditNote', $edit);
+        self::assertStringContainsString('Audit', $edit);
+    }
+
+    public function testDehydratedFieldIsNotPersisted(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'dehydrate-tag']);
+
+        $component
+            ->set('formData', ['name' => 'Keep', 'slug' => 'should-not-save'])
+            ->call('save');
+
+        $writer = self::getContainer()->get(ArrayDataWriter::class);
+        self::assertInstanceOf(ArrayDataWriter::class, $writer);
+        $tags = $writer->records[Tag::class] ?? [];
+        self::assertCount(1, $tags);
+        self::assertInstanceOf(Tag::class, $tags[0]);
+        self::assertSame('Keep', $tags[0]->name);
+        self::assertSame('', $tags[0]->slug, 'dehydrated(false) field must not be written');
     }
 
     public function testClosureVisibilityReactsToALiveField(): void

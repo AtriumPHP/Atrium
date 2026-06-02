@@ -10,6 +10,7 @@ use Atrium\DataProvider\ArrayDataWriter;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Tests\Fixtures\Data\SampleData;
+use Atrium\Tests\Fixtures\Resource\DehydrateTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
@@ -78,6 +79,10 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(LayoutTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(DehydrateTagResource::class)
             ->autoconfigure()
             ->autowire();
 

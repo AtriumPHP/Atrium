@@ -119,8 +119,8 @@ final class Form
         $entity = $this->loadEntity() ?? $this->newEntity();
 
         foreach ($this->getFields() as $field) {
-            if ($field->isDisabled() || !$field->isVisible($get, $operation)) {
-                continue; // hidden fields are not persisted
+            if ($field->isDisabled() || !$field->isDehydrated() || !$field->isVisible($get, $operation)) {
+                continue; // disabled / dehydrated(false) / hidden fields are not persisted
             }
             if ($this->accessor->isWritable($entity, $field->getName())) {
                 $this->accessor->setValue($entity, $field->getName(), $normalized[$field->getName()]);
@@ -274,6 +274,10 @@ final class Form
             }
 
             if ($component instanceof LayoutComponent) {
+                if (!$component->isVisible($get, $operation)) {
+                    continue;
+                }
+
                 $children = $this->filterVisible($component->getChildComponents(), $get, $operation);
                 if ([] === $children) {
                     continue;

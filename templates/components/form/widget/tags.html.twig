@@ -1,0 +1,12 @@
+<input type="text" id="atrium_{{ name }}" data-model="{{ model }}"
+       value="{{ this.getValue(name) }}"
+       placeholder="{{ field.getPlaceholder() ?: 'Comma-separated…' }}"
+       {{ field.isAutofocused() ? 'autofocus' }} {{ field.isDisabled() ? 'disabled' }} class="{{ inputClass }}">
+{% set tags = field.parseTags(this.getValue(name)) %}
+{% if tags %}
+    <div class="mt-2 flex flex-wrap gap-1.5">
+        {% for tag in tags %}
+            <span class="inline-flex rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">{{ tag }}</span>
+        {% endfor %}
+    </div>
+{% endif %}

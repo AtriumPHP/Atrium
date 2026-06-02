@@ -7,8 +7,10 @@ namespace Atrium\Tests\Fixtures\Resource;
 use Atrium\Content\Text;
 use Atrium\Form\Field\ColorField;
 use Atrium\Form\Field\HiddenField;
+use Atrium\Form\Field\KeyValueField;
 use Atrium\Form\Field\RadioField;
 use Atrium\Form\Field\SelectField;
+use Atrium\Form\Field\TagsField;
 use Atrium\Form\Field\TextField;
 use Atrium\Form\Field\ToggleButtonsField;
 use Atrium\Form\Field\ToggleField;
@@ -65,8 +67,14 @@ final class LayoutTagResource extends AdminResource
                 RadioField::make('size')->options(['s' => 'Small', 'l' => 'Large']),
                 ToggleButtonsField::make('priority')->options(['lo' => 'Low', 'hi' => 'High']),
                 ColorField::make('color'),
+                TagsField::make('labels'),
+                KeyValueField::make('meta')->columnSpanFull(),
                 // Carried in state, not rendered (FLD-03).
                 HiddenField::make('source')->default('web'),
+            ]),
+            // Container-level visibility (FRM-08/09 on a layout node): edit only.
+            Section::make('Audit')->visibleOn('edit')->schema([
+                TextField::make('auditNote'),
             ]),
         ]);
     }

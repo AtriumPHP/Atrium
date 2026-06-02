@@ -6,10 +6,10 @@ namespace Atrium\Form\Field;
 
 use Atrium\Form\Concern\HasReactivity;
 use Atrium\Form\Concern\HasValidationRules;
-use Atrium\Form\Concern\HasVisibility;
 use Atrium\Layout\Component;
 use Atrium\Layout\Concern\HasColumnSpan;
 use Atrium\Layout\Concern\HasGrow;
+use Atrium\Layout\Concern\HasVisibility;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -47,6 +47,8 @@ abstract class Field implements Component
     protected bool $autofocus = false;
 
     protected bool $hiddenLabel = false;
+
+    protected bool $dehydrated = true;
 
     protected ?string $helpText = null;
 
@@ -110,6 +112,17 @@ abstract class Field implements Component
     public function hiddenLabel(bool $hiddenLabel = true): static
     {
         $this->hiddenLabel = $hiddenLabel;
+
+        return $this;
+    }
+
+    /**
+     * Whether the field's value is written back to the model on save (FRM-14).
+     * Set false for a field that is shown and validated but not persisted.
+     */
+    public function dehydrated(bool $dehydrated = true): static
+    {
+        $this->dehydrated = $dehydrated;
 
         return $this;
     }
@@ -179,6 +192,11 @@ abstract class Field implements Component
     public function hasHiddenLabel(): bool
     {
         return $this->hiddenLabel;
+    }
+
+    public function isDehydrated(): bool
+    {
+        return $this->dehydrated;
     }
 
     public function isDisabled(): bool

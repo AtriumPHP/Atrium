@@ -2,23 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Atrium\Form\Concern;
+namespace Atrium\Layout\Concern;
 
-use Atrium\Form\Get;
+use Atrium\Layout\StateAccessor;
 
 /**
- * Conditional visibility for a field (FRM-08, FRM-09).
+ * Conditional visibility for a schema component — a field or a layout container
+ * (FRM-08, FRM-09).
  *
- * Visibility is **server-evaluated** during the Live Component re-render that a
- * `->live()` field already triggers — there is no client-side branching. A
- * hidden field is neither rendered nor validated nor hydrated.
+ * Visibility is **server-evaluated** during the Live Component re-render. A
+ * hidden node is neither rendered nor (for fields) validated/persisted; a hidden
+ * container drops its whole subtree.
  *
- * - `visible()` / `hidden()` take a bool or a `\Closure(Get): bool`.
+ * - `visible()` / `hidden()` take a bool or a `\Closure(StateAccessor): bool`.
  * - `visibleOn()` / `hiddenOn()` gate on the current operation (`create`/`edit`).
  */
 trait HasVisibility
 {
-    /** @var (\Closure(Get): bool)|null */
+    /** @var (\Closure(StateAccessor): bool)|null */
     private ?\Closure $visibilityCallback = null;
 
     /** @var list<string>|null */
@@ -31,7 +32,7 @@ trait HasVisibility
     {
         $this->visibilityCallback = $condition instanceof \Closure
             ? $condition
-            : static fn (Get $get): bool => $condition;
+            : static fn (StateAccessor $state): bool => $condition;
 
         return $this;
     }
@@ -39,8 +40,8 @@ trait HasVisibility
     public function hidden(bool|\Closure $condition = true): static
     {
         $this->visibilityCallback = $condition instanceof \Closure
-            ? static fn (Get $get): bool => !$condition($get)
-            : static fn (Get $get): bool => !$condition;
+            ? static fn (StateAccessor $state): bool => !$condition($state)
+            : static fn (StateAccessor $state): bool => !$condition;
 
         return $this;
     }
@@ -65,7 +66,7 @@ trait HasVisibility
         return $this;
     }
 
-    public function isVisible(Get $get, string $operation): bool
+    public function isVisible(StateAccessor $state, string $operation): bool
     {
         if (null !== $this->hiddenOn && \in_array($operation, $this->hiddenOn, true)) {
             return false;
@@ -75,7 +76,7 @@ trait HasVisibility
             return false;
         }
 
-        if (null !== $this->visibilityCallback && !($this->visibilityCallback)($get)) {
+        if (null !== $this->visibilityCallback && !($this->visibilityCallback)($state)) {
             return false;
         }
 
