@@ -155,9 +155,31 @@ abstract class Field
     }
 
     /**
-     * Widget identifier used by the template (text, textarea, number, …).
+     * Semantic widget identifier (text, textarea, number, …). Used for grouping
+     * and to derive the default {@see getTemplate()}.
      */
     abstract public function getType(): string;
+
+    /**
+     * The Twig template that renders this field's widget.
+     *
+     * Defaults to the built-in convention. Override in a custom field type to
+     * ship your own template from any bundle — this is the extension point that
+     * lets third-party apps add fields without touching the form renderer.
+     */
+    public function getTemplate(): string
+    {
+        return '@Atrium/components/form/widget/'.$this->getType().'.html.twig';
+    }
+
+    /**
+     * Whether the widget renders its own <label> (e.g. an inline checkbox),
+     * in which case the field wrapper does not render one.
+     */
+    public function rendersOwnLabel(): bool
+    {
+        return false;
+    }
 
     /**
      * Convert a raw submitted (form) value into the model value.

@@ -11,6 +11,7 @@ use Atrium\Form\Field\NumberField;
 use Atrium\Form\Field\SelectField;
 use Atrium\Form\Field\TextareaField;
 use Atrium\Form\Field\TextField;
+use Atrium\Tests\Fixtures\Form\ColorField;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\IsTrue;
@@ -103,6 +104,28 @@ final class FieldTest extends TestCase
         self::assertSame('2026-03-14', $model->format('Y-m-d'));
         self::assertSame('2026-03-14', $field->toFormValue($model));
         self::assertNull($field->normalize(''));
+    }
+
+    public function testBuiltInTemplatesFollowTheConvention(): void
+    {
+        self::assertSame('@Atrium/components/form/widget/text.html.twig', TextField::make('x')->getTemplate());
+        self::assertSame('@Atrium/components/form/widget/select.html.twig', SelectField::make('x')->getTemplate());
+        self::assertSame('@Atrium/components/form/widget/checkbox.html.twig', CheckboxField::make('x')->getTemplate());
+    }
+
+    public function testCustomFieldShipsItsOwnTemplate(): void
+    {
+        $field = ColorField::make('brandColor');
+
+        self::assertSame('color', $field->getType());
+        self::assertSame('@Acme/fields/color.html.twig', $field->getTemplate());
+    }
+
+    public function testOnlyCheckboxRendersItsOwnLabel(): void
+    {
+        self::assertTrue(CheckboxField::make('active')->rendersOwnLabel());
+        self::assertFalse(TextField::make('name')->rendersOwnLabel());
+        self::assertFalse(SelectField::make('tier')->rendersOwnLabel());
     }
 
     public function testDateTimeFieldFormat(): void

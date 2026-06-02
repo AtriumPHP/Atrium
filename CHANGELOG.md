@@ -58,7 +58,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Form` Live Component: hydrate/dehydrate via `formData` LiveProp, inline
     validation (keeps last values), reactive `->live()` fields driving dependent
     selects, save through the writer, success notice / redirect. Field rendering
-    is split into per-type widget partials under `components/form/widget/`.
+    is split into per-type widget partials under `components/form/widget/`; each
+    `Field` declares its widget template via `getTemplate()` (and label placement
+    via `rendersOwnLabel()`), so third-party apps can add custom field types that
+    ship their own templates from any bundle — no change to the renderer.
   - Page descriptor classes (`Page`, `ListPage`, `CreatePage`, `EditPage`) with a
     `getRedirectUrl()` hook and `PageContext`; `AdminResource::pages()`. Generic
     dispatcher routes — `/admin/{resource}/new` and `/admin/{resource}/{id}/edit`

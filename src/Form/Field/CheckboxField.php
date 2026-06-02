@@ -14,6 +14,11 @@ final class CheckboxField extends Field
         return 'checkbox';
     }
 
+    public function rendersOwnLabel(): bool
+    {
+        return true;
+    }
+
     public function normalize(mixed $value): mixed
     {
         return \in_array($value, [true, '1', 1, 'on', 'true'], true);
