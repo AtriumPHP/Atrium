@@ -13,6 +13,7 @@ use Atrium\Tests\Fixtures\Data\SampleData;
 use Atrium\Tests\Fixtures\Resource\ConfirmTagResource;
 use Atrium\Tests\Fixtures\Resource\DehydrateTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
+use Atrium\Tests\Fixtures\Resource\TabsTagResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -88,6 +89,10 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(ConfirmTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(TabsTagResource::class)
             ->autoconfigure()
             ->autowire();
 

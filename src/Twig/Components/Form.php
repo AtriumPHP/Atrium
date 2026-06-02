@@ -14,6 +14,8 @@ use Atrium\Form\Schema;
 use Atrium\Form\Set;
 use Atrium\Layout\Component;
 use Atrium\Layout\LayoutComponent;
+use Atrium\Layout\Tab;
+use Atrium\Layout\Tabs;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -68,6 +70,16 @@ final class Form
     #[LiveProp]
     public array $errors = [];
 
+    /**
+     * Active tab per {@see Tabs} container, keyed by the container id (SCH-10).
+     * Server-held so switching a tab — and keeping it across unrelated
+     * re-renders — needs no client JavaScript.
+     *
+     * @var array<string, string>
+     */
+    #[LiveProp]
+    public array $activeTabs = [];
+
     #[LiveProp]
     public bool $saved = false;
 
@@ -117,6 +129,8 @@ final class Form
         $this->validateComparisons($normalized, $get, $operation);
 
         if ([] !== $this->errors) {
+            $this->focusErroredTabs($this->schema()->getComponents());
+
             return null; // invalid: keep the last values, surface errors
         }
 
@@ -235,6 +249,30 @@ final class Form
         $rows = array_values($rows);
         $this->formData[$field] = $rows;
         $this->previousFormData[$field] = $rows;
+    }
+
+    /**
+     * Switch the active panel of a {@see Tabs} container (SCH-10).
+     */
+    #[LiveAction]
+    public function selectTab(#[LiveArg] string $tabs, #[LiveArg] string $tab): void
+    {
+        $this->activeTabs[$tabs] = $tab;
+    }
+
+    /**
+     * The active tab id of a container — the stored selection, or its first tab.
+     */
+    public function activeTab(Tabs $tabs): string
+    {
+        $ids = array_map(static fn (Tab $tab): string => $tab->getId(), $tabs->getTabs());
+        $active = $this->activeTabs[$tabs->getId()] ?? null;
+
+        if (null !== $active && \in_array($active, $ids, true)) {
+            return $active;
+        }
+
+        return $ids[0] ?? '';
     }
 
     /**
@@ -370,6 +408,51 @@ final class Form
                 break;
             }
         }
+    }
+
+    /**
+     * After a failed save, switch each {@see Tabs} container to the first tab
+     * that holds an errored field, so the error is visible without hunting
+     * (SCH-10). Walks nested containers too.
+     *
+     * @param list<Component> $components
+     */
+    private function focusErroredTabs(array $components): void
+    {
+        foreach ($components as $component) {
+            if ($component instanceof Tabs) {
+                foreach ($component->getTabs() as $tab) {
+                    if ([] !== array_intersect($this->fieldNamesIn($tab), array_keys($this->errors))) {
+                        $this->activeTabs[$component->getId()] = $tab->getId();
+                        break;
+                    }
+                }
+            }
+
+            $this->focusErroredTabs($component->getChildComponents());
+        }
+    }
+
+    /**
+     * Field names anywhere under a layout node.
+     *
+     * @return list<string>
+     */
+    private function fieldNamesIn(Component $node): array
+    {
+        $names = [];
+        foreach ($node->getChildComponents() as $child) {
+            if ($child instanceof Field) {
+                $names[] = $child->getName();
+
+                continue;
+            }
+            foreach ($this->fieldNamesIn($child) as $name) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
     }
 
     private function repeatable(string $name): ?RepeatableField

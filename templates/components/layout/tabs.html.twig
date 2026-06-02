@@ -1,0 +1,41 @@
+{#
+    Tabs: a server-driven tabbed container (SCH-10). The active tab is held by the
+    host component (this.activeTab); each tab button is a `selectTab` live action.
+    Every panel is rendered — inactive ones get `hidden` — so switching only flips
+    an attribute and inputs in other tabs keep their state across the round-trip.
+#}
+{% set tabsId = component.getId() %}
+{% set activeId = this.activeTab(component) %}
+
+<div class="rounded-2xl border border-gray-200/80 bg-white shadow-sm dark:border-gray-800/80 dark:bg-gray-900">
+    <div role="tablist" class="flex items-center gap-1 overflow-x-auto overflow-y-hidden border-b border-gray-100 px-2 dark:border-gray-800">
+        {% for tab in component.getTabs() %}
+            {% set isActive = tab.getId() == activeId %}
+            <button type="button" role="tab" aria-selected="{{ isActive ? 'true' : 'false' }}"
+                    data-action="live#action" data-live-action-param="selectTab"
+                    data-live-tabs-param="{{ tabsId }}" data-live-tab-param="{{ tab.getId() }}"
+                    class="-mb-px inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors {{ isActive
+                        ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200' }}">
+                {% if tab.getIcon() %}
+                    {{ include('@Atrium/icon.html.twig', { name: tab.getIcon(), class: 'h-4 w-4' }) }}
+                {% endif %}
+                {{ tab.getLabel() }}
+                {% if tab.getBadge() is not null %}
+                    <span class="rounded-full px-2 py-0.5 text-xs font-semibold {{ isActive
+                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300'
+                        : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' }}">{{ tab.getBadge() }}</span>
+                {% endif %}
+            </button>
+        {% endfor %}
+    </div>
+
+    {% for tab in component.getTabs() %}
+        <div role="tabpanel" class="px-6 py-5"{{ tab.getId() == activeId ? '' : ' hidden' }}>
+            {{ include('@Atrium/components/layout/components.html.twig', {
+                components: tab.getChildComponents(),
+                gridClass: tab.getGridClass(),
+            }) }}
+        </div>
+    {% endfor %}
+</div>

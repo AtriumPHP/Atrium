@@ -106,8 +106,13 @@ the keystone change here; everything else composes onto it.
 - **SCH-09** **Collapsible state** is a client interaction with no data impact; it
   may be Stimulus-driven and need not round-trip (collapsing is the *one* place a
   tiny bit of local JS is acceptable, as pure progressive enhancement).
-- **SCH-10** (Stretch) **Tabs** and **Wizard** (multi-step) layout components,
-  building on the same tree; Wizard adds step validation + next/prev actions.
+- **SCH-10** **Tabs — ✅ delivered.** `Tabs::make()->tabs([Tab::make('…')->schema([…])])`
+  building on the same tree. The active tab is **server state** on the host Live
+  Component (toggled by a `selectTab` action, kept across unrelated re-renders);
+  every panel is rendered with inactive ones `hidden`, so switching never loses
+  in-progress input, and a failed save focuses the tab holding the error. Tabs
+  take an optional `icon()`/`badge()`. **Wizard** (multi-step + step validation +
+  next/prev) remains a future step on the same machinery.
 - **SCH-11** **Flex** — `Flex::make()->schema([...])->from('md')`; a flexbox row
   (children side by side from the `from()` breakpoint up, stacked below) where
   widths are content-driven. Children opt out of growing with `->grow(false)`
@@ -316,7 +321,7 @@ Phase 2), before Actions.
   full-width spans and a Flex row render and save (a reactive dependent select
   works inside a grid); nested layout works; flat `fields([...])` is unchanged.
   *Deferred to a later milestone:* responsive `columnSpan` arrays,
-  `columnStart`/`columnOrder`, Section `aside`/`icon`, Tabs/Wizard (`SCH-10`).
+  `columnStart`/`columnOrder`, Section `aside`/`icon`, Wizard (`SCH-10`).
 - **M2 — Conditional visibility (`FRM-08, FRM-09, `Get` of `FRM-11`) — ✅ delivered.**
   Server-evaluated `visible/hidden/visibleOn/hiddenOn` via the invokable
   `Atrium\Form\Get`; the Form filters hidden fields from the render tree and skips
@@ -335,10 +340,10 @@ Phase 2), before Actions.
   native-input widgets. `Field::rendersInLayout()` lets `HiddenField` stay in the
   state while drawing nothing. *Verified:* each renders/normalizes/round-trips;
   hidden is filtered from the layout but kept in `getFields()`.
-- **M5 — delivered (bar Tabs/Wizard).** ✅ `FLD-06` Tags, `FLD-07` Key-value
-  (now full add/remove row editors), `FRM-14` `dehydrated(false)`,
-  **container-level visibility**, the `same()`/`different()` cross-field
-  validators, and `inlineLabel`. *Remaining:* `SCH-10` Tabs/Wizard (its own pass).
+- **M5 — delivered.** ✅ `FLD-06` Tags, `FLD-07` Key-value (full add/remove row
+  editors), `FRM-14` `dehydrated(false)`, **container-level visibility**, the
+  `same()`/`different()` cross-field validators, `inlineLabel`, and `SCH-10`
+  **Tabs**. *Remaining (own pass):* **Wizard** (multi-step) on the same tree.
 - **Future (`FLD-10..13`).** Repeater, Builder, File upload, Rich/Markdown — each
   its own PRD addendum when scheduled.
 

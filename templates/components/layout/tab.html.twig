@@ -1,0 +1,9 @@
+{#
+    A lone Tab panel. Tabs normally renders its panels directly (see
+    tabs.html.twig); this is the defensive fallback if a Tab is ever placed
+    outside a Tabs container — it just lays out its children.
+#}
+{{ include('@Atrium/components/layout/components.html.twig', {
+    components: component.getChildComponents(),
+    gridClass: component.getGridClass(),
+}) }}

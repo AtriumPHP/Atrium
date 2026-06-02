@@ -110,6 +110,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     stays the escape hatch.
   - Presentation: `placeholder()` (Text/Textarea/Number via `HasPlaceholder`),
     `autofocus()`, `hiddenLabel()` on `Field`; widgets + wrapper updated.
+- Forms v2 / M5 — **Tabs** (`SCH-10`). `Atrium\Layout\Tabs` + `Atrium\Layout\Tab`,
+  a tabbed container on the same schema tree.
+  - The active tab is **server state** on the host Live Component (a `selectTab`
+    live action + an `activeTabs` prop), so it survives unrelated re-renders and
+    needs no client JavaScript. Every panel is rendered each request with
+    inactive ones `hidden`, so switching only flips an attribute — inputs in
+    other tabs stay in the DOM and keep their in-progress values across the
+    morph. A failed save focuses the first tab holding a validation error.
+  - `Tab::make('Label')->icon(…)->badge(…)->columns(…)->schema([…])`; `Tabs` has a
+    stable id (auto-derived from its tabs, or `->id()`) used to key the state.
 - Forms v2 / M5 (cont.) — cross-field validation, inline labels and the
   add/remove row editors that complete Tags / Key-value (`FRM-12`, `FRM-13`,
   `FLD-06`, `FLD-07`).
