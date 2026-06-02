@@ -239,6 +239,13 @@ Mirrors Filament's per-resource organization, adapted to Symfony's HTTP model.
 - **FRM-06** Save persists via the data layer and emits a success notification.
 - **FRM-07** Field-level authorization (hide/disable based on voters).
 
+> **Forms v2 (proposed):** the schema-tree + layout (`Grid`/`Section`/`Fieldset`,
+> `columnSpan`), conditional visibility (`FRM-08..09`), cross-field reactivity
+> (`FRM-10..11`), validation DX (`FRM-12`), and additional field types (`FLD-*`)
+> are specified in the addendum
+> [`docs/PRD-forms-schema-layout.md`](./PRD-forms-schema-layout.md). Slots in as
+> Phase 2.5.
+
 ### 8.4 Actions — `ACT`
 
 - **ACT-01** Row actions, bulk actions, and page/header actions.
