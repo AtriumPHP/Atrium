@@ -50,6 +50,12 @@ final class HookedTagResource extends AdminResource
     /** @var list<string> */
     public static array $validated = [];
 
+    /** @var list<string> */
+    public static array $actionLog = [];
+
+    /** @var list<string> */
+    public static array $bulkLog = [];
+
     public static bool $bulkRan = false;
 
     public static function reset(): void
@@ -63,6 +69,8 @@ final class HookedTagResource extends AdminResource
         self::$created = [];
         self::$updated = [];
         self::$validated = [];
+        self::$actionLog = [];
+        self::$bulkLog = [];
         self::$bulkRan = false;
     }
 
@@ -167,6 +175,26 @@ final class HookedTagResource extends AdminResource
         if ($record instanceof Tag) {
             self::$deleted[] = $record->slug;
         }
+    }
+
+    public function beforeAction(string $action, object $record): void
+    {
+        self::$actionLog[] = 'before:'.$action;
+    }
+
+    public function afterAction(string $action, object $record): void
+    {
+        self::$actionLog[] = 'after:'.$action;
+    }
+
+    public function beforeBulkAction(string $action, array $records): void
+    {
+        self::$bulkLog[] = 'before:'.$action.':'.\count($records);
+    }
+
+    public function afterBulkAction(string $action, array $records): void
+    {
+        self::$bulkLog[] = 'after:'.$action.':'.\count($records);
     }
 
     public function handleRecordCreation(object $record, DataWriterInterface $writer): void

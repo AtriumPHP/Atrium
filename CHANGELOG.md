@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Action lifecycle hooks** on `AdminResource`: `beforeAction`/`afterAction(string
+  $action, object $record)` bracket **every** row action's handler, and
+  `beforeBulkAction`/`afterBulkAction(string $action, array $records)` bracket a
+  bulk action's handler (records pre-filtered to those the user may act on). They
+  run inside the action's transaction. `beforeDelete`/`afterDelete` remain the
+  delete-specific convenience. **Public Resource API addition.**
 - **Form validation lifecycle hooks** on `AdminResource`:
   `mutateFormDataBeforeValidate($data, $operation)` (clean raw input before
   validation) and `afterValidate($data, $operation)` (react to valid data,

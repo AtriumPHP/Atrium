@@ -260,6 +260,47 @@ abstract class AdminResource
     {
     }
 
+    // -- Action lifecycle hooks ------------------------------------------------
+    //
+    // Generic seams around *any* table action run (the per-record `before/after
+    // Delete` above are the delete-specific case). Use them for cross-cutting
+    // concerns — audit logging, cache busting, metrics — keyed by action name.
+    // They fire inside the same transaction as the action's handler.
+
+    /**
+     * Run before a record (row) action's handler. `$action` is the action's
+     * name; `$record` is the row it targets.
+     */
+    public function beforeAction(string $action, object $record): void
+    {
+    }
+
+    /**
+     * Run after a record (row) action's handler.
+     */
+    public function afterAction(string $action, object $record): void
+    {
+    }
+
+    /**
+     * Run before a bulk action's handler, with every record it will act on
+     * (already filtered to those the user is allowed to act on).
+     *
+     * @param list<object> $records
+     */
+    public function beforeBulkAction(string $action, array $records): void
+    {
+    }
+
+    /**
+     * Run after a bulk action's handler.
+     *
+     * @param list<object> $records
+     */
+    public function afterBulkAction(string $action, array $records): void
+    {
+    }
+
     /**
      * The Live Component that renders this resource's form. Defaults to the
      * plain `Atrium:Form`, upgrading to `Atrium:WizardForm` when the schema

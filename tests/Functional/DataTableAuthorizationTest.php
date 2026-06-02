@@ -71,6 +71,30 @@ final class DataTableAuthorizationTest extends KernelTestCase
         self::assertContains('tag-03', HookedTagResource::$deleted);
     }
 
+    public function testRecordActionFiresGenericBeforeAndAfterHooks(): void
+    {
+        $component = $this->table();
+
+        $component->call('requestAction', ['name' => 'delete', 'id' => '3']);
+        $component->call('confirmAction');
+
+        // The generic action hooks bracket the run, around the delete-specific
+        // ones, all in execution order.
+        self::assertSame(['before:delete', 'after:delete'], HookedTagResource::$actionLog);
+        self::assertContains('tag-03', HookedTagResource::$deleted);
+    }
+
+    public function testBulkActionFiresGenericBeforeAndAfterHooks(): void
+    {
+        $component = $this->table();
+        $component->call('toggleRecord', ['id' => '3']);
+        $component->call('requestBulkAction', ['name' => 'touch']);
+
+        self::assertTrue(HookedTagResource::$bulkRan);
+        // One record selected, so the hooks see a count of 1.
+        self::assertSame(['before:touch:1', 'after:touch:1'], HookedTagResource::$bulkLog);
+    }
+
     public function testBulkActionRefusedWhenPanelAbilityDenied(): void
     {
         HookedTagResource::$allowCreate = false;

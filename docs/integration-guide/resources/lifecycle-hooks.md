@@ -118,12 +118,25 @@ final class ArticleResource extends AdminResource
 | `afterSave(object $record, string $operation): void` | Runs after the entity is persisted (still inside the transaction). |
 | `beforeDelete(object $record): void` | Runs before a record is deleted (built-in delete actions). |
 | `afterDelete(object $record): void` | Runs after a record is deleted. |
+| `beforeAction(string $action, object $record): void` | Runs before **any** row action's handler. `$action` is the action name. |
+| `afterAction(string $action, object $record): void` | Runs after any row action's handler. |
+| `beforeBulkAction(string $action, array $records): void` | Runs before a bulk action's handler, with the records it will act on. |
+| `afterBulkAction(string $action, array $records): void` | Runs after a bulk action's handler. |
 
 The `mutate*` hooks default to returning the data unchanged; the `before*` /
-`after*` hooks default to no-ops. All persistence still goes through the
+`after*` hooks default to no-ops.
+
+`beforeAction` / `afterAction` (and the bulk pair) are the generic seam around
+*every* table action — keyed by name, so one hook can audit-log or bust caches for
+any action; `beforeDelete` / `afterDelete` are the delete-specific convenience.
+All of these run **inside the action's transaction**, so throwing from one rolls
+the action back.
+
+All persistence still goes through the
 [data writer](../data/), so these hooks compose with any storage backend.
 
 ## See also
 
 - [Authorization](authorization.md)
+- [Query scoping](../data/query-scoping.md)
 - [Data providers & writer](../data/)

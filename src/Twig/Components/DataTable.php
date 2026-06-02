@@ -324,9 +324,11 @@ final class DataTable
         }
 
         $deletes = 'delete' === $action->getAbility();
-        // Run the action atomically: the delete hooks and the handler commit
+        $name = $action->getName();
+        // Run the action atomically: the lifecycle hooks and the handler commit
         // together or not at all.
-        $this->writer->transactional(function () use ($handler, $record, $deletes): void {
+        $this->writer->transactional(function () use ($handler, $record, $deletes, $name): void {
+            $this->resource()->beforeAction($name, $record);
             if ($deletes) {
                 $this->resource()->beforeDelete($record);
             }
@@ -334,6 +336,7 @@ final class DataTable
             if ($deletes) {
                 $this->resource()->afterDelete($record);
             }
+            $this->resource()->afterAction($name, $record);
         });
 
         // The row set may have shrunk (e.g. a delete) — refresh the count and
@@ -407,9 +410,11 @@ final class DataTable
         }
 
         $deletes = 'delete' === $action->getAbility();
-        // The whole bulk operation is atomic: per-record delete hooks and the
-        // handler commit together or roll back together.
-        $this->writer->transactional(function () use ($handler, $records, $deletes): void {
+        $name = $action->getName();
+        // The whole bulk operation is atomic: lifecycle hooks and the handler
+        // commit together or roll back together.
+        $this->writer->transactional(function () use ($handler, $records, $deletes, $name): void {
+            $this->resource()->beforeBulkAction($name, $records);
             if ($deletes) {
                 foreach ($records as $record) {
                     $this->resource()->beforeDelete($record);
@@ -421,6 +426,7 @@ final class DataTable
                     $this->resource()->afterDelete($record);
                 }
             }
+            $this->resource()->afterBulkAction($name, $records);
         });
 
         // The selection has been consumed and the row set may have shrunk.
