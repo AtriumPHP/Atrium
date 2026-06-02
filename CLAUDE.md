@@ -68,6 +68,29 @@ flag to respect, not legal advice.
 - Prefer small value objects with fluent, chainable builders (mirror the
   `Column` style across `Field`, `Action`, etc.).
 
+## Documentation (integration guide)
+
+Atrium is a framework: the developer-facing surface is the product. Every
+**public component** (a class an integrating developer instantiates, extends, or
+configures) and every **significant public method** (a fluent setter, a lifecycle
+hook, an accessor an integrator relies on) MUST be documented in the integration
+guide before the change is done.
+
+- **Location:** `docs/integration-guide/{module}/{topic}.md`, where `{module}`
+  is one of `resources`, `tables`, `forms`, `actions`, `pages`, `data` (these map
+  to the planned package split). One file per component or cohesive topic.
+- **Format:** every page follows the canonical template in
+  [`docs/integration-guide/README.md`](docs/integration-guide/README.md) — a
+  one-line summary, a "When to use", a copy-pasteable PHP example, and an **API
+  reference** that lists each public method with its signature and a one-line
+  description (a method table for fluent builders; prose for concepts). Keep
+  examples runnable and idiomatic; show the inline-on-the-resource path first.
+- **Audience:** developers integrating Atrium into a Symfony app — not
+  contributors. Document *how to use* the API, not how it is implemented.
+- `@internal` classes/methods are out of scope (they are not public API).
+- The guide is the source of truth for the public surface; when a signature
+  changes, update its page in the same change and flag it in `CHANGELOG.md`.
+
 ## Commands (wire these up in Phase 1 if absent)
 
 ```bash
@@ -105,3 +128,5 @@ phase done.
 - [ ] No Doctrine types leaked into core; no sideways package deps introduced
 - [ ] Public Resource API changes flagged + `CHANGELOG.md` updated
 - [ ] Docs/README updated if the developer-facing surface changed
+- [ ] Integration guide updated: every new/changed public component and
+      significant public method documented under `docs/integration-guide/{module}/`
