@@ -38,6 +38,8 @@ final class FormLayoutComponentTest extends KernelTestCase
         // Flex row + a child that opted out of growing.
         self::assertStringContainsString('md:flex-row', $html);
         self::assertStringContainsString('flex-none', $html);
+        // A static Text content node renders (and is not a form input).
+        self::assertStringContainsString('All fields marked with an asterisk are required.', $html);
         // The flattened fields still render their inputs.
         self::assertStringContainsString('atrium_name', $html);
         self::assertStringContainsString('atrium_slug', $html);

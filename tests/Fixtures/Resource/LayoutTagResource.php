@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atrium\Tests\Fixtures\Resource;
 
+use Atrium\Content\Text;
 use Atrium\Form\Field\CheckboxField;
 use Atrium\Form\Field\SelectField;
 use Atrium\Form\Field\TextField;
@@ -37,6 +38,8 @@ final class LayoutTagResource extends AdminResource
                 ->description('Naming and slug.')
                 ->columns(2)
                 ->schema([
+                    Text::make('All fields marked with an asterisk are required.')
+                        ->columnSpanFull(),
                     TextField::make('name')->required(),
                     TextField::make('slug')->columnSpanFull(),
                 ]),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atrium\Tests\Form;
 
+use Atrium\Content\Text;
 use Atrium\Form\Field\TextField;
 use Atrium\Form\Schema;
 use Atrium\Layout\Grid;
@@ -52,5 +53,26 @@ final class SchemaTest extends TestCase
         );
         self::assertTrue($schema->hasField('last'));
         self::assertNotNull($schema->getField('email'));
+    }
+
+    public function testContentComponentsAreNotTreatedAsFields(): void
+    {
+        $schema = (new Schema())->components([
+            Text::make('Fill in your details.'),
+            Section::make('Identity')->schema([
+                Text::make('Required fields are marked.'),
+                TextField::make('name'),
+            ]),
+            TextField::make('email'),
+        ]);
+
+        // Content nodes render (top-level tree keeps them) …
+        self::assertCount(3, $schema->getComponents());
+
+        // … but they are never hydrated/validated as fields.
+        self::assertSame(
+            ['name', 'email'],
+            array_map(static fn ($f): string => $f->getName(), $schema->getFields()),
+        );
     }
 }

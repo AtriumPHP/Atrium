@@ -70,10 +70,12 @@ the keystone change here; everything else composes onto it.
 
 ### 4.1 Schema tree & layout — `SCH`
 
-- **SCH-01** A `Schema` is a **tree of components**. A component is either a
-  **field** (`Atrium\Form\Field\Field`) or a **layout container**
-  (`Atrium\Layout\*`). Both implement a shared `Atrium\Layout\Component` contract
-  exposing child components (a leaf field returns none). **Layout lives at the
+- **SCH-01** A `Schema` is a **tree of components**. A component is a **field**
+  (`Atrium\Form\Field\Field`), a **layout container** (`Atrium\Layout\*`), or a
+  **content node** (`Atrium\Content\*` — see `CNT`). All implement a shared
+  `Atrium\Layout\Component` contract exposing child components (leaves return
+  none). Only fields carry form state; layout and content nodes are skipped by
+  `Schema::getFields()`. **Layout lives at the
   top level (`Atrium\Layout`), not under `Atrium\Form`**, because the same
   grid/section machinery is intended to power dashboards, infolists and other
   views — not just forms. The generic renderer is view-agnostic: every node
@@ -169,6 +171,31 @@ Roadmap / out of scope for the first milestones, catalogued for completeness:
 - **FLD-12** **File upload** — needs an upload/storage abstraction (no Doctrine in
   core; storage via an interface).
 - **FLD-13** **Rich editor / Markdown editor**, **Slider**, **Code editor**.
+
+### 4.4 Content components — `CNT`
+
+Static building blocks that insert arbitrary content into a schema — the
+equivalent of Filament's "prime" components, named for what they do. They live in
+`Atrium\Content\*`, implement `Atrium\Layout\Component`, and are leaves with **no
+form state**: never hydrated, never validated, skipped by `getFields()`. They can
+still take grid/flex placement (`columnSpan`, `grow`), which makes them ideal for
+headings, instructions and callouts beside fields.
+
+- **CNT-01** **Text** — `Text::make(string|\Stringable)` with `->color()`
+  (semantic: gray/info/success/warning/danger/primary), `->size()`
+  (sm/base/lg/xl), `->weight()` (normal/medium/semibold/bold), `->badge()` (pill
+  style) and `->html()` (render trusted markup). Light + dark mode.
+- **CNT-02** **UnorderedList** — `UnorderedList::make(list<string>)`; a bulleted
+  list for checklists/instructions.
+- **CNT-03** **Image** — `Image::make(url, alt)` with `->imageWidth()/imageHeight()/imageSize()`
+  and `->alignStart()/alignCenter()/alignEnd()`.
+- **CNT-04** (Deferred) **Icon** — needs an icon-rendering system (nav icons are
+  currently opaque string identifiers); revisit when the theme/icon layer lands.
+- **CNT-05** (Future) closure-driven content (`$get`-aware) once `Get`/`Set`
+  (`FRM-11`) exist.
+
+**Status:** `CNT-01..03` ✅ delivered (`Atrium\Content\{Text,UnorderedList,Image}`,
+templates under `components/content/*`, typography/colour utilities safelisted).
 
 ---
 

@@ -1,0 +1,11 @@
+{#
+    Text content: a static block of text/markup. Renders as a badge pill or a
+    plain paragraph depending on badge(). Structural badge classes are literal
+    here; colour/typography come from the component.
+#}
+{% set content = component.isHtml() ? component.getContent()|raw : component.getContent() %}
+{% if component.isBadge() %}
+    <span class="inline-flex items-center rounded-md px-2 py-0.5 {{ component.getTypographyClass() }} {{ component.getColorClass() }}">{{ content }}</span>
+{% else %}
+    <p class="{{ component.getTypographyClass() }} {{ component.getColorClass() }}">{{ content }}</p>
+{% endif %}

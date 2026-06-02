@@ -86,6 +86,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     in responsive grids; grid utilities are safelisted in `assets/atrium.css`
     (`@source inline(...)`) since they're composed in PHP.
   - Forms v2 PRD addendum updated to mark M1 delivered.
+- Content components (`CNT-01..03`) — static building blocks for a schema
+  (`Atrium\Content\Text`, `UnorderedList`, `Image`). They implement the shared
+  `Atrium\Layout\Component` contract but carry no form state: never hydrated or
+  validated, and skipped by `Schema::getFields()`. `Text` supports semantic
+  colour, size, weight, badge and raw-HTML modes. Useful for headings,
+  instructions and callouts placed beside fields (with `columnSpan`/`grow`).
 
 ### Changed
 

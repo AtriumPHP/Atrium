@@ -1,0 +1,5 @@
+{# Image content: a static image with optional dimensions and alignment. #}
+<img src="{{ component.getUrl() }}" alt="{{ component.getAlt() }}"
+     {% if component.getWidth() %}width="{{ component.getWidth() }}"{% endif %}
+     {% if component.getHeight() %}height="{{ component.getHeight() }}"{% endif %}
+     class="block max-w-full rounded-md {{ component.getAlignmentClass() }}">

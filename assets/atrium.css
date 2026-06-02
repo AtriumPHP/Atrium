@@ -22,3 +22,9 @@
 @source inline("col-span-full");
 @source inline("{sm:,md:,lg:,xl:,2xl:,}flex-row");
 @source inline("flex-1 flex-none");
+
+/* Text content component composes typography + semantic colour classes in PHP. */
+@source inline("text-{sm,base,lg,xl}");
+@source inline("font-{normal,medium,semibold,bold}");
+@source inline("{dark:,}text-{gray,sky,green,amber,red,indigo}-{300,400,600,700}");
+@source inline("{dark:,}bg-{gray,sky,green,amber,red,indigo}-{50,950}");
