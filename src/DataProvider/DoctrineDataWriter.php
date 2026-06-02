@@ -33,4 +33,12 @@ final readonly class DoctrineDataWriter implements DataWriterInterface
         $this->entityManager->remove($entity);
         $this->entityManager->flush();
     }
+
+    public function transactional(callable $work): mixed
+    {
+        // wrapInTransaction commits on success and rolls back (re-throwing) on
+        // failure. It passes the EntityManager to the callback; our work ignores
+        // the argument.
+        return $this->entityManager->wrapInTransaction(static fn (): mixed => $work());
+    }
 }

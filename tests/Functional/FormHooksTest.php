@@ -46,6 +46,18 @@ final class FormHooksTest extends KernelTestCase
         self::assertSame('hello-world', $created[0]->slug);
     }
 
+    public function testCreateGoesThroughTheResourcePersistenceHook(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'hooked-tag']);
+        $component->set('formData', ['name' => 'Hello World', 'slug' => '']);
+        $component->call('save');
+
+        // The resource's handleRecordCreation hook ran (an app can route the
+        // write through its own service), and the record was still persisted.
+        self::assertSame(['hello-world'], HookedTagResource::$created);
+        self::assertCount(1, $this->writer()->records[Tag::class] ?? []);
+    }
+
     public function testSaveIsRefusedWhenCreationIsNotAuthorized(): void
     {
         HookedTagResource::$allowCreate = false;

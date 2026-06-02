@@ -41,6 +41,12 @@ final class HookedTagResource extends AdminResource
     /** @var list<string> */
     public static array $deleted = [];
 
+    /** @var list<string> */
+    public static array $created = [];
+
+    /** @var list<string> */
+    public static array $updated = [];
+
     public static bool $bulkRan = false;
 
     public static function reset(): void
@@ -51,6 +57,8 @@ final class HookedTagResource extends AdminResource
         self::$beforeSaved = [];
         self::$afterSaved = [];
         self::$deleted = [];
+        self::$created = [];
+        self::$updated = [];
         self::$bulkRan = false;
     }
 
@@ -129,5 +137,25 @@ final class HookedTagResource extends AdminResource
         if ($record instanceof Tag) {
             self::$deleted[] = $record->slug;
         }
+    }
+
+    public function handleRecordCreation(object $record, DataWriterInterface $writer): void
+    {
+        if ($record instanceof Tag) {
+            self::$created[] = $record->slug;
+        }
+
+        // Still write through the default path, but record that the resource's
+        // own persistence hook (not the form's writer call) ran.
+        $writer->create($record);
+    }
+
+    public function handleRecordUpdate(object $record, DataWriterInterface $writer): void
+    {
+        if ($record instanceof Tag) {
+            self::$updated[] = $record->slug;
+        }
+
+        $writer->update($record);
     }
 }

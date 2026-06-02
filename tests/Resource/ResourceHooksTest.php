@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Atrium\Tests\Resource;
 
+use Atrium\DataProvider\ArrayDataWriter;
+use Atrium\DataProvider\DataQuery;
 use Atrium\Resource\AdminResource;
 use Atrium\Tests\Fixtures\Entity\Tag;
 use PHPUnit\Framework\TestCase;
@@ -68,6 +70,26 @@ final class ResourceHooksTest extends TestCase
         // Record-scoped abilities deny without a record; unknown abilities allow.
         self::assertFalse($resource->can('edit'));
         self::assertTrue($resource->can('something-custom'));
+    }
+
+    public function testHandlePersistenceHooksDelegateToTheWriterByDefault(): void
+    {
+        $resource = $this->resource();
+        $writer = new ArrayDataWriter();
+
+        $created = new Tag(1, 'A', 'a');
+        $resource->handleRecordCreation($created, $writer);
+        self::assertSame([$created], $writer->records[Tag::class] ?? []);
+
+        $updated = new Tag(2, 'B', 'b');
+        $resource->handleRecordUpdate($updated, $writer);
+        self::assertContains($updated, $writer->records[Tag::class] ?? []);
+    }
+
+    public function testScopeQueryDefaultsToNoScope(): void
+    {
+        self::assertSame([], $this->resource()->scopeFilters());
+        self::assertSame([], $this->resource()->scopeQuery(new DataQuery())->filters);
     }
 
     private function resource(): AdminResource

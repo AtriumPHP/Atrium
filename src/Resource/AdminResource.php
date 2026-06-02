@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atrium\Resource;
 
 use Atrium\DataProvider\DataQuery;
+use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Form\Schema;
 use Atrium\Layout\Component;
 use Atrium\Layout\Wizard;
@@ -191,6 +192,28 @@ abstract class AdminResource
      */
     public function afterSave(object $record, string $operation): void
     {
+    }
+
+    /**
+     * Persist a newly-created record. The default writes through the data writer;
+     * override to persist through a service, a command bus or an API instead —
+     * the form's create path calls this rather than the writer directly. Runs
+     * inside the save transaction, between {@see beforeSave()} and
+     * {@see afterSave()}.
+     */
+    public function handleRecordCreation(object $record, DataWriterInterface $writer): void
+    {
+        $writer->create($record);
+    }
+
+    /**
+     * Persist an updated record. The default writes through the data writer;
+     * override to route the update through your own persistence. Runs inside the
+     * save transaction, between {@see beforeSave()} and {@see afterSave()}.
+     */
+    public function handleRecordUpdate(object $record, DataWriterInterface $writer): void
+    {
+        $writer->update($record);
     }
 
     /**

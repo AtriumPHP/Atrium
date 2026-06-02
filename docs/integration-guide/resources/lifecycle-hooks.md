@@ -25,14 +25,37 @@ On save, Atrium runs:
 1. validate the submitted fields,
 2. `mutateFormDataBeforeSave($data, $operation)` — your transform,
 3. write the (possibly mutated) field values onto the entity,
-4. `beforeSave($entity, $operation)` — set extra properties here,
-5. persist via the data writer (`create` or `update`),
-6. `afterSave($entity, $operation)`.
+4. **in one transaction:**
+   1. `beforeSave($entity, $operation)` — set extra properties here,
+   2. `handleRecordCreation($entity, $writer)` / `handleRecordUpdate($entity, $writer)` — persist,
+   3. `afterSave($entity, $operation)`.
 
 `$operation` is `'create'` or `'edit'`, so one hook can serve both. On the edit
 form's *fill*, `mutateFormDataBeforeFill($data)` runs before the record populates
 the form. Delete runs `beforeDelete` / `afterDelete` around the built-in delete
 actions (record and bulk).
+
+### Atomic persistence
+
+Step 4 runs inside a transaction (`DataWriterInterface::transactional()`), so a
+failing `afterSave` (or a domain-event subscriber it triggers) **rolls the write
+back** rather than leaving a half-saved record. The same applies to deletes. The
+in-memory array writer has no real transaction; the Doctrine writer uses
+`wrapInTransaction`.
+
+### Custom persistence
+
+`handleRecordCreation` / `handleRecordUpdate` own the actual write. By default
+they call the [data writer](../data/), but you can override either to persist
+through your own service, a command bus, or an API — without rewriting the form:
+
+```php
+public function handleRecordCreation(object $record, DataWriterInterface $writer): void
+{
+    // Route the write through a domain service instead of the writer.
+    $this->articlePublisher->publish($record);
+}
+```
 
 ## Example
 
@@ -83,8 +106,10 @@ final class ArticleResource extends AdminResource
 | --- | --- |
 | `mutateFormDataBeforeFill(array $data): array` | Transform a record's data before it fills the edit form. Runs on edit only. |
 | `mutateFormDataBeforeSave(array $data, string $operation): array` | Transform submitted form data before it is written to the entity. `$operation` is `create` or `edit`. |
-| `beforeSave(object $record, string $operation): void` | Runs after fields are applied, before persistence. Set non-field properties here. |
-| `afterSave(object $record, string $operation): void` | Runs after the entity is persisted. |
+| `beforeSave(object $record, string $operation): void` | Runs after fields are applied, before persistence (inside the transaction). Set non-field properties here. |
+| `handleRecordCreation(object $record, DataWriterInterface $writer): void` | Persist a new record. Defaults to `$writer->create()`; override to persist your own way. |
+| `handleRecordUpdate(object $record, DataWriterInterface $writer): void` | Persist an updated record. Defaults to `$writer->update()`; override to persist your own way. |
+| `afterSave(object $record, string $operation): void` | Runs after the entity is persisted (still inside the transaction). |
 | `beforeDelete(object $record): void` | Runs before a record is deleted (built-in delete actions). |
 | `afterDelete(object $record): void` | Runs after a record is deleted. |
 

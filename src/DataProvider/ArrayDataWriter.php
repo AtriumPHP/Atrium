@@ -43,6 +43,12 @@ final class ArrayDataWriter implements DataWriterInterface
         ));
     }
 
+    public function transactional(callable $work): mixed
+    {
+        // No real transaction for the in-memory backend — just run the work.
+        return $work();
+    }
+
     private function contains(object $entity): bool
     {
         return \in_array($entity, $this->records[$entity::class] ?? [], true);

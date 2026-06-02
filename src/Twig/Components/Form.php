@@ -153,16 +153,23 @@ class Form
             }
         }
 
-        $resource->beforeSave($entity, $operation);
+        // Persist atomically: beforeSave → handle* → afterSave run in one
+        // transaction, so a failing afterSave rolls the write back rather than
+        // leaving a half-saved record. The resource's handle* hooks own the
+        // actual write, so an app can persist through its own service.
+        $isCreate = null === $this->entityId;
+        $this->writer->transactional(function () use ($resource, $entity, $operation, $isCreate): void {
+            $resource->beforeSave($entity, $operation);
 
-        if (null === $this->entityId) {
-            $this->writer->create($entity);
-            $this->entityId = $this->readId($entity);
-        } else {
-            $this->writer->update($entity);
-        }
+            if ($isCreate) {
+                $resource->handleRecordCreation($entity, $this->writer);
+                $this->entityId = $this->readId($entity);
+            } else {
+                $resource->handleRecordUpdate($entity, $this->writer);
+            }
 
-        $resource->afterSave($entity, $operation);
+            $resource->afterSave($entity, $operation);
+        });
 
         $this->saved = true;
 

@@ -324,13 +324,17 @@ final class DataTable
         }
 
         $deletes = 'delete' === $action->getAbility();
-        if ($deletes) {
-            $this->resource()->beforeDelete($record);
-        }
-        $handler($record, $this->writer);
-        if ($deletes) {
-            $this->resource()->afterDelete($record);
-        }
+        // Run the action atomically: the delete hooks and the handler commit
+        // together or not at all.
+        $this->writer->transactional(function () use ($handler, $record, $deletes): void {
+            if ($deletes) {
+                $this->resource()->beforeDelete($record);
+            }
+            $handler($record, $this->writer);
+            if ($deletes) {
+                $this->resource()->afterDelete($record);
+            }
+        });
 
         // The row set may have shrunk (e.g. a delete) — refresh the count and
         // keep the page in range.
@@ -403,17 +407,21 @@ final class DataTable
         }
 
         $deletes = 'delete' === $action->getAbility();
-        if ($deletes) {
-            foreach ($records as $record) {
-                $this->resource()->beforeDelete($record);
+        // The whole bulk operation is atomic: per-record delete hooks and the
+        // handler commit together or roll back together.
+        $this->writer->transactional(function () use ($handler, $records, $deletes): void {
+            if ($deletes) {
+                foreach ($records as $record) {
+                    $this->resource()->beforeDelete($record);
+                }
             }
-        }
-        $handler($records, $this->writer);
-        if ($deletes) {
-            foreach ($records as $record) {
-                $this->resource()->afterDelete($record);
+            $handler($records, $this->writer);
+            if ($deletes) {
+                foreach ($records as $record) {
+                    $this->resource()->afterDelete($record);
+                }
             }
-        }
+        });
 
         // The selection has been consumed and the row set may have shrunk.
         $this->totalCount = null;

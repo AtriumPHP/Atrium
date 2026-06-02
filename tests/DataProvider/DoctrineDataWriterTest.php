@@ -62,4 +62,35 @@ final class DoctrineDataWriterTest extends TestCase
 
         self::assertSame(0, $this->provider->count(Product::class, new DataQuery()));
     }
+
+    public function testTransactionalCommitsAndReturnsTheValue(): void
+    {
+        $result = $this->writer->transactional(function (): string {
+            $this->writer->create(new Product('Widget', 999));
+
+            return 'done';
+        });
+
+        self::assertSame('done', $result);
+        self::assertSame(1, $this->provider->count(Product::class, new DataQuery()));
+    }
+
+    public function testTransactionalRollsBackOnException(): void
+    {
+        try {
+            $this->writer->transactional(function (): void {
+                $this->writer->create(new Product('Doomed', 1));
+
+                throw new \RuntimeException('boom');
+            });
+        } catch (\RuntimeException $exception) {
+            // The exception propagates out of the rolled-back transaction.
+            self::assertSame('boom', $exception->getMessage());
+        }
+
+        // The EntityManager is closed after a rolled-back transaction, but the
+        // connection survives — query it directly to prove nothing committed.
+        $count = $this->entityManager->getConnection()->fetchOne('SELECT COUNT(*) FROM products');
+        self::assertEquals(0, $count, 'The failed work was rolled back.');
+    }
 }

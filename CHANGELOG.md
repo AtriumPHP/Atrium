@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Custom persistence + atomic saves.** `AdminResource::handleRecordCreation()`
+  and `handleRecordUpdate(object $record, DataWriterInterface $writer)` own the
+  write (defaulting to the data writer), so an app can persist through its own
+  service/command bus without replacing the form. The save path now runs
+  `beforeSave → handle* → afterSave` inside a single transaction via the new
+  `DataWriterInterface::transactional(callable): mixed`, so a failing `afterSave`
+  rolls the write back; deletes (record + bulk) are wrapped the same way. The
+  Doctrine writer uses `wrapInTransaction`; the array writer just runs the work.
+  **Public Resource API + `DataWriterInterface` addition.**
 - **Query scoping** via `AdminResource::scopeQuery(DataQuery): DataQuery` (default
   no-op). Returns a query narrowed to the records the resource exposes
   (multi-tenancy, ownership, soft-deletes) using `DataQuery::withFilters([...])`.

@@ -18,4 +18,21 @@ interface DataWriterInterface
     public function update(object $entity): void;
 
     public function delete(object $entity): void;
+
+    /**
+     * Run $work inside a transaction, committing on success and rolling back if
+     * it throws (re-throwing the exception). Atrium wraps a save (and a delete)
+     * in this so the lifecycle hooks around persistence are atomic: if an
+     * `afterSave`/`afterDelete` fails, the write is undone rather than half-done.
+     *
+     * Backends without transactions (e.g. the in-memory array writer) just run
+     * the work. The closure's return value is passed through.
+     *
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function transactional(callable $work): mixed;
 }
