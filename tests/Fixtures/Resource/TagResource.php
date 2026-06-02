@@ -10,6 +10,7 @@ use Atrium\Form\Field\TextField;
 use Atrium\Form\Schema;
 use Atrium\Resource\AdminResource;
 use Atrium\Table\Column;
+use Atrium\Table\TableConfiguration;
 use Atrium\Tests\Fixtures\Entity\Tag;
 
 /**
@@ -22,12 +23,12 @@ final class TagResource extends AdminResource
         return Tag::class;
     }
 
-    public function columns(): array
+    public function table(TableConfiguration $table): TableConfiguration
     {
-        return [
+        return $table->columns([
             Column::make('name')->sortable()->searchable(),
             Column::make('slug')->searchable(),
-        ];
+        ]);
     }
 
     public function form(Schema $schema): Schema

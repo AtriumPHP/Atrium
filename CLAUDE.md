@@ -36,7 +36,7 @@ separate API**.
    Pages into Live Components.
 6. **Keep the simple inline path working.** The multi-class resource layout
    (`Pages/`, `Schemas/`, `Tables/`) is the default for non-trivial resources and
-   what the maker scaffolds, but inlining `columns()` / `form()` on the resource
+   what the maker scaffolds, but inlining `table()` / `form()` on the resource
    must remain valid for small cases.
 
 ## Naming & namespaces

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Atrium\Resource;
 
-use Atrium\Action\Action;
-use Atrium\Action\ActionContract;
-use Atrium\Action\ActionGroup;
 use Atrium\Form\Schema;
 use Atrium\Layout\Component;
 use Atrium\Layout\Wizard;
@@ -14,16 +11,15 @@ use Atrium\Page\CreatePage;
 use Atrium\Page\EditPage;
 use Atrium\Page\ListPage;
 use Atrium\Page\Page;
-use Atrium\Table\Action\CreateAction;
-use Atrium\Table\Action\EditAction;
-use Atrium\Table\Column;
+use Atrium\Table\TableConfiguration;
 
 /**
  * Base class for every admin resource.
  *
  * A resource is a thin, PHP-only description of how an entity is presented in
- * the panel. Small resources may inline their configuration (see {@see columns()});
- * non-trivial ones delegate to dedicated Tables/, Schemas/ and Pages/ classes
+ * the panel. Small resources may inline their configuration (see {@see table()}
+ * and {@see form()}); non-trivial ones delegate to dedicated Tables/, Schemas/
+ * and Pages/ classes
  * (added in later phases). This signature is part of the public API contract
  * (PRD §9) — treat changes as BC-relevant.
  */
@@ -37,13 +33,17 @@ abstract class AdminResource
     abstract public function getEntityClass(): string;
 
     /**
-     * List columns for the table view (inline configuration for small resources).
+     * Configure the list table — columns plus record, header and bulk actions
+     * (inline configuration for small resources; delegate to a dedicated
+     * `Tables/*` class for larger ones).
      *
-     * @return list<Column>
+     * The given {@see TableConfiguration} already carries the framework defaults
+     * (an Edit record action and a "New" header action); set columns and any
+     * extra actions on it and return it. Returns it unchanged by default.
      */
-    public function columns(): array
+    public function table(TableConfiguration $table): TableConfiguration
     {
-        return [];
+        return $table;
     }
 
     /**
@@ -55,43 +55,6 @@ abstract class AdminResource
     public function form(Schema $schema): Schema
     {
         return $schema;
-    }
-
-    /**
-     * Per-row table actions (record actions) and/or {@see ActionGroup}s.
-     * Defaults to an Edit link; override to add Delete, custom links, server
-     * actions or grouped dropdowns. Returning `[]` hides the actions column.
-     *
-     * @return list<ActionContract>
-     */
-    public function recordActions(): array
-    {
-        return [EditAction::make()];
-    }
-
-    /**
-     * Table header actions, shown above the list and run by the table's Live
-     * Component (TBL-09). These are subject-less {@see Action}s — they act on the
-     * resource as a whole, not a row. Defaults to a {@see CreateAction} ("New");
-     * return `[]` to show none, or add custom create/import-style actions.
-     *
-     * @return list<Action>
-     */
-    public function headerActions(): array
-    {
-        return [CreateAction::make()];
-    }
-
-    /**
-     * Bulk actions, shown in the selection bar when one or more rows are selected
-     * and run against the whole selection (TBL-10). Returning a non-empty list
-     * enables row selection; the default is none.
-     *
-     * @return list<Action>
-     */
-    public function bulkActions(): array
-    {
-        return [];
     }
 
     /**

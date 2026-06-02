@@ -7,13 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Table configuration is now a single `table(TableConfiguration $table)` hook**
+  on `AdminResource`, mirroring `form(Schema $schema): Schema`. It replaces the
+  separate `columns()` / `recordActions()` / `headerActions()` / `bulkActions()`
+  methods — set them all on the `Atrium\Table\TableConfiguration` builder
+  (`->columns([…])->recordActions([…])->bulkActions([…])`). A fresh
+  `TableConfiguration` already carries the framework defaults (an Edit record
+  action and a "New" header action), so overriding `table()` keeps them unless a
+  setter overrides them. **Public API change** (pre-1.0; the four methods were
+  added earlier in this same unreleased cycle).
+
 ### Added
 
 - Table **header actions** and **bulk / row-selection actions** (TBL-09, TBL-10),
   built on the existing `Atrium\Action` subsystem.
-  - `AdminResource::headerActions()` (defaults to a `CreateAction`) and
-    `AdminResource::bulkActions()` (defaults to none — returning actions enables
-    row selection). Both are subject-less `list<Action>`. **Public API addition.**
+  - Configured via `TableConfiguration::headerActions()` (defaults to a
+    `CreateAction`) and `bulkActions()` (defaults to none — returning actions
+    enables row selection). Both are subject-less `list<Action>`.
   - Built-in `Atrium\Table\Action\CreateAction` (a primary "New" button linking
     to the create page) and `BulkDeleteAction` (a confirmed server action that
     deletes the whole selection through `DataWriterInterface`). Header actions now

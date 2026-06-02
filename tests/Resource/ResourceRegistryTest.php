@@ -6,6 +6,7 @@ namespace Atrium\Tests\Resource;
 
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
+use Atrium\Table\TableConfiguration;
 use Atrium\Tests\Fixtures\Entity\Tag;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use PHPUnit\Framework\TestCase;
@@ -43,7 +44,7 @@ final class ResourceRegistryTest extends TestCase
         new ResourceRegistry([new TagResource(), new TagResource()]);
     }
 
-    public function testColumnsDefaultToEmpty(): void
+    public function testTableDefaultsToNoColumnsWithEditAndCreateActions(): void
     {
         $resource = new class extends AdminResource {
             public function getEntityClass(): string
@@ -52,6 +53,12 @@ final class ResourceRegistryTest extends TestCase
             }
         };
 
-        self::assertSame([], $resource->columns());
+        $table = $resource->table(TableConfiguration::make());
+
+        self::assertSame([], $table->getColumns());
+        // A fresh table carries the framework defaults.
+        self::assertCount(1, $table->getRecordActions());
+        self::assertCount(1, $table->getHeaderActions());
+        self::assertSame([], $table->getBulkActions());
     }
 }

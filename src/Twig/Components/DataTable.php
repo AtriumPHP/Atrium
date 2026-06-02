@@ -15,6 +15,7 @@ use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Table\Column;
+use Atrium\Table\TableConfiguration;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -60,17 +61,7 @@ final class DataTable
     #[LiveProp]
     public string $pathPrefix = '';
 
-    /** @var list<Column>|null */
-    private ?array $columns = null;
-
-    /** @var list<ActionContract>|null */
-    private ?array $recordActions = null;
-
-    /** @var list<Action>|null */
-    private ?array $headerActions = null;
-
-    /** @var list<Action>|null */
-    private ?array $bulkActions = null;
+    private ?TableConfiguration $tableConfig = null;
 
     /** @var list<string>|null */
     private ?array $pageIds = null;
@@ -126,11 +117,19 @@ final class DataTable
     }
 
     /**
+     * The resolved table configuration (columns + actions), read once per request.
+     */
+    private function tableConfig(): TableConfiguration
+    {
+        return $this->tableConfig ??= $this->resource()->table(TableConfiguration::make());
+    }
+
+    /**
      * @return list<Column>
      */
     public function getColumns(): array
     {
-        return $this->columns ??= array_values($this->resource()->columns());
+        return $this->tableConfig()->getColumns();
     }
 
     /**
@@ -140,7 +139,7 @@ final class DataTable
      */
     public function getRecordActions(): array
     {
-        return $this->recordActions ??= array_values($this->resource()->recordActions());
+        return $this->tableConfig()->getRecordActions();
     }
 
     public function hasRecordActions(): bool
@@ -155,7 +154,7 @@ final class DataTable
      */
     public function getHeaderActions(): array
     {
-        return $this->headerActions ??= array_values($this->resource()->headerActions());
+        return $this->tableConfig()->getHeaderActions();
     }
 
     public function hasHeaderActions(): bool
@@ -180,7 +179,7 @@ final class DataTable
      */
     public function getBulkActions(): array
     {
-        return $this->bulkActions ??= array_values($this->resource()->bulkActions());
+        return $this->tableConfig()->getBulkActions();
     }
 
     public function hasBulkActions(): bool
