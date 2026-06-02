@@ -138,6 +138,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Theming: the panel accent is now a single semantic **`primary`** colour
+  (default palette "blue-energy"). Templates only use `*-primary-*` classes, so
+  re-skinning is one change — edit the eleven `--color-primary-*` values in
+  `assets/atrium.css` and `composer build-css`, **or** override `--color-primary-*`
+  at runtime in a stylesheet loaded after `atrium.css` (no rebuild; the utilities
+  resolve the CSS variables). Replaces the previous hard-coded `indigo` accent.
 - Built-in concrete `Field` types (`TextField`, `TextareaField`, `NumberField`,
   `CheckboxField`, `SelectField`, `DateField`, `DateTimeField`) are now
   non-`final` so applications can subclass them to add custom fields; the

@@ -9,6 +9,35 @@
  */
 @import "tailwindcss" source(none);
 
+/*
+ * Theming.
+ *
+ * The whole panel is accented with the semantic `primary` colour — templates only
+ * ever use `*-primary-*` classes, never a brand name. To re-skin the panel you
+ * change `primary` in ONE place:
+ *
+ *   1. Point `--color-primary-*` at a different palette below, then run
+ *      `composer build-css`; OR
+ *   2. Override `--color-primary-*` at runtime in your own stylesheet loaded
+ *      after atrium.css — no rebuild needed (the utilities resolve these vars).
+ *
+ * `blue-energy` is the default brand palette; `primary` simply aliases it.
+ */
+@theme {
+    /* Default brand palette: "blue-energy". Replace these eleven values to re-skin. */
+    --color-primary-50: #e7f1fd;
+    --color-primary-100: #d0e3fb;
+    --color-primary-200: #a0c8f8;
+    --color-primary-300: #71acf4;
+    --color-primary-400: #4190f1;
+    --color-primary-500: #1275ed;
+    --color-primary-600: #0e5dbe;
+    --color-primary-700: #0b468e;
+    --color-primary-800: #072f5f;
+    --color-primary-900: #04172f;
+    --color-primary-950: #021021;
+}
+
 @source "../templates";
 
 /*
@@ -26,5 +55,5 @@
 /* Text content component composes typography + semantic colour classes in PHP. */
 @source inline("text-{sm,base,lg,xl}");
 @source inline("font-{normal,medium,semibold,bold}");
-@source inline("{dark:,}text-{gray,sky,green,amber,red,indigo}-{300,400,600,700}");
-@source inline("{dark:,}bg-{gray,sky,green,amber,red,indigo}-{50,950}");
+@source inline("{dark:,}text-{gray,sky,green,amber,red,primary}-{300,400,600,700}");
+@source inline("{dark:,}bg-{gray,sky,green,amber,red,primary}-{50,950}");

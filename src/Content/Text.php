@@ -22,7 +22,7 @@ class Text extends ContentComponent
         'success' => 'green',
         'warning' => 'amber',
         'danger' => 'red',
-        'primary' => 'indigo',
+        'primary' => 'primary',
     ];
 
     private string $color = 'gray';
