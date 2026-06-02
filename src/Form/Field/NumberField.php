@@ -7,7 +7,7 @@ namespace Atrium\Form\Field;
 /**
  * Numeric input. Defaults to float; call `integer()` for whole numbers.
  */
-final class NumberField extends Field
+class NumberField extends Field
 {
     private bool $integer = false;
 

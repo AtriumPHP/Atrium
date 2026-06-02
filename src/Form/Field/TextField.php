@@ -11,7 +11,7 @@ use Symfony\Component\Validator\Constraints\Url;
  * Single-line text input. Supports `email()` / `url()` shortcuts that set the
  * HTML input type and add the matching constraint.
  */
-final class TextField extends Field
+class TextField extends Field
 {
     private string $inputType = 'text';
 

@@ -7,7 +7,7 @@ namespace Atrium\Form\Field;
 /**
  * Multi-line text input.
  */
-final class TextareaField extends Field
+class TextareaField extends Field
 {
     private int $rows = 4;
 

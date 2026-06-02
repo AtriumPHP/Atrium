@@ -7,7 +7,7 @@ namespace Atrium\Form\Field;
 /**
  * Boolean checkbox / toggle.
  */
-final class CheckboxField extends Field
+class CheckboxField extends Field
 {
     public function getType(): string
     {

@@ -9,7 +9,7 @@ namespace Atrium\Form\Field;
  * state via {@see optionsUsing()} — the basis for reactive dependent selects
  * (FRM-05) when combined with a live() parent field.
  */
-final class SelectField extends Field
+class SelectField extends Field
 {
     /** @var array<string, string> */
     private array $options = [];
