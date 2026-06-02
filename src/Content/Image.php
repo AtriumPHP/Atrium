@@ -7,7 +7,7 @@ namespace Atrium\Content;
 /**
  * A static image with optional explicit dimensions and horizontal alignment.
  */
-final class Image extends ContentComponent
+class Image extends ContentComponent
 {
     private ?int $width = null;
 

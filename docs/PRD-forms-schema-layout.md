@@ -149,19 +149,20 @@ the keystone change here; everything else composes onto it.
 > Note: `FRM-07` (field-level authorization) is unchanged and orthogonal —
 > authorization gates and `visible()` compose (a field hidden by either is hidden).
 
-### 4.3 New field types — `FLD`
+### 4.3 New field types — `FLD` — ✅ delivered (`FLD-01..05`)
 
 Cheap, native-input field types via the existing widget-template pattern:
 
-- **FLD-01** **Radio** — `RadioField` (options as radio group; reuses Select's
-  option/`optionsUsing` machinery).
-- **FLD-02** **Toggle** — `ToggleField` (a styled boolean switch; sibling of
-  `CheckboxField`, sharing its boolean normalize/constraints).
-- **FLD-03** **Hidden** — `HiddenField` (renders `<input type=hidden>`; always
-  dehydrated, no label).
-- **FLD-04** **Color picker** — `ColorField` (`<input type=color>` + text value).
-- **FLD-05** **Toggle buttons** — `ToggleButtonsField` (segmented single/multi
-  choice).
+- **FLD-01** **Radio** — `RadioField` (options as a radio group; extends
+  `SelectField` to reuse `options()`/`optionsUsing()`).
+- **FLD-02** **Toggle** — `ToggleField` (a styled boolean switch; extends
+  `CheckboxField`, sharing its boolean normalize/`IsTrue` constraint/inline label).
+- **FLD-03** **Hidden** — `HiddenField` (`rendersInLayout() === false`: stays in
+  the form state — validated/persisted — but draws no widget and takes no grid
+  cell; set via `default()` or `afterStateUpdated()`).
+- **FLD-04** **Color picker** — `ColorField` (`<input type=color>` + hex preview).
+- **FLD-05** **Toggle buttons** — `ToggleButtonsField` (segmented single choice;
+  extends `SelectField`). Multi-select is a later extension.
 - **FLD-06** **Tags input** — `TagsField` (string list).
 - **FLD-07** **Key-value** — `KeyValueField` (string map).
 
@@ -318,8 +319,11 @@ Phase 2), before Actions.
   `min`/`max`), and `placeholder`/`autofocus`/`hiddenLabel`. *Verified:* name→SKU
   derivation works live in the browser; helpers compile to the right constraints.
   *Deferred:* `same()` (contextual validator), `inlineLabel()`.
-- **M4 — Cheap field types (`FLD-01..05`).** Radio, Toggle, Hidden, Color,
-  ToggleButtons. *Acceptance:* each renders, normalizes, validates, round-trips.
+- **M4 — Cheap field types (`FLD-01..05`) — ✅ delivered.** Radio, Toggle, Hidden,
+  Color, ToggleButtons — reusing `SelectField`/`CheckboxField` where possible, with
+  native-input widgets. `Field::rendersInLayout()` lets `HiddenField` stay in the
+  state while drawing nothing. *Verified:* each renders/normalizes/round-trips;
+  hidden is filtered from the layout but kept in `getFields()`.
 - **M5 — Stretch (`SCH-10` Tabs/Wizard, `FLD-06..07`, `FRM-14`).**
 - **Future (`FLD-10..13`).** Repeater, Builder, File upload, Rich/Markdown — each
   its own PRD addendum when scheduled.

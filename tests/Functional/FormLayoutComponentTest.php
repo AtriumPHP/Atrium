@@ -48,6 +48,21 @@ final class FormLayoutComponentTest extends KernelTestCase
         self::assertStringContainsString('atrium_kind', $html);
     }
 
+    public function testNewFieldTypesRenderAndHiddenIsFilteredOut(): void
+    {
+        $html = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag'])
+            ->render()
+            ->toString();
+
+        self::assertStringContainsString('type="radio"', $html);   // RadioField + ToggleButtonsField
+        self::assertStringContainsString('type="color"', $html);   // ColorField
+        self::assertStringContainsString('peer sr-only', $html);   // Toggle / ToggleButtons switch inputs
+        self::assertStringContainsString('atrium_size', $html);
+
+        // HiddenField renders no widget …
+        self::assertStringNotContainsString('atrium_source', $html);
+    }
+
     public function testClosureVisibilityReactsToALiveField(): void
     {
         $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag']);

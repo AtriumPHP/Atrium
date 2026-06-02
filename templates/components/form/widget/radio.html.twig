@@ -1,0 +1,10 @@
+<div class="mt-1 space-y-1.5">
+    {% for value, label in this.optionsFor(field) %}
+        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="radio" name="atrium_{{ name }}" value="{{ value }}" data-model="{{ model }}"
+                   {{ this.getValue(name) == value ? 'checked' }} {{ field.isDisabled() ? 'disabled' }}
+                   class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900">
+            {{ label }}
+        </label>
+    {% endfor %}
+</div>

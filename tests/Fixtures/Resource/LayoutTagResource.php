@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Atrium\Tests\Fixtures\Resource;
 
 use Atrium\Content\Text;
-use Atrium\Form\Field\CheckboxField;
+use Atrium\Form\Field\ColorField;
+use Atrium\Form\Field\HiddenField;
+use Atrium\Form\Field\RadioField;
 use Atrium\Form\Field\SelectField;
 use Atrium\Form\Field\TextField;
+use Atrium\Form\Field\ToggleButtonsField;
+use Atrium\Form\Field\ToggleField;
 use Atrium\Form\Get;
 use Atrium\Form\Schema;
 use Atrium\Form\Set;
@@ -52,10 +56,17 @@ final class LayoutTagResource extends AdminResource
                     TextField::make('notes')->visibleOn('edit')->columnSpanFull(),
                 ]),
             Flex::make()->from('md')->schema([
-                CheckboxField::make('active'),
+                ToggleField::make('active'),
                 SelectField::make('kind')->options(['fruit' => 'Fruit', 'tool' => 'Tool'])->live()->grow(false),
                 // Conditional visibility (FRM-08): only when kind is "fruit".
                 TextField::make('cultivar')->visible(static fn (Get $get): bool => 'fruit' === $get('kind')),
+            ]),
+            Section::make('Extras')->columns(2)->schema([
+                RadioField::make('size')->options(['s' => 'Small', 'l' => 'Large']),
+                ToggleButtonsField::make('priority')->options(['lo' => 'Low', 'hi' => 'High']),
+                ColorField::make('color'),
+                // Carried in state, not rendered (FLD-03).
+                HiddenField::make('source')->default('web'),
             ]),
         ]);
     }

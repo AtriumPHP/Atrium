@@ -9,7 +9,7 @@ namespace Atrium\Content;
  * semantic colour, typographic size/weight, and an optional badge (pill) style.
  * Pass `html(true)` to render trusted markup as-is.
  */
-final class Text extends ContentComponent
+class Text extends ContentComponent
 {
     /**
      * Semantic colour => Tailwind colour scale.

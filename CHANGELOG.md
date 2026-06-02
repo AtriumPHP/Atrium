@@ -110,6 +110,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     stays the escape hatch.
   - Presentation: `placeholder()` (Text/Textarea/Number via `HasPlaceholder`),
     `autofocus()`, `hiddenLabel()` on `Field`; widgets + wrapper updated.
+- Forms v2 / M4 — new field types (`FLD-01..05`): `RadioField`,
+  `ToggleButtonsField` (both extend `SelectField`), `ToggleField` (a switch,
+  extends `CheckboxField`), `ColorField`, and `HiddenField`. `Field::rendersInLayout()`
+  (default true; false for `HiddenField`) keeps a hidden value in the form state —
+  validated and persisted — while drawing no widget and taking no grid cell.
+  Widgets under `components/form/widget/{radio,toggle,color,toggle_buttons}.html.twig`.
 - Content components (`CNT-01..03`) — static building blocks for a schema
   (`Atrium\Content\Text`, `UnorderedList`, `Image`). They implement the shared
   `Atrium\Layout\Component` contract but carry no form state: never hydrated or

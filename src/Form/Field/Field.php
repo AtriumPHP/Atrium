@@ -259,6 +259,15 @@ abstract class Field implements Component
     }
 
     /**
+     * Whether this field renders a widget in the layout. A hidden field returns
+     * false: it stays in the form state (validated/persisted) but draws nothing.
+     */
+    public function rendersInLayout(): bool
+    {
+        return true;
+    }
+
+    /**
      * Convert a raw submitted (form) value into the model value.
      */
     public function normalize(mixed $value): mixed

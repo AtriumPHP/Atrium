@@ -8,7 +8,7 @@ namespace Atrium\Content;
  * A bulleted list of plain-text items — handy for instructions or requirement
  * checklists shown alongside a form.
  */
-final class UnorderedList extends ContentComponent
+class UnorderedList extends ContentComponent
 {
     /**
      * @param list<string|\Stringable> $items

@@ -266,7 +266,7 @@ final class Form
 
         foreach ($components as $component) {
             if ($component instanceof Field) {
-                if ($component->isVisible($get, $operation)) {
+                if ($component->rendersInLayout() && $component->isVisible($get, $operation)) {
                     $visible[] = $component;
                 }
 
