@@ -3,12 +3,15 @@
     carries its own `template` (Action::getTemplate / ActionGroup::getTemplate),
     so the host renders any action or group — including custom ones — without a
     central switch. Reusable by any host (the table today; forms / pages later).
-    Params: actions (list of descriptors).
+    Params:
+      - actions    : list of descriptors
+      - liveAction : Live action a server trigger calls, forwarded to each entry
+                     (default 'requestAction'; bulk bars pass 'requestBulkAction')
 #}
 {% if actions %}
     <div class="inline-flex items-center justify-end gap-1">
         {% for item in actions %}
-            {{ include(item.template, { action: item }) }}
+            {{ include(item.template, { action: item, liveAction: liveAction|default('requestAction') }) }}
         {% endfor %}
     </div>
 {% endif %}

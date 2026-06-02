@@ -3,8 +3,11 @@
     is an <a>; a server action is a <button> that calls the host's requestAction.
 
     Params:
-      - action   : descriptor (name, label, icon, color, style, badge, url, id, confirm)
-      - menuItem : when true, render as a full-width dropdown menu item (style override)
+      - action     : descriptor (name, label, icon, color, style, badge, url, id, confirm)
+      - menuItem   : when true, render as a full-width dropdown menu item (style override)
+      - liveAction : Live action a server trigger calls (default 'requestAction';
+                     bulk bars pass 'requestBulkAction'). The record id is only
+                     emitted when the descriptor carries one.
 #}
 {% set textColors = {
     gray:    'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
@@ -51,7 +54,7 @@
     <a href="{{ action.url }}" class="{{ cls }}"{% if iconOnly %} aria-label="{{ action.label }}" title="{{ action.label }}"{% endif %}>{{ inner }}</a>
 {% else %}
     <button type="button"
-            data-action="live#action" data-live-action-param="requestAction"
-            data-live-name-param="{{ action.name }}" data-live-id-param="{{ action.id }}"
+            data-action="live#action" data-live-action-param="{{ liveAction|default('requestAction') }}"
+            data-live-name-param="{{ action.name }}"{% if action.id is not null %} data-live-id-param="{{ action.id }}"{% endif %}
             class="{{ cls }}"{% if iconOnly %} aria-label="{{ action.label }}" title="{{ action.label }}"{% endif %}>{{ inner }}</button>
 {% endif %}

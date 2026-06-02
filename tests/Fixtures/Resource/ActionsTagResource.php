@@ -6,7 +6,10 @@ namespace Atrium\Tests\Fixtures\Resource;
 
 use Atrium\Action\Action;
 use Atrium\Action\ActionGroup;
+use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Resource\AdminResource;
+use Atrium\Table\Action\BulkDeleteAction;
+use Atrium\Table\Action\CreateAction;
 use Atrium\Table\Action\DeleteAction;
 use Atrium\Table\Action\EditAction;
 use Atrium\Table\Column;
@@ -50,6 +53,22 @@ final class ActionsTagResource extends AdminResource
                 Action::make('duplicate')->label('Duplicate')->icon('document')
                     ->url(static fn (object $record): string => '#duplicate'),
             ])->label('More'),
+        ];
+    }
+
+    public function headerActions(): array
+    {
+        return [CreateAction::make()];
+    }
+
+    public function bulkActions(): array
+    {
+        return [
+            BulkDeleteAction::make(),
+            // A hidden bulk action — must never be surfaced or run, even by a
+            // crafted request.
+            Action::make('purge')->label('Purge')->visible(false)->requiresConfirmation()
+                ->action(static function (array $records, DataWriterInterface $writer): void {}),
         ];
     }
 }

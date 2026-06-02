@@ -8,6 +8,7 @@ use Atrium\Action\Action;
 use Atrium\Action\ActionContext;
 use Atrium\Action\ActionContract;
 use Atrium\Action\Concern\InteractsWithActions;
+use Atrium\Action\Concern\InteractsWithBulkActions;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataQuery;
 use Atrium\DataProvider\DataWriterInterface;
@@ -33,6 +34,7 @@ final class DataTable
 {
     use DefaultActionTrait;
     use InteractsWithActions;
+    use InteractsWithBulkActions;
 
     #[LiveProp]
     public string $resource = '';
@@ -63,6 +65,18 @@ final class DataTable
 
     /** @var list<ActionContract>|null */
     private ?array $recordActions = null;
+
+    /** @var list<Action>|null */
+    private ?array $headerActions = null;
+
+    /** @var list<Action>|null */
+    private ?array $bulkActions = null;
+
+    /** @var list<string>|null */
+    private ?array $pageIds = null;
+
+    /** @var list<object>|null */
+    private ?array $pageRecords = null;
 
     private ?int $totalCount = null;
 
@@ -134,6 +148,56 @@ final class DataTable
         return [] !== $this->getRecordActions();
     }
 
+    /**
+     * The resource's header actions (shown above the table).
+     *
+     * @return list<Action>
+     */
+    public function getHeaderActions(): array
+    {
+        return $this->headerActions ??= array_values($this->resource()->headerActions());
+    }
+
+    public function hasHeaderActions(): bool
+    {
+        return [] !== $this->getHeaderActions();
+    }
+
+    /**
+     * Render-ready descriptors for the visible header actions (subject-less).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getHeaderActionViews(): array
+    {
+        return $this->standaloneViews($this->getHeaderActions());
+    }
+
+    /**
+     * The resource's bulk actions (run against the selection).
+     *
+     * @return list<Action>
+     */
+    public function getBulkActions(): array
+    {
+        return $this->bulkActions ??= array_values($this->resource()->bulkActions());
+    }
+
+    public function hasBulkActions(): bool
+    {
+        return [] !== $this->getBulkActions();
+    }
+
+    /**
+     * Render-ready descriptors for the visible bulk actions (subject-less).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getBulkActionViews(): array
+    {
+        return $this->standaloneViews($this->getBulkActions());
+    }
+
     protected function findAction(string $name): ?Action
     {
         foreach ($this->getRecordActions() as $item) {
@@ -167,7 +231,84 @@ final class DataTable
         // The row set may have shrunk (e.g. a delete) — refresh the count and
         // keep the page in range.
         $this->totalCount = null;
+        $this->pageIds = null;
+        $this->pageRecords = null;
         $this->page = min($this->page, $this->getPageCount());
+    }
+
+    protected function findBulkAction(string $name): ?Action
+    {
+        foreach ($this->getBulkActions() as $action) {
+            if ($action->getName() === $name) {
+                return $action;
+            }
+        }
+
+        return null;
+    }
+
+    protected function runBulkAction(Action $action): void
+    {
+        $handler = $action->getHandler();
+        if (null === $handler || !$action->isVisible() || !$this->hasSelection()) {
+            return;
+        }
+
+        $records = $this->selectedRecords();
+        if ([] === $records) {
+            return;
+        }
+
+        $handler($records, $this->writer);
+
+        // The selection has been consumed and the row set may have shrunk.
+        $this->totalCount = null;
+        $this->pageIds = null;
+        $this->pageRecords = null;
+        $this->clearSelection();
+        $this->page = min($this->page, $this->getPageCount());
+    }
+
+    protected function currentPageIds(): array
+    {
+        if (null !== $this->pageIds) {
+            return $this->pageIds;
+        }
+
+        $ids = [];
+        foreach ($this->pageRecords() as $record) {
+            $id = $this->recordId($record);
+            if (null !== $id) {
+                $ids[] = $id;
+            }
+        }
+
+        return $this->pageIds = $ids;
+    }
+
+    /**
+     * The current page's records, fetched once per request and shared by the row
+     * renderer and the selection helpers (avoids a second identical query).
+     *
+     * @return list<object>
+     */
+    private function pageRecords(): array
+    {
+        if (null !== $this->pageRecords) {
+            return $this->pageRecords;
+        }
+
+        $records = [];
+        foreach ($this->dataProvider->fetch($this->entityClass(), $this->query()) as $record) {
+            $records[] = $record;
+        }
+
+        return $this->pageRecords = $records;
+    }
+
+    protected function totalSelectableCount(): int
+    {
+        return $this->getTotalCount();
     }
 
     /**
@@ -175,7 +316,7 @@ final class DataTable
      * per-record actions resolved (for visibility, URL, style) into render-ready
      * descriptors — a plain action, or a `kind: 'group'` dropdown of them.
      *
-     * @return list<array{id: ?string, cells: list<string>, actions: list<array<string, mixed>>}>
+     * @return list<array{id: ?string, selected: bool, cells: list<string>, actions: list<array<string, mixed>>}>
      */
     public function getRows(): array
     {
@@ -183,7 +324,7 @@ final class DataTable
         $items = $this->getRecordActions();
         $rows = [];
 
-        foreach ($this->dataProvider->fetch($this->entityClass(), $this->query()) as $record) {
+        foreach ($this->pageRecords() as $record) {
             $cells = [];
             foreach ($columns as $column) {
                 $cells[] = $column->renderValue($record, $this->accessor);
@@ -199,7 +340,12 @@ final class DataTable
                 }
             }
 
-            $rows[] = ['id' => $id, 'cells' => $cells, 'actions' => $rowActions];
+            $rows[] = [
+                'id' => $id,
+                'selected' => null !== $id && $this->isRecordSelected($id),
+                'cells' => $cells,
+                'actions' => $rowActions,
+            ];
         }
 
         return $rows;
@@ -242,6 +388,81 @@ final class DataTable
     private function entityClass(): string
     {
         return $this->resource()->getEntityClass();
+    }
+
+    /**
+     * Resolve the records the current selection targets — every record matching
+     * the query (minus exclusions) in select-all mode, otherwise the explicitly
+     * selected ids.
+     *
+     * @return list<object>
+     */
+    private function selectedRecords(): array
+    {
+        $class = $this->entityClass();
+
+        if ($this->selectAll) {
+            $records = [];
+            foreach ($this->dataProvider->fetch($class, $this->allMatchingQuery()) as $record) {
+                $id = $this->recordId($record);
+                if (null === $id || !\in_array($id, $this->excluded, true)) {
+                    $records[] = $record;
+                }
+            }
+
+            return $records;
+        }
+
+        $records = [];
+        foreach ($this->selected as $id) {
+            $record = $this->dataProvider->find($class, $id);
+            if (null !== $record) {
+                $records[] = $record;
+            }
+        }
+
+        return $records;
+    }
+
+    /**
+     * The current query without pagination, to enumerate every matching record
+     * for a select-all bulk action.
+     */
+    private function allMatchingQuery(): DataQuery
+    {
+        $sortField = null !== $this->sortField && $this->isSortable($this->sortField)
+            ? $this->sortField
+            : null;
+
+        return new DataQuery(
+            search: $this->search,
+            searchableFields: $this->searchableFields(),
+            sortField: $sortField,
+            sortDirection: $this->sortDirection,
+            offset: 0,
+            limit: max(1, $this->getTotalCount()),
+        );
+    }
+
+    /**
+     * Subject-less view descriptors for the visible actions among $actions.
+     *
+     * @param list<Action> $actions
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function standaloneViews(array $actions): array
+    {
+        $context = new ActionContext($this->pathPrefix, $this->resource, '');
+
+        $views = [];
+        foreach ($actions as $action) {
+            if ($action->isVisible()) {
+                $views[] = $action->toStandaloneView($context);
+            }
+        }
+
+        return $views;
     }
 
     private function query(): DataQuery

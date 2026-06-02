@@ -3,13 +3,8 @@
 {% block title %}{{ resource.label }} · {{ panel.brand }}{% endblock %}
 {% block heading %}{{ resource.label }}{% endblock %}
 
-{% block header_actions %}
-    <a href="{{ panel.pathPrefix }}/{{ resource.slug }}/new"
-       class="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm shadow-primary-600/20 transition-colors hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950">
-        {{ include('@Atrium/icon.html.twig', { name: 'plus', class: 'h-4 w-4' }) }}
-        New {{ resource.singularLabel }}
-    </a>
-{% endblock %}
+{# Header actions (the "New" button, custom create/import actions) render inside
+   the DataTable Live Component so server-driven actions work — see headerActions(). #}
 
 {% block body %}
     <div class="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm sm:p-5 dark:border-gray-800/80 dark:bg-gray-900">

@@ -45,6 +45,12 @@ class Action implements ActionContract
     /** @var (\Closure(object): ?string)|null */
     protected ?\Closure $urlResolver = null;
 
+    /**
+     * A static URL set via {@see url()} with a string. Kept separately so the
+     * action can resolve a URL with no per-record subject (header/bulk bars).
+     */
+    protected ?string $staticUrl = null;
+
     protected ?\Closure $handler = null;
 
     protected function __construct(
@@ -166,7 +172,12 @@ class Action implements ActionContract
      */
     public function url(string|\Closure $url): static
     {
-        $this->urlResolver = \is_string($url) ? static fn (object $subject): string => $url : $url;
+        if (\is_string($url)) {
+            $this->staticUrl = $url;
+            $this->urlResolver = static fn (object $subject): string => $url;
+        } else {
+            $this->urlResolver = $url;
+        }
 
         return $this;
     }
@@ -220,6 +231,19 @@ class Action implements ActionContract
         return \is_bool($this->visible) ? $this->visible : ($this->visible)($subject);
     }
 
+    /**
+     * Whether this action is shown where there is no per-record subject (header
+     * and bulk bars). Visibility there must be a plain bool — typically computed
+     * at config time, e.g. `->visible($this->isGranted(...))`. A subject-bound
+     * closure cannot be evaluated without a record, so it fails **closed** (the
+     * action is hidden and cannot run): a destructive action a developer tried to
+     * gate with a closure is never silently left exposed.
+     */
+    public function isVisible(): bool
+    {
+        return \is_bool($this->visible) && $this->visible;
+    }
+
     public function needsConfirmation(): bool
     {
         return $this->requiresConfirmation;
@@ -231,11 +255,31 @@ class Action implements ActionContract
     }
 
     /**
+     * The developer-supplied confirmation message, or null when none was set and
+     * a default should be composed by the host (e.g. a count-aware bulk message).
+     */
+    public function getCustomConfirmationMessage(): ?string
+    {
+        return $this->confirmationMessage;
+    }
+
+    /**
      * The action's URL for a subject, or null if it is a server action.
      */
     public function getUrl(object $subject, ActionContext $context): ?string
     {
         return null === $this->urlResolver ? null : ($this->urlResolver)($subject);
+    }
+
+    /**
+     * The action's URL with no per-record subject — for header and bulk actions,
+     * which sit above the table rather than on a row. A link header action (e.g.
+     * {@see \Atrium\Table\Action\CreateAction}) overrides this; a plain server
+     * action returns null.
+     */
+    public function getStandaloneUrl(ActionContext $context): ?string
+    {
+        return $this->staticUrl;
     }
 
     public function isServerAction(): bool
@@ -270,6 +314,30 @@ class Action implements ActionContract
             'badge' => $this->badge,
             'url' => $this->getUrl($subject, $context),
             'id' => $id,
+            'confirm' => $this->requiresConfirmation,
+        ];
+    }
+
+    /**
+     * Resolve to a render-ready descriptor with no per-record subject, for the
+     * header and bulk action bars. Mirrors {@see toView()} but carries no record
+     * id (the bulk host runs it against the current selection instead).
+     *
+     * @return array<string, mixed>
+     */
+    public function toStandaloneView(ActionContext $context): array
+    {
+        return [
+            'kind' => 'action',
+            'template' => $this->getTemplate(),
+            'name' => $this->name,
+            'label' => $this->getLabel(),
+            'icon' => $this->icon,
+            'color' => $this->color,
+            'style' => $this->style,
+            'badge' => $this->badge,
+            'url' => $this->getStandaloneUrl($context),
+            'id' => null,
             'confirm' => $this->requiresConfirmation,
         ];
     }

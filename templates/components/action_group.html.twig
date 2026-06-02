@@ -10,7 +10,7 @@
     </summary>
     <div class="absolute right-0 z-20 mt-1 min-w-44 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-800 dark:bg-gray-900">
         {% for child in action.actions %}
-            {{ include(child.template, { action: child, menuItem: true }) }}
+            {{ include(child.template, { action: child, menuItem: true, liveAction: liveAction|default('requestAction') }) }}
         {% endfor %}
     </div>
 </details>

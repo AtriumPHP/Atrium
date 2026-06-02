@@ -68,6 +68,20 @@ final class ActionTest extends TestCase
         self::assertTrue(Action::make('a')->hidden(static fn (object $r): bool => false)->isVisibleFor(new \stdClass()));
     }
 
+    public function testSubjectLessVisibilityRequiresABoolAndFailsClosed(): void
+    {
+        // Header/bulk visibility (no record) must be a plain bool.
+        self::assertTrue(Action::make('a')->isVisible());
+        self::assertTrue(Action::make('a')->visible(true)->isVisible());
+        self::assertFalse(Action::make('a')->visible(false)->isVisible());
+        self::assertFalse(Action::make('a')->hidden()->isVisible());
+
+        // A subject-bound closure cannot be evaluated without a record, so a
+        // destructive action a developer tried to gate with one is hidden — never
+        // silently left exposed (fails closed even when the closure returns true).
+        self::assertFalse(Action::make('a')->visible(static fn (object $r): bool => true)->isVisible());
+    }
+
     public function testConfirmation(): void
     {
         self::assertFalse(Action::make('a')->needsConfirmation());

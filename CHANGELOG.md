@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Table **header actions** and **bulk / row-selection actions** (TBL-09, TBL-10),
+  built on the existing `Atrium\Action` subsystem.
+  - `AdminResource::headerActions()` (defaults to a `CreateAction`) and
+    `AdminResource::bulkActions()` (defaults to none — returning actions enables
+    row selection). Both are subject-less `list<Action>`. **Public API addition.**
+  - Built-in `Atrium\Table\Action\CreateAction` (a primary "New" button linking
+    to the create page) and `BulkDeleteAction` (a confirmed server action that
+    deletes the whole selection through `DataWriterInterface`). Header actions now
+    render inside the `DataTable` Live Component (its card header), not the page
+    chrome, so server-driven header actions work; the hardcoded "New" button was
+    removed from the resource page template.
+  - `Atrium\Action\Concern\InteractsWithBulkActions` — a reusable trait owning a
+    server-driven selection state machine: per-row and whole-page toggles, plus a
+    **select-all-matching-the-query** mode (a flag with an exclusion list) so a
+    bulk action targets every record across all pages, not just the visible ones.
+    Confirmable `requestBulkAction` / `confirmBulkAction`, gated by visibility on
+    both request and run. The selection props are non-writable LiveProps (mutated
+    only through the actions), so a crafted request cannot forge a selection.
+  - `Atrium\Action\Action` gained subject-less rendering (`toStandaloneView()`,
+    `getStandaloneUrl()`) and `isVisible()` for header/bulk bars — which requires
+    a plain bool and **fails closed** for a subject-bound visibility closure, so a
+    destructive action a developer tried to gate with a closure is never silently
+    exposed. The action button template is parameterised (`liveAction`) and the
+    confirmation dialog was extracted to a shared `components/confirm_modal.html.twig`.
+  - Known limitation: a select-all bulk action loads every matching record in one
+    request; batched / queued execution for very large selections is deferred.
 - Table **record actions** + a generic, view-agnostic **`Atrium\Action`**
   subsystem (the shared base for table actions today; header/page/bulk actions
   next).

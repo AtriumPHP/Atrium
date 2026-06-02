@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atrium\Resource;
 
+use Atrium\Action\Action;
 use Atrium\Action\ActionContract;
 use Atrium\Action\ActionGroup;
 use Atrium\Form\Schema;
@@ -13,6 +14,7 @@ use Atrium\Page\CreatePage;
 use Atrium\Page\EditPage;
 use Atrium\Page\ListPage;
 use Atrium\Page\Page;
+use Atrium\Table\Action\CreateAction;
 use Atrium\Table\Action\EditAction;
 use Atrium\Table\Column;
 
@@ -65,6 +67,31 @@ abstract class AdminResource
     public function recordActions(): array
     {
         return [EditAction::make()];
+    }
+
+    /**
+     * Table header actions, shown above the list and run by the table's Live
+     * Component (TBL-09). These are subject-less {@see Action}s — they act on the
+     * resource as a whole, not a row. Defaults to a {@see CreateAction} ("New");
+     * return `[]` to show none, or add custom create/import-style actions.
+     *
+     * @return list<Action>
+     */
+    public function headerActions(): array
+    {
+        return [CreateAction::make()];
+    }
+
+    /**
+     * Bulk actions, shown in the selection bar when one or more rows are selected
+     * and run against the whole selection (TBL-10). Returning a non-empty list
+     * enables row selection; the default is none.
+     *
+     * @return list<Action>
+     */
+    public function bulkActions(): array
+    {
+        return [];
     }
 
     /**
