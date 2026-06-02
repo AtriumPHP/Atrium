@@ -113,8 +113,12 @@ class Form
     public function save(): ?Response
     {
         $this->saved = false;
-        $get = new Get($this->formData);
+        $resource = $this->resourceObject();
         $operation = $this->operation();
+
+        // Let the resource normalise the raw input before validation sees it.
+        $this->formData = $resource->mutateFormDataBeforeValidate($this->formData, $operation);
+        $get = new Get($this->formData);
 
         [$normalized, $this->errors] = $this->collectErrors($this->getFields(), $get, $operation);
 
@@ -123,6 +127,9 @@ class Form
 
             return null; // invalid: keep the last values, surface errors
         }
+
+        // Validation passed — let the resource react to the validated data.
+        $resource->afterValidate($normalized, $operation);
 
         if (null === $this->entityId) {
             $entity = $this->newEntity();
@@ -135,7 +142,6 @@ class Form
 
         // Authorize server-side: the page guard can be bypassed by posting
         // straight to this Live action, so re-check the ability here.
-        $resource = $this->resourceObject();
         $authorized = 'create' === $operation ? $resource->canCreate() : $resource->canEdit($entity);
         if (!$authorized) {
             return null;
@@ -353,9 +359,11 @@ class Form
             }
         }
 
-        // Let the resource reshape an existing record's data before it fills the
-        // form (no-op on create, where there is no record).
-        return null === $entity ? $data : $this->resourceObject()->mutateFormDataBeforeFill($data);
+        // Let the resource reshape the data that fills the form — the record's
+        // values on edit, the fields' defaults on create.
+        $operation = null === $entity ? 'create' : 'edit';
+
+        return $this->resourceObject()->mutateFormDataBeforeFill($data, $operation);
     }
 
     /**

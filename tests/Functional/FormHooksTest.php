@@ -58,6 +58,44 @@ final class FormHooksTest extends KernelTestCase
         self::assertCount(1, $this->writer()->records[Tag::class] ?? []);
     }
 
+    public function testBeforeValidateNormalisesInputAndAfterValidateRuns(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'hooked-tag']);
+        $component->set('formData', ['name' => '  Spaced  ', 'slug' => '']);
+        $component->call('save');
+
+        // mutateFormDataBeforeValidate trimmed the name *before* validation, so
+        // the trimmed value is what was validated and persisted.
+        self::assertSame(['create:Spaced'], HookedTagResource::$validated);
+
+        $created = $this->writer()->records[Tag::class] ?? [];
+        self::assertCount(1, $created);
+        self::assertInstanceOf(Tag::class, $created[0]);
+        self::assertSame('Spaced', $created[0]->name);
+        self::assertSame('spaced', $created[0]->slug);
+    }
+
+    public function testAfterValidateIsSkippedOnAnInvalidSubmit(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'hooked-tag']);
+        // name is required — an empty value fails validation.
+        $component->set('formData', ['name' => '', 'slug' => '']);
+        $component->call('save');
+
+        self::assertSame([], HookedTagResource::$validated, 'afterValidate runs only on a valid submit.');
+        self::assertSame([], $this->writer()->records[Tag::class] ?? []);
+    }
+
+    public function testFillSeedsDefaultsOnCreate(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'hooked-tag']);
+
+        // mutateFormDataBeforeFill now runs on create, so it can seed defaults.
+        $instance = $component->component();
+        self::assertInstanceOf(\Atrium\Twig\Components\Form::class, $instance);
+        self::assertSame('Seeded', $instance->formData['name'] ?? null);
+    }
+
     public function testSaveIsRefusedWhenCreationIsNotAuthorized(): void
     {
         HookedTagResource::$allowCreate = false;

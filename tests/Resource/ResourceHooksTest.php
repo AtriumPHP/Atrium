@@ -24,8 +24,10 @@ final class ResourceHooksTest extends TestCase
         self::assertTrue($resource->canView($record));
 
         // Mutate hooks are identity; before/after hooks do not throw.
-        self::assertSame(['name' => 'A'], $resource->mutateFormDataBeforeFill(['name' => 'A']));
+        self::assertSame(['name' => 'A'], $resource->mutateFormDataBeforeFill(['name' => 'A'], 'edit'));
+        self::assertSame(['name' => 'A'], $resource->mutateFormDataBeforeValidate(['name' => 'A'], 'create'));
         self::assertSame(['name' => 'A'], $resource->mutateFormDataBeforeSave(['name' => 'A'], 'create'));
+        $resource->afterValidate(['name' => 'A'], 'create');
         $resource->beforeSave($record, 'create');
         $resource->afterSave($record, 'create');
         $resource->beforeDelete($record);

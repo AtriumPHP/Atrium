@@ -22,18 +22,22 @@ There are two kinds:
 
 On save, Atrium runs:
 
-1. validate the submitted fields,
-2. `mutateFormDataBeforeSave($data, $operation)` — your transform,
-3. write the (possibly mutated) field values onto the entity,
-4. **in one transaction:**
+1. `mutateFormDataBeforeValidate($data, $operation)` — clean raw input,
+2. validate the submitted fields,
+3. `afterValidate($data, $operation)` — react to valid data (side-effect only),
+4. `mutateFormDataBeforeSave($data, $operation)` — your transform,
+5. write the (possibly mutated) field values onto the entity,
+6. **in one transaction:**
    1. `beforeSave($entity, $operation)` — set extra properties here,
    2. `handleRecordCreation($entity, $writer)` / `handleRecordUpdate($entity, $writer)` — persist,
    3. `afterSave($entity, $operation)`.
 
-`$operation` is `'create'` or `'edit'`, so one hook can serve both. On the edit
-form's *fill*, `mutateFormDataBeforeFill($data)` runs before the record populates
-the form. Delete runs `beforeDelete` / `afterDelete` around the built-in delete
-actions (record and bulk).
+`$operation` is `'create'` or `'edit'`, so one hook can serve both. If validation
+fails, Atrium stops after step 2 (no `afterValidate`, no write) and surfaces the
+errors. When the form *fills*, `mutateFormDataBeforeFill($data, $operation)` runs
+for **both** operations — on edit it receives the record's values, on create the
+fields' defaults (so it can seed a create form). Delete runs `beforeDelete` /
+`afterDelete` around the built-in delete actions (record and bulk).
 
 ### Atomic persistence
 
@@ -104,7 +108,9 @@ final class ArticleResource extends AdminResource
 
 | Method | Description |
 | --- | --- |
-| `mutateFormDataBeforeFill(array $data): array` | Transform a record's data before it fills the edit form. Runs on edit only. |
+| `mutateFormDataBeforeFill(array $data, string $operation): array` | Transform the data that fills the form. Runs on **create** (defaults) and **edit** (the record). |
+| `mutateFormDataBeforeValidate(array $data, string $operation): array` | Clean the raw submitted data before validation sees it (trim, coerce). |
+| `afterValidate(array $data, string $operation): void` | React to the validated data (side-effect only). Runs only on a valid submit. |
 | `mutateFormDataBeforeSave(array $data, string $operation): array` | Transform submitted form data before it is written to the entity. `$operation` is `create` or `edit`. |
 | `beforeSave(object $record, string $operation): void` | Runs after fields are applied, before persistence (inside the transaction). Set non-field properties here. |
 | `handleRecordCreation(object $record, DataWriterInterface $writer): void` | Persist a new record. Defaults to `$writer->create()`; override to persist your own way. |

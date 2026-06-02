@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Form validation lifecycle hooks** on `AdminResource`:
+  `mutateFormDataBeforeValidate($data, $operation)` (clean raw input before
+  validation) and `afterValidate($data, $operation)` (react to valid data,
+  side-effect only — skipped on an invalid submit). **Public Resource API
+  addition.**
 - **Custom persistence + atomic saves.** `AdminResource::handleRecordCreation()`
   and `handleRecordUpdate(object $record, DataWriterInterface $writer)` own the
   write (defaulting to the data writer), so an app can persist through its own
@@ -48,6 +53,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`mutateFormDataBeforeFill()` gained an `$operation` parameter and now runs on
+  create too.** Signature is now `mutateFormDataBeforeFill(array $data, string
+  $operation): array`; on `create` it receives the fields' defaults, so it can
+  seed a create form (previously it ran on edit only). Overriders must add the
+  parameter. **Public Resource API change** (pre-1.0; the hook was added earlier
+  in this same unreleased cycle).
 - **`DataProviderInterface::find()` gained an optional `array $filters = []`**
   parameter so record resolution can be scoped (see query scoping above). Callers
   are unaffected; custom data-provider implementations must add the parameter.

@@ -153,16 +153,46 @@ abstract class AdminResource
     // properties (ownership, timestamps, relations) and side effects.
 
     /**
-     * Transform the record's data before it fills the edit form. Receives and
-     * returns a `field name => value` map.
+     * Transform the data that fills the form before it is shown. Runs for both
+     * operations: on `edit` it receives the record's data; on `create` it
+     * receives the fields' defaults, so it can seed create-form values (a default
+     * owner, today's date). Receives and returns a `field name => value` map.
      *
      * @param array<string, mixed> $data
      *
      * @return array<string, mixed>
      */
-    public function mutateFormDataBeforeFill(array $data): array
+    public function mutateFormDataBeforeFill(array $data, string $operation): array
     {
         return $data;
+    }
+
+    /**
+     * Transform the raw submitted data before it is validated. Use it to coerce
+     * input the user shouldn't have to get exactly right (trim, upper-case a
+     * code, drop empties) so validation sees the cleaned value. `$operation` is
+     * `create` or `edit`. Runs before {@see mutateFormDataBeforeSave()}.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>
+     */
+    public function mutateFormDataBeforeValidate(array $data, string $operation): array
+    {
+        return $data;
+    }
+
+    /**
+     * React to the data once it has passed validation, before persistence — e.g.
+     * a cross-field check that raises no field error, logging, or deriving a
+     * read-only warning. `$data` is the validated, normalised field map; this is
+     * a side-effect hook (it does not transform the data — use
+     * {@see mutateFormDataBeforeSave()} for that). Runs only on a valid submit.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function afterValidate(array $data, string $operation): void
+    {
     }
 
     /**

@@ -47,6 +47,9 @@ final class HookedTagResource extends AdminResource
     /** @var list<string> */
     public static array $updated = [];
 
+    /** @var list<string> */
+    public static array $validated = [];
+
     public static bool $bulkRan = false;
 
     public static function reset(): void
@@ -59,6 +62,7 @@ final class HookedTagResource extends AdminResource
         self::$deleted = [];
         self::$created = [];
         self::$updated = [];
+        self::$validated = [];
         self::$bulkRan = false;
     }
 
@@ -108,6 +112,32 @@ final class HookedTagResource extends AdminResource
     public function canDelete(object $record): bool
     {
         return self::$allowDelete;
+    }
+
+    public function mutateFormDataBeforeFill(array $data, string $operation): array
+    {
+        // Seed a create-form default (proves the fill hook now runs on create).
+        if ('create' === $operation && '' === ($data['name'] ?? '')) {
+            $data['name'] = 'Seeded';
+        }
+
+        return $data;
+    }
+
+    public function mutateFormDataBeforeValidate(array $data, string $operation): array
+    {
+        // Normalise raw input before validation sees it.
+        if (\is_string($data['name'] ?? null)) {
+            $data['name'] = trim($data['name']);
+        }
+
+        return $data;
+    }
+
+    public function afterValidate(array $data, string $operation): void
+    {
+        $name = $data['name'] ?? '';
+        self::$validated[] = $operation.':'.(\is_string($name) ? $name : '');
     }
 
     public function mutateFormDataBeforeSave(array $data, string $operation): array
