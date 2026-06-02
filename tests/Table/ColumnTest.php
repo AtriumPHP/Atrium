@@ -6,6 +6,7 @@ namespace Atrium\Tests\Table;
 
 use Atrium\Table\Column;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
 final class ColumnTest extends TestCase
 {
@@ -41,5 +42,27 @@ final class ColumnTest extends TestCase
 
         self::assertFalse($column->isSortable());
         self::assertFalse($column->isSearchable());
+    }
+
+    public function testRelationColumnLabelHumanisesTheDottedPath(): void
+    {
+        self::assertSame('Author name', Column::make('author.name')->getLabel());
+        self::assertSame('Author company name', Column::make('author.company.name')->getLabel());
+    }
+
+    public function testRelationColumnReadsANestedValue(): void
+    {
+        $accessor = PropertyAccess::createPropertyAccessor();
+        $record = (object) ['author' => (object) ['name' => 'Ada']];
+
+        self::assertSame('Ada', Column::make('author.name')->renderValue($record, $accessor));
+    }
+
+    public function testRelationColumnIsEmptyWhenTheRelationIsNull(): void
+    {
+        $accessor = PropertyAccess::createPropertyAccessor();
+        $record = (object) ['author' => null];
+
+        self::assertSame('', Column::make('author.name')->renderValue($record, $accessor));
     }
 }

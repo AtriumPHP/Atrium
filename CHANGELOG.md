@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Relation columns.** `Column::make('author.name')` (any depth, e.g.
+  `author.company.name`) reads through a to-one relation and works everywhere a
+  plain column does — display, sort, search and filter. The Doctrine adapter
+  resolves dotted field names to idempotent `LEFT JOIN`s (rows with a null
+  relation are kept; all values parameter-bound); the in-memory array provider
+  traverses the path via the property accessor. The default label humanises the
+  path (`author.name` → "Author name"); a null link in the chain renders an empty
+  cell. Docs: `docs/integration-guide/tables/columns.md`. (TBL-09.)
 - **Navigation & access hooks** on `AdminResource`: `canAccess()` (resource-level
   gate — hides the nav entry and 403s every page; defaults to `canViewAny()`),
   `shouldRegisterNavigation()` (reachable but hidden from the menu),

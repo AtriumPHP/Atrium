@@ -15,7 +15,7 @@ The guide is split by module (these mirror the planned package split):
 | Module | Covers |
 | --- | --- |
 | [`resources/`](resources/) | `AdminResource`, lifecycle hooks, authorization, navigation |
-| [`tables/`](tables/) | `TableConfiguration`, `Column`, filters, sorting, pagination |
+| [`tables/`](tables/) | `TableConfiguration`, [`Column`](tables/columns.md) (incl. [relation columns](tables/columns.md#relation-columns)), filters, sorting, pagination |
 | [`forms/`](forms/) | `Schema`, fields, layout components, wizards |
 | [`actions/`](actions/) | `Action`, `ActionGroup`, record/header/bulk actions |
 | [`pages/`](pages/) | `Page` and the default List/Create/Edit pages |

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atrium\DataProvider;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -14,6 +15,11 @@ use Doctrine\ORM\QueryBuilder;
  * applied as a parameter-bound LIKE across the trusted searchable fields, and
  * sorting/pagination map straight onto the query. This is the only place in the
  * foundation that references Doctrine types — the core abstractions must not.
+ *
+ * Dotted field names (`author.name`, `author.company.name`) are resolved to
+ * LEFT JOINs on the way through, so a relation column can be displayed, searched,
+ * sorted and filtered like any other (the to-one relation is assumed — that is
+ * what a single-value column represents).
  */
 final readonly class DoctrineDataProvider implements DataProviderInterface
 {
@@ -31,7 +37,7 @@ final readonly class DoctrineDataProvider implements DataProviderInterface
             ->setMaxResults(max(1, $query->limit));
 
         if (null !== $query->sortField) {
-            $qb->orderBy(self::ALIAS.'.'.$query->sortField, $query->normalizedSortDirection());
+            $qb->orderBy($this->resolveField($qb, $query->sortField), $query->normalizedSortDirection());
         }
 
         return array_values(array_filter(
@@ -80,7 +86,7 @@ final readonly class DoctrineDataProvider implements DataProviderInterface
             $orX = $qb->expr()->orX();
             foreach (array_values($query->searchableFields) as $index => $field) {
                 $parameter = 'atrium_search_'.$index;
-                $orX->add($qb->expr()->like(self::ALIAS.'.'.$field, ':'.$parameter));
+                $orX->add($qb->expr()->like($this->resolveField($qb, $field), ':'.$parameter));
                 $qb->setParameter($parameter, '%'.$term.'%');
             }
             $qb->andWhere($orX);
@@ -101,7 +107,7 @@ final readonly class DoctrineDataProvider implements DataProviderInterface
     {
         $index = 0;
         foreach ($filters as $field => $value) {
-            $column = self::ALIAS.'.'.$field;
+            $column = $this->resolveField($qb, $field);
             if (null === $value) {
                 $qb->andWhere($qb->expr()->isNull($column));
 
@@ -112,5 +118,50 @@ final readonly class DoctrineDataProvider implements DataProviderInterface
             $qb->andWhere($qb->expr()->eq($column, ':'.$parameter));
             $qb->setParameter($parameter, $value);
         }
+    }
+
+    /**
+     * Resolve a (possibly dotted) field name to a DQL column reference, adding a
+     * LEFT JOIN for each relation segment. `name` stays `e.name`; `author.name`
+     * becomes a join `e.author atrium_author` plus `atrium_author.name`;
+     * `author.company.name` chains the joins. Joins are idempotent (the same
+     * relation referenced by search, sort and a filter is joined once) and use
+     * deterministic, prefixed aliases that cannot collide with the root alias.
+     */
+    private function resolveField(QueryBuilder $qb, string $field): string
+    {
+        if (!str_contains($field, '.')) {
+            return self::ALIAS.'.'.$field;
+        }
+
+        $segments = explode('.', $field);
+        $property = array_pop($segments);
+
+        $parentAlias = self::ALIAS;
+        $path = '';
+        foreach ($segments as $segment) {
+            $path = '' === $path ? $segment : $path.'_'.$segment;
+            $alias = 'atrium_'.$path;
+            if (!$this->hasJoin($qb, $alias)) {
+                $qb->leftJoin($parentAlias.'.'.$segment, $alias);
+            }
+            $parentAlias = $alias;
+        }
+
+        return $parentAlias.'.'.$property;
+    }
+
+    private function hasJoin(QueryBuilder $qb, string $alias): bool
+    {
+        $part = $qb->getDQLPart('join');
+        $joins = \is_array($part) && \is_array($part[self::ALIAS] ?? null) ? $part[self::ALIAS] : [];
+
+        foreach ($joins as $join) {
+            if ($join instanceof Join && $join->getAlias() === $alias) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

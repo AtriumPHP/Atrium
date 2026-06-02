@@ -171,7 +171,15 @@ final class Column
 
     public function getLabel(): string
     {
-        return $this->label ?? ucfirst(trim(preg_replace('/(?<!^)[A-Z]/', ' $0', $this->name) ?? $this->name));
+        if (null !== $this->label) {
+            return $this->label;
+        }
+
+        // Humanise the name, including dotted relation paths: `author.name`
+        // becomes "Author name", `publishedAt` becomes "Published at".
+        $words = str_replace('.', ' ', $this->name);
+
+        return ucfirst(trim(preg_replace('/(?<!^)[A-Z]/', ' $0', $words) ?? $words));
     }
 
     public function isSortable(): bool

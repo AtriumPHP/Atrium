@@ -6,7 +6,9 @@ namespace Atrium\Tests\DataProvider;
 
 use Atrium\DataProvider\ArrayDataProvider;
 use Atrium\DataProvider\DataQuery;
+use Atrium\Tests\Fixtures\Entity\Story;
 use Atrium\Tests\Fixtures\Entity\Tag;
+use Atrium\Tests\Fixtures\Entity\Writer;
 use PHPUnit\Framework\TestCase;
 
 final class ArrayDataProviderTest extends TestCase
@@ -79,5 +81,36 @@ final class ArrayDataProviderTest extends TestCase
         self::assertNotNull($provider->find(Tag::class, '1', ['kind' => 'a']));
         // Out of scope: invisible even though the id exists.
         self::assertNull($provider->find(Tag::class, '2', ['kind' => 'a']));
+    }
+
+    public function testRelationColumnSearchSortAndFilterTraverseNestedPaths(): void
+    {
+        // Plain objects with a nested relation — no Doctrine: the array provider
+        // reads dotted paths through the property accessor for free.
+        $provider = new ArrayDataProvider([Story::class => [
+            new Story('Engines', new Writer('Grace')),
+            new Story('Looms', new Writer('Ada')),
+            new Story('Anonymous', null),
+        ]]);
+
+        // Search across the relation field.
+        $searched = [...$provider->fetch(Story::class, new DataQuery(search: 'Ada', searchableFields: ['writer.name']))];
+        self::assertCount(1, $searched);
+        self::assertInstanceOf(Story::class, $searched[0]);
+        self::assertSame('Looms', $searched[0]->title);
+
+        // Filter by the relation field.
+        $filtered = [...$provider->fetch(Story::class, new DataQuery(filters: ['writer.name' => 'Grace']))];
+        self::assertCount(1, $filtered);
+        self::assertInstanceOf(Story::class, $filtered[0]);
+        self::assertSame('Engines', $filtered[0]->title);
+
+        // Sort by the relation field (null relation tolerated).
+        $sorted = array_map(
+            static fn (object $r): string => $r instanceof Story ? $r->title : '',
+            [...$provider->fetch(Story::class, new DataQuery(sortField: 'writer.name', sortDirection: 'asc'))],
+        );
+        $named = array_values(array_filter($sorted, static fn (string $t): bool => 'Anonymous' !== $t));
+        self::assertSame(['Looms', 'Engines'], $named);
     }
 }
