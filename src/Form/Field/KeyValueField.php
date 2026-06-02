@@ -7,11 +7,13 @@ namespace Atrium\Form\Field;
 use Atrium\Form\Concern\HasPlaceholder;
 
 /**
- * A string => string map. For a zero-JS, server-driven experience it is edited
- * as `key: value` lines and shown as a small preview; the model value is an
- * `array<string, string>`. A richer row-based editor is a future enhancement.
+ * A string => string map. Edited server-side as add/remove rows (a key input
+ * and a value input per row); the model value is an `array<string, string>`.
+ * The form state is an ordered `list<array{key: string, value: string}>` so
+ * keys stay editable and rows reorder without key collisions. Zero JavaScript
+ * beyond the Live Component round-trip.
  */
-class KeyValueField extends Field
+class KeyValueField extends Field implements RepeatableField
 {
     use HasPlaceholder;
 
@@ -27,52 +29,78 @@ class KeyValueField extends Field
 
     public function toFormValue(mixed $value): mixed
     {
-        if (!\is_array($value)) {
-            return \is_scalar($value) ? (string) $value : '';
-        }
+        return $this->rows($value);
+    }
 
-        $lines = [];
-        foreach ($value as $key => $val) {
-            $lines[] = $key.': '.(\is_scalar($val) ? (string) $val : '');
-        }
-
-        return implode("\n", $lines);
+    public function newRow(): mixed
+    {
+        return ['key' => '', 'value' => ''];
     }
 
     /**
-     * Parse a form value (key: value lines, or an existing map) into a clean map.
+     * The ordered row list for rendering. Accepts the model map, the row-list
+     * form state, or legacy `key: value` lines.
+     *
+     * @return list<array{key: string, value: string}>
+     */
+    public function rows(mixed $state): array
+    {
+        $rows = [];
+
+        if (\is_array($state)) {
+            foreach ($state as $key => $val) {
+                if (\is_array($val) && (\array_key_exists('key', $val) || \array_key_exists('value', $val))) {
+                    $rows[] = [
+                        'key' => $this->asString($val['key'] ?? ''),
+                        'value' => $this->asString($val['value'] ?? ''),
+                    ];
+
+                    continue;
+                }
+
+                $rows[] = ['key' => (string) $key, 'value' => $this->asString($val)];
+            }
+
+            return $rows;
+        }
+
+        if (!\is_scalar($state)) {
+            return [];
+        }
+
+        foreach (preg_split('/\r\n|\r|\n/', (string) $state) ?: [] as $line) {
+            $line = trim($line);
+            if ('' === $line || !str_contains($line, ':')) {
+                continue;
+            }
+            [$key, $val] = explode(':', $line, 2);
+            $rows[] = ['key' => trim($key), 'value' => trim($val)];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Reduce any supported shape to a clean `key => value` map (model value),
+     * dropping rows with an empty key and keeping the last write on collision.
      *
      * @return array<string, string>
      */
     public function toPairs(mixed $value): array
     {
-        if (\is_array($value)) {
-            $pairs = [];
-            foreach ($value as $key => $val) {
-                $pairs[(string) $key] = \is_scalar($val) ? (string) $val : '';
-            }
-
-            return $pairs;
-        }
-
-        if (!\is_scalar($value)) {
-            return [];
-        }
-
         $pairs = [];
-        foreach (preg_split('/\r\n|\r|\n/', (string) $value) ?: [] as $line) {
-            $line = trim($line);
-            if ('' === $line || !str_contains($line, ':')) {
-                continue;
-            }
-
-            [$key, $val] = explode(':', $line, 2);
-            $key = trim($key);
+        foreach ($this->rows($value) as $row) {
+            $key = trim($row['key']);
             if ('' !== $key) {
-                $pairs[$key] = trim($val);
+                $pairs[$key] = $row['value'];
             }
         }
 
         return $pairs;
+    }
+
+    private function asString(mixed $value): string
+    {
+        return \is_scalar($value) ? (string) $value : '';
     }
 }

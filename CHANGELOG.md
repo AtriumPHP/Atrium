@@ -110,6 +110,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     stays the escape hatch.
   - Presentation: `placeholder()` (Text/Textarea/Number via `HasPlaceholder`),
     `autofocus()`, `hiddenLabel()` on `Field`; widgets + wrapper updated.
+- Forms v2 / M5 (cont.) — cross-field validation, inline labels and the
+  add/remove row editors that complete Tags / Key-value (`FRM-12`, `FRM-13`,
+  `FLD-06`, `FLD-07`).
+  - **`->same(field)` / `->different(field)`** (`FRM-12`) — cross-field comparison
+    rules the `Form` evaluates against the full submitted state (a Symfony
+    constraint can't see a sibling field); each takes an optional custom message.
+  - **`->inlineLabel()`** (`FRM-13`) — render a field's label beside the input in a
+    responsive column instead of above it.
+  - **Tags / Key-value are now full row editors** (`FLD-06`/`FLD-07`): one input
+    per tag (a key + value input per pair), with add/remove handled by generic
+    `addRow`/`removeRow` Live Component actions. Fields opt in via the new
+    `Atrium\Form\Field\RepeatableField` contract, so the renderer stays generic;
+    empty rows are dropped on save by the existing `normalize()`.
 - Forms v2 / M5 (partial) — container visibility, `dehydrated(false)`, and the
   Tags / Key-value fields.
   - **Container-level visibility:** `visible()`/`hidden()`/`visibleOn()`/`hiddenOn()`

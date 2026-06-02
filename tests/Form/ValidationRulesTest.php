@@ -56,4 +56,21 @@ final class ValidationRulesTest extends TestCase
         self::assertInstanceOf(\Symfony\Component\Validator\Constraints\NotBlank::class, $constraints[0]);
         self::assertInstanceOf(Length::class, $constraints[1]);
     }
+
+    public function testComparisonRulesAreRecorded(): void
+    {
+        $field = TextField::make('passwordConfirmation')
+            ->same('password')
+            ->different('username', 'Pick something else.');
+
+        self::assertSame([
+            ['field' => 'password', 'type' => 'same', 'message' => null],
+            ['field' => 'username', 'type' => 'different', 'message' => 'Pick something else.'],
+        ], $field->getComparisons());
+    }
+
+    public function testNoComparisonsByDefault(): void
+    {
+        self::assertSame([], TextField::make('x')->getComparisons());
+    }
 }

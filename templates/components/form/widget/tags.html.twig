@@ -1,12 +1,38 @@
-<input type="text" id="atrium_{{ name }}" data-model="{{ model }}"
-       value="{{ this.getValue(name) }}"
-       placeholder="{{ field.getPlaceholder() ?: 'Comma-separated…' }}"
-       {{ field.isAutofocused() ? 'autofocus' }} {{ field.isDisabled() ? 'disabled' }} class="{{ inputClass }}">
-{% set tags = field.parseTags(this.getValue(name)) %}
-{% if tags %}
-    <div class="mt-2 flex flex-wrap gap-1.5">
-        {% for tag in tags %}
-            <span class="inline-flex rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-950 dark:text-primary-300">{{ tag }}</span>
-        {% endfor %}
-    </div>
-{% endif %}
+{#
+    Tags widget (FLD-06) — a server-driven add/remove row editor. Each tag is a
+    text input bound to formData[name][i]; typing uses norender so it does not
+    round-trip until the next action. The add/remove buttons are LiveActions on
+    the Form component (addRow/removeRow) that mutate the row list and re-render.
+#}
+{% set rows = field.rows(this.getValue(name)) %}
+<div class="mt-1 space-y-2">
+    {% for i, tag in rows %}
+        <div class="flex items-center gap-2">
+            <input type="text"
+                   {{ i == 0 ? 'id="atrium_' ~ name ~ '"' }}
+                   data-model="norender|formData[{{ name }}][{{ i }}]"
+                   value="{{ tag }}"
+                   placeholder="{{ field.getPlaceholder() ?: 'Add a tag…' }}"
+                   {{ field.isDisabled() ? 'disabled' }}
+                   class="{{ inputClass }} !mt-0">
+            {% if not field.isDisabled() %}
+                <button type="button" aria-label="Remove tag"
+                        data-action="live#action" data-live-action-param="removeRow"
+                        data-live-field-param="{{ name }}" data-live-index-param="{{ i }}"
+                        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-300 text-gray-400 transition-colors hover:border-red-300 hover:text-red-500 dark:border-gray-700 dark:hover:border-red-500/60">
+                    {{ include('@Atrium/icon.html.twig', { name: 'x-mark', class: 'h-4 w-4' }) }}
+                </button>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    {% if not field.isDisabled() %}
+        <button type="button"
+                data-action="live#action" data-live-action-param="addRow"
+                data-live-field-param="{{ name }}"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:border-primary-400 hover:text-primary-600 dark:border-gray-700 dark:text-gray-300 dark:hover:border-primary-500 dark:hover:text-primary-400">
+            {{ include('@Atrium/icon.html.twig', { name: 'plus', class: 'h-4 w-4' }) }}
+            Add tag
+        </button>
+    {% endif %}
+</div>

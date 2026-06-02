@@ -15,21 +15,24 @@
     ? 'border-red-400 focus:border-red-500 focus:ring-red-500 dark:border-red-500/70'
     : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700') %}
 
-<div>
+{% set inline = field.hasInlineLabel() and not field.rendersOwnLabel() %}
+<div class="{{ inline ? 'sm:grid sm:grid-cols-3 sm:items-start sm:gap-4' }}">
     {% if not field.rendersOwnLabel() %}
-        <label for="atrium_{{ name }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300{{ field.hasHiddenLabel() ? ' sr-only' }}">
+        <label for="atrium_{{ name }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300{{ inline ? ' sm:pt-2' }}{{ field.hasHiddenLabel() ? ' sr-only' }}">
             {{ field.getLabel() }}{% if field.isRequired() %} <span class="text-red-500">*</span>{% endif %}
         </label>
     {% endif %}
 
-    {{ include(field.getWidgetTemplate(), {
-        field: field, name: name, model: model, inputClass: inputClass,
-    }) }}
+    <div class="{{ inline ? 'sm:col-span-2' }}">
+        {{ include(field.getWidgetTemplate(), {
+            field: field, name: name, model: model, inputClass: inputClass,
+        }) }}
 
-    {% if field.getHelp() %}
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ field.getHelp() }}</p>
-    {% endif %}
-    {% if error %}
-        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ error }}</p>
-    {% endif %}
+        {% if field.getHelp() %}
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ field.getHelp() }}</p>
+        {% endif %}
+        {% if error %}
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ error }}</p>
+        {% endif %}
+    </div>
 </div>

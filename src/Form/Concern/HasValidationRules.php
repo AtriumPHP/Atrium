@@ -15,6 +15,14 @@ use Symfony\Component\Validator\Constraints\Regex;
  */
 trait HasValidationRules
 {
+    /**
+     * Cross-field comparison rules (FRM-12). Evaluated by the form against the
+     * full submitted state — a Symfony constraint can't see a sibling field.
+     *
+     * @var list<array{field: string, type: 'same'|'different', message: ?string}>
+     */
+    private array $comparisons = [];
+
     abstract protected function addConstraint(Constraint $constraint): static;
 
     public function maxLength(int $max): static
@@ -39,5 +47,34 @@ trait HasValidationRules
         return $this->addConstraint(
             null === $message ? new Regex($pattern) : new Regex($pattern, $message),
         );
+    }
+
+    /**
+     * Require this field to equal another field's value (e.g. password
+     * confirmation). Evaluated server-side by the form against the full state.
+     */
+    public function same(string $field, ?string $message = null): static
+    {
+        $this->comparisons[] = ['field' => $field, 'type' => 'same', 'message' => $message];
+
+        return $this;
+    }
+
+    /**
+     * Require this field to differ from another field's value.
+     */
+    public function different(string $field, ?string $message = null): static
+    {
+        $this->comparisons[] = ['field' => $field, 'type' => 'different', 'message' => $message];
+
+        return $this;
+    }
+
+    /**
+     * @return list<array{field: string, type: 'same'|'different', message: ?string}>
+     */
+    public function getComparisons(): array
+    {
+        return $this->comparisons;
     }
 }

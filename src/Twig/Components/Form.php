@@ -7,6 +7,7 @@ namespace Atrium\Twig\Components;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Form\Field\Field;
+use Atrium\Form\Field\RepeatableField;
 use Atrium\Form\Field\SelectField;
 use Atrium\Form\Get;
 use Atrium\Form\Schema;
@@ -21,6 +22,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\PreReRender;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
@@ -112,6 +114,8 @@ final class Form
             }
         }
 
+        $this->validateComparisons($normalized, $get, $operation);
+
         if ([] !== $this->errors) {
             return null; // invalid: keep the last values, surface errors
         }
@@ -195,6 +199,42 @@ final class Form
         }
 
         $this->previousFormData = $this->formData;
+    }
+
+    /**
+     * Append an empty row to a repeatable field (Tags / Key-value); the field
+     * supplies the row shape so the action stays generic (FLD-06/07).
+     */
+    #[LiveAction]
+    public function addRow(#[LiveArg] string $field): void
+    {
+        $target = $this->repeatable($field);
+        if (null === $target) {
+            return;
+        }
+
+        $rows = $target->rows($this->formData[$field] ?? null);
+        $rows[] = $target->newRow();
+        $this->formData[$field] = $rows;
+        $this->previousFormData[$field] = $rows;
+    }
+
+    /**
+     * Remove the row at $index from a repeatable field and re-index.
+     */
+    #[LiveAction]
+    public function removeRow(#[LiveArg] string $field, #[LiveArg] int $index): void
+    {
+        $target = $this->repeatable($field);
+        if (null === $target) {
+            return;
+        }
+
+        $rows = $target->rows($this->formData[$field] ?? null);
+        unset($rows[$index]);
+        $rows = array_values($rows);
+        $this->formData[$field] = $rows;
+        $this->previousFormData[$field] = $rows;
     }
 
     /**
@@ -294,6 +334,53 @@ final class Form
         }
 
         return $visible;
+    }
+
+    /**
+     * Evaluate cross-field comparison rules (`same()`/`different()`, FRM-12)
+     * against the normalised state — a Symfony constraint can't see a sibling
+     * field's value. Skips a field that already failed its own constraints.
+     *
+     * @param array<string, mixed> $normalized
+     */
+    private function validateComparisons(array $normalized, Get $get, string $operation): void
+    {
+        $labels = [];
+        foreach ($this->getFields() as $field) {
+            $labels[$field->getName()] = $field->getLabel();
+        }
+
+        foreach ($this->getFields() as $field) {
+            $name = $field->getName();
+            if (isset($this->errors[$name]) || !$field->isVisible($get, $operation)) {
+                continue;
+            }
+
+            foreach ($field->getComparisons() as $rule) {
+                $other = $normalized[$rule['field']] ?? $this->formData[$rule['field']] ?? null;
+                $equal = ($normalized[$name] ?? null) === $other;
+                if (('same' === $rule['type']) === $equal) {
+                    continue;
+                }
+
+                $otherLabel = $labels[$rule['field']] ?? $rule['field'];
+                $this->errors[$name] = $rule['message'] ?? ('same' === $rule['type']
+                    ? \sprintf('This value must match %s.', $otherLabel)
+                    : \sprintf('This value must be different from %s.', $otherLabel));
+                break;
+            }
+        }
+    }
+
+    private function repeatable(string $name): ?RepeatableField
+    {
+        foreach ($this->getFields() as $field) {
+            if ($field->getName() === $name && $field instanceof RepeatableField) {
+                return $field;
+            }
+        }
+
+        return null;
     }
 
     private function schema(): Schema

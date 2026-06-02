@@ -58,11 +58,53 @@ final class FormLayoutComponentTest extends KernelTestCase
         self::assertStringContainsString('type="color"', $html);   // ColorField
         self::assertStringContainsString('peer sr-only', $html);   // Toggle / ToggleButtons switch inputs
         self::assertStringContainsString('atrium_size', $html);
-        self::assertStringContainsString('atrium_labels', $html);  // TagsField
-        self::assertStringContainsString('atrium_meta', $html);    // KeyValueField
+        // Repeatable fields start empty: an "Add" LiveAction bound to the field.
+        self::assertStringContainsString('data-live-field-param="labels"', $html); // TagsField
+        self::assertStringContainsString('data-live-field-param="meta"', $html);   // KeyValueField
+        self::assertStringContainsString('data-live-action-param="addRow"', $html);
 
         // HiddenField renders no widget …
         self::assertStringNotContainsString('atrium_source', $html);
+    }
+
+    public function testAddRowAppendsAndRemoveRowDropsRepeatableRows(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag']);
+
+        // Tags: add two rows, fill them, remove the first.
+        $component->call('addRow', ['field' => 'labels']);
+        $component->call('addRow', ['field' => 'labels']);
+        self::assertSame(['', ''], $this->form($component)->formData['labels']);
+
+        $component->set('formData', ['labels' => ['php', 'symfony']])
+            ->call('removeRow', ['field' => 'labels', 'index' => 0]);
+        self::assertSame(['symfony'], $this->form($component)->formData['labels']);
+
+        // Key-value: a row is an ordered {key, value} pair.
+        $component->call('addRow', ['field' => 'meta']);
+        self::assertSame([['key' => '', 'value' => '']], $this->form($component)->formData['meta']);
+    }
+
+    public function testRepeatableRowsNormaliseOnSave(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag']);
+
+        $component
+            ->set('formData', [
+                'name' => 'Rowberry',
+                'slug' => 'row',
+                'labels' => ['php', '', 'ux'],
+                'meta' => [['key' => 'env', 'value' => 'prod'], ['key' => '', 'value' => 'dropped']],
+            ])
+            ->call('save');
+
+        $writer = self::getContainer()->get(ArrayDataWriter::class);
+        self::assertInstanceOf(ArrayDataWriter::class, $writer);
+        $tags = $writer->records[Tag::class] ?? [];
+        self::assertCount(1, $tags);
+        self::assertInstanceOf(Tag::class, $tags[0]);
+        self::assertSame(['php', 'ux'], $tags[0]->labels);
+        self::assertSame(['env' => 'prod'], $tags[0]->meta);
     }
 
     public function testContainerVisibilityDropsAWholeSection(): void

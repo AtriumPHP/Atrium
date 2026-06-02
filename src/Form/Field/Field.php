@@ -48,6 +48,8 @@ abstract class Field implements Component
 
     protected bool $hiddenLabel = false;
 
+    protected bool $inlineLabel = false;
+
     protected bool $dehydrated = true;
 
     protected ?string $helpText = null;
@@ -112,6 +114,17 @@ abstract class Field implements Component
     public function hiddenLabel(bool $hiddenLabel = true): static
     {
         $this->hiddenLabel = $hiddenLabel;
+
+        return $this;
+    }
+
+    /**
+     * Render the label beside the input (in a column) rather than above it
+     * (FRM-13). Ignored for widgets that render their own label.
+     */
+    public function inlineLabel(bool $inlineLabel = true): static
+    {
+        $this->inlineLabel = $inlineLabel;
 
         return $this;
     }
@@ -192,6 +205,11 @@ abstract class Field implements Component
     public function hasHiddenLabel(): bool
     {
         return $this->hiddenLabel;
+    }
+
+    public function hasInlineLabel(): bool
+    {
+        return $this->inlineLabel;
     }
 
     public function isDehydrated(): bool

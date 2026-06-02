@@ -78,6 +78,32 @@ final class FormComponentTest extends KernelTestCase
         self::assertStringNotContainsString('Europe', $tool);
     }
 
+    public function testSameValidatorBlocksSaveWhenFieldsDiffer(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'confirm-tag']);
+
+        $component
+            ->set('formData', ['name' => 'Acme', 'confirmName' => 'Acmo'])
+            ->call('save');
+
+        $form = $this->form($component);
+        self::assertArrayHasKey('confirmName', $form->errors);
+        self::assertFalse($form->saved);
+    }
+
+    public function testSameValidatorPassesWhenFieldsMatch(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'confirm-tag']);
+
+        $component
+            ->set('formData', ['name' => 'Acme', 'confirmName' => 'Acme'])
+            ->call('save');
+
+        $form = $this->form($component);
+        self::assertSame([], $form->errors);
+        self::assertTrue($form->saved);
+    }
+
     public function testEditPrefillsFormDataFromEntity(): void
     {
         $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'tag', 'entityId' => '3']);

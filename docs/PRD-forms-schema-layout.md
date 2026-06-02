@@ -133,14 +133,15 @@ the keystone change here; everything else composes onto it.
   state, replacing raw `$formData` access in callbacks. **Both ✅ delivered**
   (`Atrium\Form\Get` invokable read; `Atrium\Form\Set` invokable write). (Stretch:
   typed reads `$get->int()`, `$get->bool()`, …, matching Filament.)
-- **FRM-12** **Fluent validation helpers — ✅ delivered (partly).** `->maxLength()`,
+- **FRM-12** **Fluent validation helpers — ✅ delivered.** `->maxLength()`,
   `->minLength()`, `->length()`, `->regex()` (→ `Length`/`Regex`) and numeric
   `NumberField::min()/max()` (→ `GreaterThanOrEqual`/`LessThanOrEqual`).
-  `rules([...])` stays the escape hatch. *Deferred:* `->same(field)` — cross-field
-  equality needs the contextual validator, not a standalone constraint.
-- **FRM-13** **Presentation niceties — ✅ delivered (partly).** `->placeholder(string)`
-  (Text/Textarea/Number), `->autofocus()`, `->hiddenLabel()` (a11y-only label).
-  *Deferred:* `->inlineLabel()` (needs a flex wrapper layout).
+  `->same(field)` / `->different(field)` are cross-field rules the form evaluates
+  against the full submitted state (a Symfony constraint can't see a sibling).
+  `rules([...])` stays the escape hatch.
+- **FRM-13** **Presentation niceties — ✅ delivered.** `->placeholder(string)`
+  (Text/Textarea/Number), `->autofocus()`, `->hiddenLabel()` (a11y-only label),
+  `->inlineLabel()` (label rendered beside the input in a responsive column).
 - **FRM-14** **Dehydration control — ✅ delivered.** `->dehydrated(false)` — a field
   shown and validated but not written to the model (the save hydrate loop skips
   it). The existing `normalize()` / `toFormValue()` already cover Filament's
@@ -169,11 +170,12 @@ Cheap, native-input field types via the existing widget-template pattern:
 - **FLD-04** **Color picker** — `ColorField` (`<input type=color>` + hex preview).
 - **FLD-05** **Toggle buttons** — `ToggleButtonsField` (segmented single choice;
   extends `SelectField`). Multi-select is a later extension.
-- **FLD-06** **Tags input — ✅ delivered.** `TagsField` (`list<string>`; edited as a
-  comma-separated string with a chip preview — zero-JS, server-driven; a richer
-  chip-input is a future enhancement).
+- **FLD-06** **Tags input — ✅ delivered.** `TagsField` (`list<string>`; an
+  add/remove row editor — one input per tag — driven by generic `addRow`/
+  `removeRow` Live Component actions. Zero-JS beyond the round-trip).
 - **FLD-07** **Key-value — ✅ delivered.** `KeyValueField` (`array<string,string>`;
-  edited as `key: value` lines with a preview; a row-based editor is future).
+  add/remove rows of a key input + a value input, same generic row plumbing).
+  Both opt in via the `RepeatableField` contract so the renderer stays generic.
 
 Roadmap / out of scope for the first milestones, catalogued for completeness:
 
@@ -333,9 +335,10 @@ Phase 2), before Actions.
   native-input widgets. `Field::rendersInLayout()` lets `HiddenField` stay in the
   state while drawing nothing. *Verified:* each renders/normalizes/round-trips;
   hidden is filtered from the layout but kept in `getFields()`.
-- **M5 — partly delivered.** ✅ `FLD-06` Tags, `FLD-07` Key-value, `FRM-14`
-  `dehydrated(false)`, and **container-level visibility**. *Remaining:* `SCH-10`
-  Tabs/Wizard, `same()` validator, `inlineLabel`, richer Tags/KeyValue editors.
+- **M5 — delivered (bar Tabs/Wizard).** ✅ `FLD-06` Tags, `FLD-07` Key-value
+  (now full add/remove row editors), `FRM-14` `dehydrated(false)`,
+  **container-level visibility**, the `same()`/`different()` cross-field
+  validators, and `inlineLabel`. *Remaining:* `SCH-10` Tabs/Wizard (its own pass).
 - **Future (`FLD-10..13`).** Repeater, Builder, File upload, Rich/Markdown — each
   its own PRD addendum when scheduled.
 

@@ -1,14 +1,43 @@
-<textarea id="atrium_{{ name }}" data-model="{{ model }}" rows="4"
-          placeholder="{{ field.getPlaceholder() ?: 'key: value (one per line)' }}"
-          {{ field.isDisabled() ? 'disabled' }} class="{{ inputClass }}">{{ this.getValue(name) }}</textarea>
-{% set pairs = field.toPairs(this.getValue(name)) %}
-{% if pairs %}
-    <dl class="mt-2 divide-y divide-gray-100 rounded-md border border-gray-200 text-sm dark:divide-gray-800 dark:border-gray-800">
-        {% for key, value in pairs %}
-            <div class="flex gap-3 px-3 py-1.5">
-                <dt class="font-medium text-gray-700 dark:text-gray-300">{{ key }}</dt>
-                <dd class="text-gray-500 dark:text-gray-400">{{ value }}</dd>
-            </div>
-        {% endfor %}
-    </dl>
-{% endif %}
+{#
+    Key-value widget (FLD-07) — a server-driven add/remove row editor. Each row
+    has a key input and a value input bound to formData[name][i][key|value];
+    typing uses norender. add/remove are LiveActions on the Form component.
+#}
+{% set rows = field.rows(this.getValue(name)) %}
+<div class="mt-1 space-y-2">
+    {% for i, pair in rows %}
+        <div class="flex items-center gap-2">
+            <input type="text"
+                   {{ i == 0 ? 'id="atrium_' ~ name ~ '"' }}
+                   data-model="norender|formData[{{ name }}][{{ i }}][key]"
+                   value="{{ pair.key }}"
+                   placeholder="Key"
+                   {{ field.isDisabled() ? 'disabled' }}
+                   class="{{ inputClass }} !mt-0 w-1/3">
+            <input type="text"
+                   data-model="norender|formData[{{ name }}][{{ i }}][value]"
+                   value="{{ pair.value }}"
+                   placeholder="Value"
+                   {{ field.isDisabled() ? 'disabled' }}
+                   class="{{ inputClass }} !mt-0">
+            {% if not field.isDisabled() %}
+                <button type="button" aria-label="Remove row"
+                        data-action="live#action" data-live-action-param="removeRow"
+                        data-live-field-param="{{ name }}" data-live-index-param="{{ i }}"
+                        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-300 text-gray-400 transition-colors hover:border-red-300 hover:text-red-500 dark:border-gray-700 dark:hover:border-red-500/60">
+                    {{ include('@Atrium/icon.html.twig', { name: 'x-mark', class: 'h-4 w-4' }) }}
+                </button>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    {% if not field.isDisabled() %}
+        <button type="button"
+                data-action="live#action" data-live-action-param="addRow"
+                data-live-field-param="{{ name }}"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:border-primary-400 hover:text-primary-600 dark:border-gray-700 dark:text-gray-300 dark:hover:border-primary-500 dark:hover:text-primary-400">
+            {{ include('@Atrium/icon.html.twig', { name: 'plus', class: 'h-4 w-4' }) }}
+            Add row
+        </button>
+    {% endif %}
+</div>

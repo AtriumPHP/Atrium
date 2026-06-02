@@ -18,6 +18,7 @@ final class FieldPresentationTest extends TestCase
         self::assertNull($field->getPlaceholder());
         self::assertFalse($field->isAutofocused());
         self::assertFalse($field->hasHiddenLabel());
+        self::assertFalse($field->hasInlineLabel());
     }
 
     public function testPresentationSetters(): void
@@ -25,11 +26,13 @@ final class FieldPresentationTest extends TestCase
         $field = TextField::make('email')
             ->placeholder('you@example.com')
             ->autofocus()
-            ->hiddenLabel();
+            ->hiddenLabel()
+            ->inlineLabel();
 
         self::assertSame('you@example.com', $field->getPlaceholder());
         self::assertTrue($field->isAutofocused());
         self::assertTrue($field->hasHiddenLabel());
+        self::assertTrue($field->hasInlineLabel());
     }
 
     public function testAfterStateUpdatedImpliesLiveAndRuns(): void
