@@ -18,7 +18,8 @@ final class EditAction extends Action
     {
         return parent::make($name)
             ->label('Edit')
-            ->icon('pencil');
+            ->icon('pencil')
+            ->authorize('edit');
     }
 
     public function getUrl(object $subject, ActionContext $context): string

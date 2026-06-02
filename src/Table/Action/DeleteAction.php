@@ -24,6 +24,7 @@ final class DeleteAction extends Action
             ->label('Delete')
             ->icon('trash')
             ->color('red')
+            ->authorize('delete')
             ->requiresConfirmation()
             ->action(static function (object $record, DataWriterInterface $writer): void {
                 $writer->delete($record);

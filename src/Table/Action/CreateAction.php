@@ -21,7 +21,8 @@ final class CreateAction extends Action
             ->label('New')
             ->icon('plus')
             ->color('primary')
-            ->button();
+            ->button()
+            ->authorize('create');
     }
 
     public function getStandaloneUrl(ActionContext $context): string

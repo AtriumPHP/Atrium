@@ -57,6 +57,120 @@ abstract class AdminResource
         return $schema;
     }
 
+    // -- Authorization hooks ---------------------------------------------------
+    //
+    // Override these to integrate the host app's security (e.g. Symfony Voters /
+    // isGranted). They are enforced server-side at the page boundary, on form
+    // save, and on action execution — and additionally hide the built-in actions
+    // a user may not perform. The default is open (everything allowed): the core
+    // stays security-agnostic and the app opts in.
+
+    public function canViewAny(): bool
+    {
+        return true;
+    }
+
+    public function canCreate(): bool
+    {
+        return true;
+    }
+
+    public function canEdit(object $record): bool
+    {
+        return true;
+    }
+
+    public function canDelete(object $record): bool
+    {
+        return true;
+    }
+
+    public function canView(object $record): bool
+    {
+        return true;
+    }
+
+    /**
+     * Dispatch a named ability check to the matching hook above. Used to gate an
+     * {@see \Atrium\Action\Action} by its {@see \Atrium\Action\Action::getAbility()}.
+     * Record-scoped abilities are denied when no record is supplied; an unknown
+     * ability is allowed (it is not an Atrium-managed permission).
+     */
+    public function can(string $ability, ?object $record = null): bool
+    {
+        return match ($ability) {
+            'viewAny' => $this->canViewAny(),
+            'create' => $this->canCreate(),
+            'view' => null !== $record && $this->canView($record),
+            'edit' => null !== $record && $this->canEdit($record),
+            'delete' => null !== $record && $this->canDelete($record),
+            default => true,
+        };
+    }
+
+    // -- Record lifecycle hooks ------------------------------------------------
+    //
+    // Override these to shape data and run side effects around persistence. The
+    // mutate hooks transform the form-state array (field name => value); the
+    // before/after hooks receive the entity itself, for setting non-field
+    // properties (ownership, timestamps, relations) and side effects.
+
+    /**
+     * Transform the record's data before it fills the edit form. Receives and
+     * returns a `field name => value` map.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>
+     */
+    public function mutateFormDataBeforeFill(array $data): array
+    {
+        return $data;
+    }
+
+    /**
+     * Transform the submitted form data before it is written to the entity.
+     * `$operation` is `create` or `edit`.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>
+     */
+    public function mutateFormDataBeforeSave(array $data, string $operation): array
+    {
+        return $data;
+    }
+
+    /**
+     * Run just before the entity is persisted (after form fields are applied).
+     * Set non-field properties here (e.g. `$record->owner = ...`). `$operation`
+     * is `create` or `edit`.
+     */
+    public function beforeSave(object $record, string $operation): void
+    {
+    }
+
+    /**
+     * Run just after the entity is persisted. `$operation` is `create` or `edit`.
+     */
+    public function afterSave(object $record, string $operation): void
+    {
+    }
+
+    /**
+     * Run just before a record is deleted (via the built-in delete actions).
+     */
+    public function beforeDelete(object $record): void
+    {
+    }
+
+    /**
+     * Run just after a record is deleted.
+     */
+    public function afterDelete(object $record): void
+    {
+    }
+
     /**
      * The Live Component that renders this resource's form. Defaults to the
      * plain `Atrium:Form`, upgrading to `Atrium:WizardForm` when the schema

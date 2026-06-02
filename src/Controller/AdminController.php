@@ -9,6 +9,7 @@ use Atrium\Page\PageContext;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Twig\Environment;
 
@@ -41,6 +42,7 @@ final readonly class AdminController
     public function resource(string $resource): Response
     {
         $resourceObject = $this->requireResource($resource);
+        $this->denyUnless($resourceObject->canViewAny());
 
         return $this->render('@Atrium/admin/resource.html.twig', [
             'panel' => $this->panel($resource),
@@ -51,6 +53,7 @@ final readonly class AdminController
     public function create(string $resource): Response
     {
         $resourceObject = $this->requireResource($resource);
+        $this->denyUnless($resourceObject->canCreate());
         $page = $resourceObject->resolvePage('create');
         $context = new PageContext($resource, $this->pathPrefix);
 
@@ -67,9 +70,12 @@ final readonly class AdminController
     {
         $resourceObject = $this->requireResource($resource);
 
-        if (null !== $this->dataProvider
-            && null === $this->dataProvider->find($resourceObject->getEntityClass(), $id)) {
-            throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
+        if (null !== $this->dataProvider) {
+            $record = $this->dataProvider->find($resourceObject->getEntityClass(), $id);
+            if (null === $record) {
+                throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
+            }
+            $this->denyUnless($resourceObject->canEdit($record));
         }
 
         $page = $resourceObject->resolvePage('edit');
@@ -82,6 +88,13 @@ final readonly class AdminController
             'entityId' => $id,
             'redirectUrl' => $page?->getRedirectUrl($context),
         ]);
+    }
+
+    private function denyUnless(bool $allowed): void
+    {
+        if (!$allowed) {
+            throw new AccessDeniedHttpException('You are not allowed to access this resource.');
+        }
     }
 
     private function requireResource(string $slug): AdminResource

@@ -24,6 +24,7 @@ final class BulkDeleteAction extends Action
             ->label('Delete selected')
             ->icon('trash')
             ->color('red')
+            ->authorize('delete')
             ->requiresConfirmation()
             ->action(static function (array $records, DataWriterInterface $writer): void {
                 foreach ($records as $record) {

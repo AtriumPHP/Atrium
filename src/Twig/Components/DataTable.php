@@ -311,18 +311,26 @@ final class DataTable
     {
         $record = $this->dataProvider->find($this->entityClass(), $subjectId);
 
-        return null !== $record && $action->isVisibleFor($record);
+        return null !== $record && $action->isVisibleFor($record) && $this->actionAuthorized($action, $record);
     }
 
     protected function executeAction(Action $action, string $subjectId): void
     {
         $handler = $action->getHandler();
         $record = $this->dataProvider->find($this->entityClass(), $subjectId);
-        if (null === $handler || null === $record || !$action->isVisibleFor($record)) {
+        if (null === $handler || null === $record
+            || !$action->isVisibleFor($record) || !$this->actionAuthorized($action, $record)) {
             return;
         }
 
+        $deletes = 'delete' === $action->getAbility();
+        if ($deletes) {
+            $this->resource()->beforeDelete($record);
+        }
         $handler($record, $this->writer);
+        if ($deletes) {
+            $this->resource()->afterDelete($record);
+        }
 
         // The row set may have shrunk (e.g. a delete) — refresh the count and
         // keep the page in range.
@@ -330,6 +338,34 @@ final class DataTable
         $this->pageIds = null;
         $this->pageRecords = null;
         $this->page = min($this->page, $this->getPageCount());
+    }
+
+    /**
+     * Whether the action is allowed for the subject: an action with an ability is
+     * gated by the resource's {@see AdminResource::can()}; one without is allowed.
+     */
+    private function actionAuthorized(Action $action, ?object $record): bool
+    {
+        $ability = $action->getAbility();
+
+        return null === $ability || $this->resource()->can($ability, $record);
+    }
+
+    /**
+     * Authorize a subject-less (header / bulk) action: only panel-level abilities
+     * (`create`, `viewAny`) can be judged without a record. Record-scoped
+     * abilities (`edit`, `delete`, `view`) are deferred to the per-record checks
+     * at execution, so e.g. a bulk Delete still shows and acts only on the records
+     * the user may delete.
+     */
+    private function standaloneAuthorized(Action $action): bool
+    {
+        $ability = $action->getAbility();
+        if (null === $ability || !\in_array($ability, ['create', 'viewAny'], true)) {
+            return true;
+        }
+
+        return $this->resource()->can($ability, null);
     }
 
     protected function findBulkAction(string $name): ?Action
@@ -350,12 +386,27 @@ final class DataTable
             return;
         }
 
-        $records = $this->selectedRecords();
+        // Only operate on records the action is actually allowed for.
+        $records = array_values(array_filter(
+            $this->selectedRecords(),
+            fn (object $record): bool => $this->actionAuthorized($action, $record),
+        ));
         if ([] === $records) {
             return;
         }
 
+        $deletes = 'delete' === $action->getAbility();
+        if ($deletes) {
+            foreach ($records as $record) {
+                $this->resource()->beforeDelete($record);
+            }
+        }
         $handler($records, $this->writer);
+        if ($deletes) {
+            foreach ($records as $record) {
+                $this->resource()->afterDelete($record);
+            }
+        }
 
         // The selection has been consumed and the row set may have shrunk.
         $this->totalCount = null;
@@ -429,11 +480,22 @@ final class DataTable
             $id = $this->recordId($record);
             $context = new ActionContext($this->pathPrefix, $this->resource, $id ?? '');
 
+            $authorize = fn (Action $action): bool => $this->actionAuthorized($action, $record);
             $rowActions = [];
             foreach ($items as $item) {
-                if ($item->isVisibleFor($record)) {
-                    $rowActions[] = $item->toView($record, $context, $id);
+                if (!$item->isVisibleFor($record)) {
+                    continue;
                 }
+                // A plain action is hidden when unauthorised; a group hides its
+                // unauthorised children and is dropped only if none remain.
+                if ($item instanceof Action && !$authorize($item)) {
+                    continue;
+                }
+                $view = $item->toView($record, $context, $id, $authorize);
+                if ('group' === ($view['kind'] ?? null) && [] === $view['actions']) {
+                    continue;
+                }
+                $rowActions[] = $view;
             }
 
             $rows[] = [
@@ -599,7 +661,7 @@ final class DataTable
 
         $views = [];
         foreach ($actions as $action) {
-            if ($action->isVisible()) {
+            if ($action->isVisible() && $this->standaloneAuthorized($action)) {
                 $views[] = $action->toStandaloneView($context);
             }
         }

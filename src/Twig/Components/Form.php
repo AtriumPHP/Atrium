@@ -126,14 +126,27 @@ class Form
 
         $entity = $this->loadEntity() ?? $this->newEntity();
 
+        // Authorize server-side: the page guard can be bypassed by posting
+        // straight to this Live action, so re-check the ability here.
+        $resource = $this->resourceObject();
+        $authorized = 'create' === $operation ? $resource->canCreate() : $resource->canEdit($entity);
+        if (!$authorized) {
+            return null;
+        }
+
+        // Let the resource reshape the submitted data before it is written.
+        $normalized = $resource->mutateFormDataBeforeSave($normalized, $operation);
+
         foreach ($this->getFields() as $field) {
             if ($field->isDisabled() || !$field->isDehydrated() || !$field->isVisible($get, $operation)) {
                 continue; // disabled / dehydrated(false) / hidden fields are not persisted
             }
             if ($this->accessor->isWritable($entity, $field->getName())) {
-                $this->accessor->setValue($entity, $field->getName(), $normalized[$field->getName()]);
+                $this->accessor->setValue($entity, $field->getName(), $normalized[$field->getName()] ?? null);
             }
         }
+
+        $resource->beforeSave($entity, $operation);
 
         if (null === $this->entityId) {
             $this->writer->create($entity);
@@ -141,6 +154,8 @@ class Form
         } else {
             $this->writer->update($entity);
         }
+
+        $resource->afterSave($entity, $operation);
 
         $this->saved = true;
 
@@ -317,7 +332,9 @@ class Form
             }
         }
 
-        return $data;
+        // Let the resource reshape an existing record's data before it fills the
+        // form (no-op on create, where there is no record).
+        return null === $entity ? $data : $this->resourceObject()->mutateFormDataBeforeFill($data);
     }
 
     /**

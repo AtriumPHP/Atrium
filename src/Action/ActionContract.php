@@ -29,9 +29,14 @@ interface ActionContract
      * trigger, or a `kind: 'group'` dropdown of trigger descriptors). The
      * descriptor carries its `template` so the host can render it generically.
      *
+     * The optional `$authorize` callback decides whether a leaf {@see Action} is
+     * permitted for the subject; a group uses it to drop unauthorised children.
+     *
+     * @param (\Closure(Action): bool)|null $authorize
+     *
      * @return array<string, mixed>
      */
-    public function toView(object $subject, ActionContext $context, ?string $id): array;
+    public function toView(object $subject, ActionContext $context, ?string $id, ?\Closure $authorize = null): array;
 
     /**
      * The runnable leaf actions behind this entry — itself for an {@see Action},

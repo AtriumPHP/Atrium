@@ -96,12 +96,12 @@ final class ActionGroup implements ActionContract
         return '@Atrium/components/action_group.html.twig';
     }
 
-    public function toView(object $subject, ActionContext $context, ?string $id): array
+    public function toView(object $subject, ActionContext $context, ?string $id, ?\Closure $authorize = null): array
     {
         $children = [];
         foreach ($this->actions as $action) {
-            if ($action->isVisibleFor($subject)) {
-                $children[] = $action->toView($subject, $context, $id);
+            if ($action->isVisibleFor($subject) && (null === $authorize || $authorize($action))) {
+                $children[] = $action->toView($subject, $context, $id, $authorize);
             }
         }
 

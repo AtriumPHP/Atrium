@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atrium\Tests\Functional;
 
+use Atrium\Tests\Fixtures\Resource\HookedTagResource;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class PagesTest extends WebTestCase
@@ -50,5 +51,20 @@ final class PagesTest extends WebTestCase
         $client->request('GET', '/admin/nope/new');
 
         self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testCreatePageIsForbiddenWhenCreationDenied(): void
+    {
+        HookedTagResource::reset();
+        HookedTagResource::$allowCreate = false;
+
+        try {
+            $client = self::createClient();
+            $client->request('GET', '/admin/hooked-tag/new');
+
+            self::assertResponseStatusCodeSame(403);
+        } finally {
+            HookedTagResource::reset();
+        }
     }
 }

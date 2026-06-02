@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Authorization hooks** on `AdminResource` (`canViewAny`, `canCreate`,
+  `canEdit`, `canDelete`, `canView`, dispatched via `can()`). Enforced server-side
+  in three places: the controller returns **403** for a denied list/create/edit
+  page; the form save re-checks `canCreate`/`canEdit`; and the table hides and
+  refuses to run the built-in Edit/Delete/New actions (a bulk delete acts only on
+  permitted records). Custom actions opt in with `Action::authorize('ability')`;
+  the built-in table actions set theirs automatically. Default is open
+  (security-agnostic core). **Public Resource API addition.**
+- **Record lifecycle hooks** on `AdminResource`: `mutateFormDataBeforeFill`,
+  `mutateFormDataBeforeSave($data, $operation)`, `beforeSave`/`afterSave($record,
+  $operation)`, and `beforeDelete`/`afterDelete($record)`. The save path runs
+  mutate → apply fields → `beforeSave` → persist → `afterSave`; delete runs
+  `beforeDelete`/`afterDelete` around the built-in delete actions. **Public
+  Resource API addition.**
+- Integration guide: `docs/integration-guide/resources/authorization.md` and
+  `lifecycle-hooks.md` (and a documentation policy + format — see
+  `docs/integration-guide/README.md`).
+
 ### Changed
 
 - **Table configuration is now a single `table(TableConfiguration $table)` hook**

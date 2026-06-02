@@ -53,6 +53,8 @@ class Action implements ActionContract
 
     protected ?\Closure $handler = null;
 
+    protected ?string $ability = null;
+
     protected function __construct(
         protected readonly string $name,
     ) {
@@ -193,9 +195,27 @@ class Action implements ActionContract
         return $this;
     }
 
+    /**
+     * Gate this action behind a resource ability (`view`, `create`, `edit`,
+     * `delete`, or a custom key). The table hides and refuses to run the action
+     * unless {@see \Atrium\Resource\AdminResource::can()} allows it. The built-in
+     * table actions set this for you.
+     */
+    public function authorize(string $ability): static
+    {
+        $this->ability = $ability;
+
+        return $this;
+    }
+
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getAbility(): ?string
+    {
+        return $this->ability;
     }
 
     public function getLabel(): string
@@ -301,7 +321,7 @@ class Action implements ActionContract
         return '@Atrium/components/action.html.twig';
     }
 
-    public function toView(object $subject, ActionContext $context, ?string $id): array
+    public function toView(object $subject, ActionContext $context, ?string $id, ?\Closure $authorize = null): array
     {
         return [
             'kind' => 'action',
