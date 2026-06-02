@@ -60,4 +60,17 @@ final class TableConfigurationTest extends TestCase
         self::assertSame(1, $table->getPerPage());
         self::assertSame([], $table->getPerPageOptions());
     }
+
+    public function testEmptyStateIsNullByDefaultAndCaptured(): void
+    {
+        $default = TableConfiguration::make();
+        self::assertNull($default->getEmptyHeading());
+        self::assertNull($default->getEmptyDescription());
+        self::assertNull($default->getEmptyIcon());
+
+        $table = TableConfiguration::make()->emptyState('Nothing here', 'Add one to begin.', 'cube');
+        self::assertSame('Nothing here', $table->getEmptyHeading());
+        self::assertSame('Add one to begin.', $table->getEmptyDescription());
+        self::assertSame('cube', $table->getEmptyIcon());
+    }
 }

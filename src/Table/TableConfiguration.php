@@ -46,6 +46,12 @@ final class TableConfiguration
     /** @var list<int> */
     private array $perPageOptions = [];
 
+    private ?string $emptyHeading = null;
+
+    private ?string $emptyDescription = null;
+
+    private ?string $emptyIcon = null;
+
     public function __construct()
     {
         $this->recordActions = [EditAction::make()];
@@ -140,11 +146,39 @@ final class TableConfiguration
     }
 
     /**
+     * Customise the message shown when the table has no rows (an icon, a heading
+     * and an optional description), instead of the bare "No … found." default.
+     */
+    public function emptyState(string $heading, ?string $description = null, ?string $icon = null): static
+    {
+        $this->emptyHeading = $heading;
+        $this->emptyDescription = $description;
+        $this->emptyIcon = $icon;
+
+        return $this;
+    }
+
+    /**
      * @return list<Column>
      */
     public function getColumns(): array
     {
         return $this->columns;
+    }
+
+    public function getEmptyHeading(): ?string
+    {
+        return $this->emptyHeading;
+    }
+
+    public function getEmptyDescription(): ?string
+    {
+        return $this->emptyDescription;
+    }
+
+    public function getEmptyIcon(): ?string
+    {
+        return $this->emptyIcon;
     }
 
     public function getDefaultSortField(): ?string

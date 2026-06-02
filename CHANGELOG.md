@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Table **empty state** on `TableConfiguration`:
+  `->emptyState('No articles yet', 'Write your first one…', 'document')` renders an
+  icon, heading and optional description when the table has no rows, instead of the
+  bare "No … found." default (which still applies when unconfigured).
 - Table-level **default sort** and **configurable page size** on
   `TableConfiguration`: `->defaultSort('field', 'desc')` orders the first load
   (until the user sorts; the field need not be a sortable column), and

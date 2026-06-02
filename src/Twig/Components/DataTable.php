@@ -414,6 +414,24 @@ final class DataTable
         return $this->tableConfig()->getPerPageOptions();
     }
 
+    /**
+     * Empty-state heading, or a sensible default ("No … found.").
+     */
+    public function getEmptyHeading(): string
+    {
+        return $this->tableConfig()->getEmptyHeading() ?? 'No '.strtolower($this->getResourceLabel()).' found.';
+    }
+
+    public function getEmptyDescription(): ?string
+    {
+        return $this->tableConfig()->getEmptyDescription();
+    }
+
+    public function getEmptyIcon(): ?string
+    {
+        return $this->tableConfig()->getEmptyIcon();
+    }
+
     private function resource(): AdminResource
     {
         return $this->registry->getBySlug($this->resource);

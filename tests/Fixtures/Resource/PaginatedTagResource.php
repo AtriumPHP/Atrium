@@ -30,6 +30,7 @@ final class PaginatedTagResource extends AdminResource
         return $table
             ->columns([Column::make('name')->sortable()->searchable()])
             ->defaultSort('name', 'desc')
-            ->paginated(5, [5, 10, 25]);
+            ->paginated(5, [5, 10, 25])
+            ->emptyState('No tags yet', 'Create your first tag to get started.', 'tag');
     }
 }

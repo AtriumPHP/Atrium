@@ -121,7 +121,15 @@
                 {% else %}
                     <tr>
                         <td colspan="{{ this.columns|length + (this.hasRecordActions ? 1 : 0) + (this.hasBulkActions ? 1 : 0) }}" class="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
-                            No {{ this.resourceLabel|lower }} found.
+                            <div class="mx-auto flex max-w-sm flex-col items-center gap-2">
+                                {% if this.emptyIcon %}
+                                    <span class="text-gray-300 dark:text-gray-600">{{ include('@Atrium/icon.html.twig', { name: this.emptyIcon, class: 'h-10 w-10' }) }}</span>
+                                {% endif %}
+                                <p class="font-medium text-gray-900 dark:text-gray-100">{{ this.emptyHeading }}</p>
+                                {% if this.emptyDescription %}
+                                    <p>{{ this.emptyDescription }}</p>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                 {% endfor %}
