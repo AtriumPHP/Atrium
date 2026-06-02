@@ -7,13 +7,13 @@
 {% set name = field.getName() %}
 {% set error = this.getError(name) %}
 {% set model = field.isLive() ? 'formData[' ~ name ~ ']' : 'norender|formData[' ~ name ~ ']' %}
-{% set inputClass = 'mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ' ~ (error
-    ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
-    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500') %}
+{% set inputClass = 'mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 dark:bg-gray-900 dark:text-gray-100 ' ~ (error
+    ? 'border-red-400 focus:border-red-500 focus:ring-red-500 dark:border-red-500/70'
+    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700') %}
 
 <div class="mb-4">
     {% if not field.rendersOwnLabel() %}
-        <label for="atrium_{{ name }}" class="block text-sm font-medium text-gray-700">
+        <label for="atrium_{{ name }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
             {{ field.getLabel() }}{% if field.isRequired() %} <span class="text-red-500">*</span>{% endif %}
         </label>
     {% endif %}
@@ -23,9 +23,9 @@
     }) }}
 
     {% if field.getHelp() %}
-        <p class="mt-1 text-xs text-gray-500">{{ field.getHelp() }}</p>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ field.getHelp() }}</p>
     {% endif %}
     {% if error %}
-        <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ error }}</p>
     {% endif %}
 </div>

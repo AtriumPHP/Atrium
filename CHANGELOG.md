@@ -68,3 +68,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     — resolve resource + action → Page → embed the Form component, so adding a
     CRUD resource needs no route registration.
   - Added `symfony/validator` as a runtime requirement.
+- `docs/custom-fields.md` — documents the custom field type extension point
+  (the `getType()` / `getTemplate()` / `rendersOwnLabel()` contract, the widget
+  template context, and a worked `CountrySelect` example).
+
+### Changed
+
+- Built-in concrete `Field` types (`TextField`, `TextareaField`, `NumberField`,
+  `CheckboxField`, `SelectField`, `DateField`, `DateTimeField`) are now
+  non-`final` so applications can subclass them to add custom fields; the
+  abstract `Field` remains the public contract.
+- Form widgets now carry full dark-mode variants — labels, inputs, help/error
+  text, the success notice and the checkbox — so forms are legible in dark mode.
+- The form page card is now full-width (removed the `max-w-2xl` constraint).
