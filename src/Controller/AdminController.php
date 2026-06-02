@@ -42,7 +42,7 @@ final readonly class AdminController
     public function resource(string $resource): Response
     {
         $resourceObject = $this->requireResource($resource);
-        $this->denyUnless($resourceObject->canViewAny());
+        $this->denyUnless($resourceObject->canAccess() && $resourceObject->canViewAny());
 
         return $this->render('@Atrium/admin/resource.html.twig', [
             'panel' => $this->panel($resource),
@@ -53,7 +53,7 @@ final readonly class AdminController
     public function create(string $resource): Response
     {
         $resourceObject = $this->requireResource($resource);
-        $this->denyUnless($resourceObject->canCreate());
+        $this->denyUnless($resourceObject->canAccess() && $resourceObject->canCreate());
         $page = $resourceObject->resolvePage('create');
         $context = new PageContext($resource, $this->pathPrefix);
 
@@ -69,6 +69,7 @@ final readonly class AdminController
     public function edit(string $resource, string $id): Response
     {
         $resourceObject = $this->requireResource($resource);
+        $this->denyUnless($resourceObject->canAccess());
 
         if (null !== $this->dataProvider) {
             // Scoped resolution: an id outside the resource's scope is a 404 here,
@@ -121,14 +122,22 @@ final readonly class AdminController
     }
 
     /**
-     * @return array{brand: string, pathPrefix: string, resources: list<array{slug: string, label: string, group: string|null, icon: string|null, url: string, active: bool}>}
+     * @return array{brand: string, pathPrefix: string, resources: list<array{slug: string, label: string, group: string|null, icon: string|null, url: string, active: bool, badge: string|null, badgeColor: string, sort: int}>}
      */
     private function panel(?string $activeSlug = null): array
     {
         $resources = [];
         foreach ($this->registry->all() as $resource) {
+            // Only list resources the user can reach and that opt into the menu.
+            if (!$resource->canAccess() || !$resource->shouldRegisterNavigation()) {
+                continue;
+            }
             $resources[] = $this->navItem($resource, $activeSlug);
         }
+
+        // Lower sort weight first; unweighted entries (PHP_INT_MAX) keep their
+        // registration order thanks to PHP's stable sort.
+        usort($resources, static fn (array $a, array $b): int => $a['sort'] <=> $b['sort']);
 
         return [
             'brand' => $this->brand,
@@ -138,7 +147,7 @@ final readonly class AdminController
     }
 
     /**
-     * @return array{slug: string, label: string, group: string|null, icon: string|null, url: string, active: bool}
+     * @return array{slug: string, label: string, group: string|null, icon: string|null, url: string, active: bool, badge: string|null, badgeColor: string, sort: int}
      */
     private function navItem(AdminResource $resource, ?string $activeSlug): array
     {
@@ -151,6 +160,9 @@ final readonly class AdminController
             'icon' => $resource->getNavigationIcon(),
             'url' => rtrim($this->pathPrefix, '/').'/'.$slug,
             'active' => $slug === $activeSlug,
+            'badge' => $resource->getNavigationBadge(),
+            'badgeColor' => $resource->getNavigationBadgeColor(),
+            'sort' => $resource->getNavigationSort() ?? \PHP_INT_MAX,
         ];
     }
 }

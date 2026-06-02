@@ -399,4 +399,57 @@ abstract class AdminResource
     {
         return null;
     }
+
+    // -- Navigation & access ---------------------------------------------------
+
+    /**
+     * Whether this resource is reachable at all. It gates both the navigation
+     * entry (a resource you cannot access is not shown) and every page (the
+     * controller returns 403). Defaults to {@see canViewAny()}, so by default
+     * "can see the list" and "can reach the resource" coincide; override to
+     * separate them (e.g. a resource reached only through links). Page-specific
+     * abilities ({@see canCreate()} / {@see canEdit()}) still apply on top.
+     */
+    public function canAccess(): bool
+    {
+        return $this->canViewAny();
+    }
+
+    /**
+     * Whether to list this resource in the navigation. Return false to keep it
+     * accessible (its pages work) but hidden from the menu — e.g. a detail
+     * resource you only ever link to.
+     */
+    public function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Sort weight for the navigation entry — lower comes first. Entries without a
+     * weight (null) sort after weighted ones, in registration order.
+     */
+    public function getNavigationSort(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * Optional badge shown next to the navigation entry (e.g. a pending count).
+     * Return null for no badge.
+     */
+    public function getNavigationBadge(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * Semantic colour key for the navigation badge (gray, primary, red, green,
+     * amber, sky). Defaults to `primary`; only consulted when
+     * {@see getNavigationBadge()} returns a value.
+     */
+    public function getNavigationBadgeColor(): string
+    {
+        return 'primary';
+    }
 }

@@ -35,13 +35,26 @@
                 <p class="px-3 pb-1 pt-4 text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Resources</p>
             {% endif %}
 
+            {% set navBadgeClasses = {
+                gray:    'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
+                primary: 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200',
+                red:     'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
+                green:   'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300',
+                amber:   'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+                sky:     'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+            } %}
             {% for item in panel.resources %}
                 <a href="{{ item.url }}"
                    class="group flex items-center gap-3 rounded-lg px-3 py-2 font-medium transition-colors {{ item.active
                        ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/70 dark:hover:text-white' }}">
                     {{ include('@Atrium/icon.html.twig', { name: item.icon ?? 'squares', class: 'h-5 w-5 shrink-0' }) }}
-                    {{ item.label }}
+                    <span class="flex-1 truncate">{{ item.label }}</span>
+                    {% if item.badge is not null and item.badge != '' %}
+                        <span class="ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ item.active
+                            ? 'bg-white/20 text-white'
+                            : (navBadgeClasses[item.badgeColor] ?? navBadgeClasses.primary) }}">{{ item.badge }}</span>
+                    {% endif %}
                 </a>
             {% endfor %}
         </nav>

@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Navigation & access hooks** on `AdminResource`: `canAccess()` (resource-level
+  gate — hides the nav entry and 403s every page; defaults to `canViewAny()`),
+  `shouldRegisterNavigation()` (reachable but hidden from the menu),
+  `getNavigationSort()` (menu order), and `getNavigationBadge()` /
+  `getNavigationBadgeColor()` (a badge next to the entry). The controller filters
+  and sorts the sidebar accordingly and gates create/edit/list on `canAccess()`.
+  Docs: `docs/integration-guide/resources/navigation.md`. (Arbitrary render slots
+  remain out of scope.) **Public Resource API addition.**
 - **Action lifecycle hooks** on `AdminResource`: `beforeAction`/`afterAction(string
   $action, object $record)` bracket **every** row action's handler, and
   `beforeBulkAction`/`afterBulkAction(string $action, array $records)` bracket a

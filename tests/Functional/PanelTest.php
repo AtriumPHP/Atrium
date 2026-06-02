@@ -48,4 +48,42 @@ final class PanelTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testNavigationRespectsAccessRegistrationBadgeAndSort(): void
+    {
+        $client = self::createClient();
+        $crawler = $client->request('GET', '/admin');
+        self::assertResponseIsSuccessful();
+
+        $aside = $crawler->filter('aside');
+        // shouldRegisterNavigation() === false: reachable but never in the menu.
+        self::assertStringNotContainsString('Unlisted tags', $aside->text());
+        // canAccess() === false: hidden from the menu too.
+        self::assertStringNotContainsString('Forbidden tags', $aside->text());
+        // A navigation badge renders next to its entry.
+        self::assertStringContainsString('Badged tags', $aside->text());
+        self::assertSelectorTextContains('aside', '7');
+
+        // getNavigationSort(-5) puts the badged entry ahead of the unweighted ones.
+        $labels = $crawler->filter('aside nav a span.flex-1')->each(static fn ($node): string => trim($node->text()));
+        self::assertNotEmpty($labels);
+        self::assertSame('Badged tags', $labels[0]);
+    }
+
+    public function testUnlistedResourceIsStillReachable(): void
+    {
+        $client = self::createClient();
+        $client->request('GET', '/admin/unlisted-tag');
+
+        // Hidden from the menu, but its pages work.
+        self::assertResponseIsSuccessful();
+    }
+
+    public function testForbiddenResourceReturns403(): void
+    {
+        $client = self::createClient();
+        $client->request('GET', '/admin/forbidden-tag');
+
+        self::assertResponseStatusCodeSame(403);
+    }
 }

@@ -11,15 +11,18 @@ use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Tests\Fixtures\Data\SampleData;
 use Atrium\Tests\Fixtures\Resource\ActionsTagResource;
+use Atrium\Tests\Fixtures\Resource\BadgedTagResource;
 use Atrium\Tests\Fixtures\Resource\ConfirmTagResource;
 use Atrium\Tests\Fixtures\Resource\DehydrateTagResource;
 use Atrium\Tests\Fixtures\Resource\FilteredTagResource;
+use Atrium\Tests\Fixtures\Resource\ForbiddenTagResource;
 use Atrium\Tests\Fixtures\Resource\HookedTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
 use Atrium\Tests\Fixtures\Resource\PaginatedTagResource;
 use Atrium\Tests\Fixtures\Resource\ScopedTagResource;
 use Atrium\Tests\Fixtures\Resource\TabsTagResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
+use Atrium\Tests\Fixtures\Resource\UnlistedTagResource;
 use Atrium\Tests\Fixtures\Resource\WizardTagResource;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -119,6 +122,18 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(ScopedTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(BadgedTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(UnlistedTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(ForbiddenTagResource::class)
             ->autoconfigure()
             ->autowire();
 
