@@ -42,6 +42,9 @@ final readonly class AdminController
     public function resource(string $resource): Response
     {
         $resourceObject = $this->requireResource($resource);
+        // Every page gates on canAccess() (the resource-level gate) plus its own
+        // ability — here canViewAny(); create adds canCreate(), edit canEdit().
+        // canAccess() defaults to canViewAny(), so by default they coincide.
         $this->denyUnless($resourceObject->canAccess() && $resourceObject->canViewAny());
 
         return $this->render('@Atrium/admin/resource.html.twig', [

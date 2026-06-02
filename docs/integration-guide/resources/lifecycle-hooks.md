@@ -47,6 +47,12 @@ back** rather than leaving a half-saved record. The same applies to deletes. The
 in-memory array writer has no real transaction; the Doctrine writer uses
 `wrapInTransaction`.
 
+A hook that throws aborts the whole operation: the transaction rolls back and the
+exception propagates out of the save (or delete) — nothing is persisted and the
+request fails loudly. Throw from a `before*`/`after*`/`handle*` hook only for a
+genuine error; for a *validation* failure, add a constraint or use
+`afterValidate` instead, which surfaces a field error without a 500.
+
 ### Custom persistence
 
 `handleRecordCreation` / `handleRecordUpdate` own the actual write. By default

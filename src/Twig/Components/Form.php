@@ -117,6 +117,8 @@ class Form
         $operation = $this->operation();
 
         // Let the resource normalise the raw input before validation sees it.
+        // This writes back to formData (validation reads field values from it),
+        // so the normalised value is also what the form shows after submit.
         $this->formData = $resource->mutateFormDataBeforeValidate($this->formData, $operation);
         $get = new Get($this->formData);
 
