@@ -11,35 +11,56 @@
         {{ atrium_importmap('app') }}
     {% endblock %}
 </head>
-<body class="h-full bg-gray-100 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+<body class="h-full bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
 <div class="flex min-h-full">
-    <aside class="flex w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-        <div class="flex h-16 items-center px-6 text-lg font-semibold tracking-tight">
-            <a href="{{ panel.pathPrefix }}">{{ panel.brand }}</a>
+    {# ---------------------------------------------------------------- Sidebar #}
+    <aside class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-gray-200/80 bg-white/70 backdrop-blur-xl md:flex dark:border-gray-800/80 dark:bg-gray-900/60">
+        <div class="flex h-16 items-center px-5">
+            <a href="{{ panel.pathPrefix }}" class="flex items-center gap-2.5">
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 text-sm font-bold text-white shadow-sm shadow-primary-600/30">
+                    {{ panel.brand|first|upper }}
+                </span>
+                <span class="text-base font-semibold tracking-tight">{{ panel.brand }}</span>
+            </a>
         </div>
-        <nav class="flex-1 space-y-1 px-3 py-2 text-sm">
+
+        <nav class="flex-1 space-y-0.5 overflow-y-auto px-3 py-3 text-sm">
             <a href="{{ panel.pathPrefix }}"
-               class="block rounded-md px-3 py-2 font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white">
+               class="group flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/70 dark:hover:text-white">
+                {{ include('@Atrium/icon.html.twig', { name: 'dashboard', class: 'h-5 w-5 shrink-0' }) }}
                 Dashboard
             </a>
+
+            {% if panel.resources is not empty %}
+                <p class="px-3 pb-1 pt-4 text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Resources</p>
+            {% endif %}
+
             {% for item in panel.resources %}
                 <a href="{{ item.url }}"
-                   class="block rounded-md px-3 py-2 font-medium {{ item.active
-                       ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300'
-                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white' }}">
+                   class="group flex items-center gap-3 rounded-lg px-3 py-2 font-medium transition-colors {{ item.active
+                       ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
+                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/70 dark:hover:text-white' }}">
+                    {{ include('@Atrium/icon.html.twig', { name: item.icon ?? 'squares', class: 'h-5 w-5 shrink-0' }) }}
                     {{ item.label }}
                 </a>
             {% endfor %}
         </nav>
+
+        <div class="border-t border-gray-200/80 px-5 py-3 text-xs text-gray-400 dark:border-gray-800/80 dark:text-gray-500">
+            Powered by {{ panel.brand }}
+        </div>
     </aside>
 
+    {# ------------------------------------------------------------------- Main #}
     <div class="flex min-w-0 flex-1 flex-col">
-        <header class="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-8 dark:border-gray-800 dark:bg-gray-900">
-            <h1 class="text-lg font-semibold">{% block heading %}{% endblock %}</h1>
-            <div>{% block header_actions %}{% endblock %}</div>
+        <header class="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b border-gray-200/80 bg-gray-50/80 px-5 backdrop-blur-xl sm:px-8 dark:border-gray-800/80 dark:bg-gray-950/70">
+            <h1 class="truncate text-lg font-semibold tracking-tight">{% block heading %}{% endblock %}</h1>
+            <div class="flex items-center gap-3">{% block header_actions %}{% endblock %}</div>
         </header>
-        <main class="flex-1 p-8">
-            {% block body %}{% endblock %}
+        <main class="flex-1 p-5 sm:p-8">
+            <div class="mx-auto max-w-screen-2xl">
+                {% block body %}{% endblock %}
+            </div>
         </main>
     </div>
 </div>

@@ -138,6 +138,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI refresh — a modern, polished look across the panel:
+  - New shell: a sticky, backdrop-blurred sidebar with a gradient brand mark, a
+    grouped icon navigation (inline-SVG `@Atrium/icon.html.twig` set) and a filled
+    active state; a sticky, blurred topbar.
+  - Dashboard with icon-tiled resource cards (hover lift) and a glowing welcome
+    card; resource list pages gained a "New <singular>" action button.
+  - Form sections are now header + divider + padded cards; the form page is a
+    centered column (no double-card), with a spinner-backed save state and a check
+    icon on the success notice.
+  - Data table: search with an inline icon, uppercase column headers, a bold
+    first column, row hover, and icon pagination controls.
+  - Inputs rounded to `lg` with colour transitions. All accents use `primary`.
 - Theming: the panel accent is now a single semantic **`primary`** colour
   (default palette "blue-energy"). Templates only use `*-primary-*` classes, so
   re-skinning is one change — edit the eleven `--color-primary-*` values in

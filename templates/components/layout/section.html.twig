@@ -1,6 +1,6 @@
 {#
-    Section: a titled, bordered card grouping components in its own grid.
-    Collapsible sections use a native <details>, so they need no JavaScript.
+    Section: a titled card grouping components in its own grid. Collapsible
+    sections use a native <details>, so they need no JavaScript.
 #}
 {% set body %}
     {{ include('@Atrium/components/layout/components.html.twig', {
@@ -9,24 +9,32 @@
     }) }}
 {% endset %}
 
-<section class="rounded-lg border border-gray-200 bg-white {{ component.isCompact() ? 'p-4' : 'p-6' }} dark:border-gray-800 dark:bg-gray-900">
+{% set headerPad = component.isCompact() ? 'px-5 py-3' : 'px-6 py-4' %}
+{% set bodyPad = component.isCompact() ? 'px-5 py-4' : 'px-6 py-5' %}
+{% set hasHeader = component.getHeading() or component.getDescription() %}
+
+{% set header %}
+    <p class="text-sm font-semibold tracking-tight text-gray-900 dark:text-gray-100">{{ component.getHeading() }}</p>
+    {% if component.getDescription() %}
+        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{{ component.getDescription() }}</p>
+    {% endif %}
+{% endset %}
+
+<section class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm dark:border-gray-800/80 dark:bg-gray-900">
     {% if component.isCollapsible() %}
-        <details{{ component.isCollapsed() ? '' : ' open' }}>
-            <summary class="cursor-pointer list-none text-base font-semibold text-gray-900 dark:text-gray-100">
-                {{ component.getHeading() }}
+        <details{{ component.isCollapsed() ? '' : ' open' }} class="group">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 {{ headerPad }}">
+                <div class="min-w-0">{{ header }}</div>
+                <span class="shrink-0 text-gray-400 transition-transform group-open:rotate-90 dark:text-gray-500">
+                    {{ include('@Atrium/icon.html.twig', { name: 'chevron-right', class: 'h-4 w-4' }) }}
+                </span>
             </summary>
-            {% if component.getDescription() %}
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ component.getDescription() }}</p>
-            {% endif %}
-            <div class="mt-4">{{ body }}</div>
+            <div class="border-t border-gray-100 {{ bodyPad }} dark:border-gray-800">{{ body }}</div>
         </details>
     {% else %}
-        {% if component.getHeading() %}
-            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ component.getHeading() }}</h3>
+        {% if hasHeader %}
+            <header class="border-b border-gray-100 {{ headerPad }} dark:border-gray-800">{{ header }}</header>
         {% endif %}
-        {% if component.getDescription() %}
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ component.getDescription() }}</p>
-        {% endif %}
-        <div class="{{ component.getHeading() or component.getDescription() ? 'mt-4' }}">{{ body }}</div>
+        <div class="{{ bodyPad }}">{{ body }}</div>
     {% endif %}
 </section>

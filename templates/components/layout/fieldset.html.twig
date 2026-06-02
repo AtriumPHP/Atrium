@@ -1,6 +1,6 @@
 {# Fieldset: labelled, optionally-bordered group (defaults to two columns). #}
-<fieldset class="{{ component.isContained() ? 'rounded-lg border border-gray-200 p-4 dark:border-gray-800' }}">
-    <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ component.getLabel() }}</legend>
+<fieldset class="{{ component.isContained() ? 'rounded-xl border border-gray-200/80 px-4 pb-4 pt-2 dark:border-gray-800/80' }}">
+    <legend class="px-1 text-sm font-semibold tracking-tight text-gray-700 dark:text-gray-300">{{ component.getLabel() }}</legend>
     <div class="mt-2">
         {{ include('@Atrium/components/layout/components.html.twig', {
             components: component.getChildComponents(),
