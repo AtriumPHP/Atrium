@@ -143,11 +143,17 @@ final class DataTable
     }
 
     /**
+     * The visible columns (a column hidden via `Column::visible(false)` is dropped
+     * from the header, cells, search and sort).
+     *
      * @return list<Column>
      */
     public function getColumns(): array
     {
-        return $this->tableConfig()->getColumns();
+        return array_values(array_filter(
+            $this->tableConfig()->getColumns(),
+            static fn (Column $column): bool => $column->isVisible(),
+        ));
     }
 
     /**
@@ -333,7 +339,7 @@ final class DataTable
      * per-record actions resolved (for visibility, URL, style) into render-ready
      * descriptors — a plain action, or a `kind: 'group'` dropdown of them.
      *
-     * @return list<array{id: ?string, selected: bool, cells: list<string>, actions: list<array<string, mixed>>}>
+     * @return list<array{id: ?string, selected: bool, cells: list<array<string, mixed>>, actions: list<array<string, mixed>>}>
      */
     public function getRows(): array
     {
@@ -344,7 +350,7 @@ final class DataTable
         foreach ($this->pageRecords() as $record) {
             $cells = [];
             foreach ($columns as $column) {
-                $cells[] = $column->renderValue($record, $this->accessor);
+                $cells[] = $column->toCell($record, $this->accessor);
             }
 
             $id = $this->recordId($record);

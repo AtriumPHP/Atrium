@@ -48,6 +48,15 @@
         </div>
     {% endif %}
 
+    {% set alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' } %}
+    {% set cellBadgeColors = {
+        gray:    'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+        primary: 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300',
+        red:     'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
+        green:   'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300',
+        amber:   'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+        sky:     'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+    } %}
     <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
         <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
             <thead class="bg-gray-50 dark:bg-gray-800/50">
@@ -65,14 +74,15 @@
                         </th>
                     {% endif %}
                     {% for column in this.columns %}
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        {% set columnAlign = column.getAlignment() %}
+                        <th scope="col" class="px-4 py-3 {{ alignClasses[columnAlign] }} text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400"{% if column.getWidth() %} style="width: {{ column.getWidth() }}"{% endif %}>
                             {% if column.isSortable() %}
                                 <button
                                     type="button"
                                     data-action="live#action"
                                     data-live-action-param="sort"
                                     data-live-field-param="{{ column.getName() }}"
-                                    class="group inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-gray-900 dark:hover:text-white"
+                                    class="group inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-gray-900 dark:hover:text-white {{ columnAlign == 'right' ? 'flex-row-reverse' : '' }}"
                                 >
                                     {{ column.getLabel() }}
                                     {% if this.activeSortField == column.getName() %}
@@ -110,7 +120,20 @@
                             </td>
                         {% endif %}
                         {% for cell in row.cells %}
-                            <td class="whitespace-nowrap px-4 py-3 text-gray-700 first:font-medium first:text-gray-900 dark:text-gray-300 dark:first:text-gray-100">{{ cell }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-gray-700 first:font-medium first:text-gray-900 dark:text-gray-300 dark:first:text-gray-100 {{ alignClasses[cell.align] }}">
+                                {% if cell.boolean %}
+                                    {% if cell.state %}
+                                        <span class="text-green-600 dark:text-green-400" title="Yes">{{ include('@Atrium/icon.html.twig', { name: 'check', class: 'h-5 w-5' }) }}</span>
+                                    {% else %}
+                                        <span class="text-gray-300 dark:text-gray-600" title="No">{{ include('@Atrium/icon.html.twig', { name: 'x-mark', class: 'h-5 w-5' }) }}</span>
+                                    {% endif %}
+                                    <span class="sr-only">{{ cell.state ? 'Yes' : 'No' }}</span>
+                                {% elseif cell.badge and cell.value != '' %}
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ cellBadgeColors[cell.color]|default(cellBadgeColors.gray) }}">{{ cell.value }}</span>
+                                {% else %}
+                                    {{ cell.value }}
+                                {% endif %}
+                            </td>
                         {% endfor %}
                         {% if this.hasRecordActions %}
                             <td class="whitespace-nowrap px-4 py-3 text-right">

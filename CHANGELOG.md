@@ -21,6 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Column presentation** options on `Column`: `->alignment('right')`
+  (`alignCenter()` / `alignRight()`), `->width('8rem')`, `->boolean()` (renders a
+  check/cross icon instead of "Yes"/"No"), `->badge()` with `->color('green')` or
+  a per-value `->color(fn ($value, $record) => …)`, and `->visible(false)` /
+  `->hidden()` to drop a column from the header, cells, search and sort. Cells are
+  now resolved to render-ready descriptors (`Column::toCell()`); `renderValue()`
+  is unchanged for direct callers.
 - Table **empty state** on `TableConfiguration`:
   `->emptyState('No articles yet', 'Write your first one…', 'document')` renders an
   icon, heading and optional description when the table has no rows, instead of the

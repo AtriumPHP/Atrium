@@ -37,7 +37,7 @@ final class DataTableSortPaginationTest extends KernelTestCase
         // name desc → "Tag 12" is the first row before the user touches anything.
         $rows = $instance->getRows();
         self::assertNotSame([], $rows);
-        self::assertSame('Tag 12', $rows[0]['cells'][0]);
+        self::assertSame('Tag 12', $rows[0]['cells'][0]['value']);
     }
 
     public function testConfiguredPageSizeAndCount(): void
@@ -59,7 +59,7 @@ final class DataTableSortPaginationTest extends KernelTestCase
         $instance = $this->instance($component);
         self::assertSame('name', $instance->getActiveSortField());
         self::assertSame('asc', $instance->getActiveSortDirection());
-        self::assertSame('Tag 01', $instance->getRows()[0]['cells'][0]);
+        self::assertSame('Tag 01', $instance->getRows()[0]['cells'][0]['value']);
     }
 
     public function testChangingPageSizeToAnOfferedValueResetsToPageOne(): void
