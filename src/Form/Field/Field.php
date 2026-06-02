@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Atrium\Form\Field;
 
+use Atrium\Form\Concern\HasReactivity;
+use Atrium\Form\Concern\HasValidationRules;
 use Atrium\Form\Concern\HasVisibility;
 use Atrium\Layout\Component;
 use Atrium\Layout\Concern\HasColumnSpan;
@@ -30,6 +32,8 @@ abstract class Field implements Component
 {
     use HasColumnSpan;
     use HasGrow;
+    use HasReactivity;
+    use HasValidationRules;
     use HasVisibility;
 
     protected ?string $label = null;
@@ -39,6 +43,10 @@ abstract class Field implements Component
     protected bool $live = false;
 
     protected bool $disabled = false;
+
+    protected bool $autofocus = false;
+
+    protected bool $hiddenLabel = false;
 
     protected ?string $helpText = null;
 
@@ -89,6 +97,23 @@ abstract class Field implements Component
         return $this;
     }
 
+    public function autofocus(bool $autofocus = true): static
+    {
+        $this->autofocus = $autofocus;
+
+        return $this;
+    }
+
+    /**
+     * Keep the label for screen readers but hide it visually (FRM-13).
+     */
+    public function hiddenLabel(bool $hiddenLabel = true): static
+    {
+        $this->hiddenLabel = $hiddenLabel;
+
+        return $this;
+    }
+
     public function help(string $helpText): static
     {
         $this->helpText = $helpText;
@@ -115,6 +140,17 @@ abstract class Field implements Component
         return $this;
     }
 
+    /**
+     * Append a single constraint — the hook the fluent validation helpers
+     * ({@see HasValidationRules}) and numeric bounds build on.
+     */
+    protected function addConstraint(Constraint $constraint): static
+    {
+        $this->constraints[] = $constraint;
+
+        return $this;
+    }
+
     public function getName(): string
     {
         return $this->name;
@@ -133,6 +169,16 @@ abstract class Field implements Component
     public function isLive(): bool
     {
         return $this->live;
+    }
+
+    public function isAutofocused(): bool
+    {
+        return $this->autofocus;
+    }
+
+    public function hasHiddenLabel(): bool
+    {
+        return $this->hiddenLabel;
     }
 
     public function isDisabled(): bool

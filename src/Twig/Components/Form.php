@@ -10,6 +10,7 @@ use Atrium\Form\Field\Field;
 use Atrium\Form\Field\SelectField;
 use Atrium\Form\Get;
 use Atrium\Form\Schema;
+use Atrium\Form\Set;
 use Atrium\Layout\Component;
 use Atrium\Layout\LayoutComponent;
 use Atrium\Resource\AdminResource;
@@ -21,6 +22,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
+use Symfony\UX\LiveComponent\Attribute\PreReRender;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 /**
@@ -49,6 +51,17 @@ final class Form
     #[LiveProp(writable: true)]
     public array $formData = [];
 
+    /**
+     * Snapshot of formData from the previous render, used to detect which field
+     * changed and run its afterStateUpdated() callback (FRM-10). A sub-path
+     * model write (`formData[name]`) can't be caught by an `onUpdated` hook with
+     * dynamic field names, so we diff in a PreReRender pass instead.
+     *
+     * @var array<string, mixed>
+     */
+    #[LiveProp]
+    public array $previousFormData = [];
+
     /** @var array<string, string> */
     #[LiveProp]
     public array $errors = [];
@@ -73,6 +86,7 @@ final class Form
         $this->entityId = $entityId;
         $this->redirectAfterSave = $redirectAfterSave;
         $this->formData = $this->initialFormData();
+        $this->previousFormData = $this->formData;
     }
 
     #[LiveAction]
@@ -150,6 +164,37 @@ final class Form
     public function operation(): string
     {
         return null === $this->entityId ? 'create' : 'edit';
+    }
+
+    /**
+     * Before each re-render, run the `afterStateUpdated()` callback (FRM-10) of
+     * every field whose value changed since the last render, handing it the new
+     * value, a {@see Get} and a {@see Set} that writes back to `formData`.
+     */
+    #[PreReRender]
+    public function runReactiveCallbacks(): void
+    {
+        $get = new Get($this->formData);
+        $set = new Set(function (string $key, mixed $value): void {
+            $this->formData[$key] = $value;
+        });
+
+        foreach ($this->getFields() as $field) {
+            if (!$field->hasAfterStateUpdated()) {
+                continue;
+            }
+
+            $name = $field->getName();
+            $before = $this->previousFormData[$name] ?? null;
+            $after = $this->formData[$name] ?? null;
+            if ($before === $after) {
+                continue;
+            }
+
+            $field->runAfterStateUpdated($after, $get, $set);
+        }
+
+        $this->previousFormData = $this->formData;
     }
 
     /**

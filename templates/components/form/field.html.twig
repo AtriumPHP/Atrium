@@ -17,7 +17,7 @@
 
 <div>
     {% if not field.rendersOwnLabel() %}
-        <label for="atrium_{{ name }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label for="atrium_{{ name }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300{{ field.hasHiddenLabel() ? ' sr-only' }}">
             {{ field.getLabel() }}{% if field.isRequired() %} <span class="text-red-500">*</span>{% endif %}
         </label>
     {% endif %}

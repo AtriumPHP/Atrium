@@ -96,6 +96,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The `Form` component filters hidden fields out of the render tree (cloning
     containers, dropping any left empty) and skips them in validation/hydration;
     it exposes `operation()` (`create`/`edit`).
+- Forms v2 / M3 — cross-field reactivity, the `Set` accessor, validation DX and
+  presentation niceties (`FRM-10..13`).
+  - `Atrium\Form\Set` — invokable write accessor over form state (`$set('f', v)`).
+  - `Atrium\Form\Concern\HasReactivity` on `Field`: `afterStateUpdated(Closure)`
+    (auto-implies `live()`); the callback gets `($state, Get, Set)` and can derive
+    one field from another (e.g. SKU from name). The `Form` component diffs
+    `formData` against the previous render in a `#[PreReRender]` pass to detect the
+    changed field — robust to per-field sub-path model writes.
+  - `Atrium\Form\Concern\HasValidationRules` on `Field`: `maxLength()`,
+    `minLength()`, `length()`, `regex()` (→ `Length`/`Regex`); `NumberField` gains
+    `min()`/`max()` (→ `GreaterThanOrEqual`/`LessThanOrEqual`). `rules([...])`
+    stays the escape hatch.
+  - Presentation: `placeholder()` (Text/Textarea/Number via `HasPlaceholder`),
+    `autofocus()`, `hiddenLabel()` on `Field`; widgets + wrapper updated.
 - Content components (`CNT-01..03`) — static building blocks for a schema
   (`Atrium\Content\Text`, `UnorderedList`, `Image`). They implement the shared
   `Atrium\Layout\Component` contract but carry no form state: never hydrated or

@@ -10,6 +10,7 @@ use Atrium\Form\Field\SelectField;
 use Atrium\Form\Field\TextField;
 use Atrium\Form\Get;
 use Atrium\Form\Schema;
+use Atrium\Form\Set;
 use Atrium\Layout\Flex;
 use Atrium\Layout\Section;
 use Atrium\Resource\AdminResource;
@@ -41,7 +42,11 @@ final class LayoutTagResource extends AdminResource
                 ->schema([
                     Text::make('All fields marked with an asterisk are required.')
                         ->columnSpanFull(),
-                    TextField::make('name')->required(),
+                    // Cross-field reactivity (FRM-10): derive slug from name.
+                    TextField::make('name')->required()
+                        ->afterStateUpdated(static function (mixed $state, Get $get, Set $set): void {
+                            $set('slug', self::slugify(\is_scalar($state) ? (string) $state : ''));
+                        }),
                     TextField::make('slug')->columnSpanFull(),
                     // Operation-aware visibility (FRM-09): only shown when editing.
                     TextField::make('notes')->visibleOn('edit')->columnSpanFull(),
@@ -53,5 +58,12 @@ final class LayoutTagResource extends AdminResource
                 TextField::make('cultivar')->visible(static fn (Get $get): bool => 'fruit' === $get('kind')),
             ]),
         ]);
+    }
+
+    private static function slugify(string $value): string
+    {
+        $slug = preg_replace('/[^a-z0-9]+/i', '-', $value) ?? '';
+
+        return strtolower(trim($slug, '-'));
     }
 }

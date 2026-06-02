@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Atrium\Form\Field;
 
+use Atrium\Form\Concern\HasPlaceholder;
+
 /**
  * Multi-line text input.
  */
 class TextareaField extends Field
 {
+    use HasPlaceholder;
+
     private int $rows = 4;
 
     public function getType(): string

@@ -1,2 +1,4 @@
 <input type="number" id="atrium_{{ name }}" data-model="{{ model }}"
-       value="{{ this.getValue(name) }}" {{ field.isDisabled() ? 'disabled' }} class="{{ inputClass }}">
+       value="{{ this.getValue(name) }}"
+       {% if field.getPlaceholder() %}placeholder="{{ field.getPlaceholder() }}"{% endif %}
+       {{ field.isAutofocused() ? 'autofocus' }} {{ field.isDisabled() ? 'disabled' }} class="{{ inputClass }}">

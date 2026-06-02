@@ -123,23 +123,24 @@ the keystone change here; everything else composes onto it.
 - **FRM-09** **Operation-aware visibility — ✅ delivered.** `->visibleOn(string|array)` /
   `->hiddenOn(string|array)` where operation ∈ `create` | `edit` (`view` arrives
   with view pages). The `Form` component exposes `operation()`.
-- **FRM-10** **Cross-field reactivity** — `->afterStateUpdated(Closure)` on a
-  `->live()` field. Receives `($state, Get $get, Set $set)` and may mutate other
-  fields (e.g. derive `slug` from `name`). Runs during the live re-render.
-- **FRM-11** **State accessors** — a `Get` and `Set` value object over the form
-  state, replacing raw `$formData` array access in callbacks
-  (`optionsUsing`, `visible`, `afterStateUpdated`). `$get('field')` reads;
-  `$set('field', value)` writes. **`Get` ✅ delivered** (`Atrium\Form\Get`,
-  invokable); `Set` lands with M3. (Stretch: typed reads `$get->int()`,
-  `$get->bool()`, …, matching Filament.)
-- **FRM-12** **Fluent validation helpers** compiling to Symfony constraints, so
-  common rules read fluently and are IDE-discoverable instead of
-  `rules([new Length(max: 5)])`: `->maxLength()`, `->minLength()`, `->length()`,
-  `->min()`, `->max()`, `->same(field)`, `->regex()`. Extends the existing
-  `TextField::email()/url()` pattern. `rules([...])` stays as the escape hatch.
-- **FRM-13** **Presentation niceties** — `->placeholder(string)` (all text-like
-  fields, not just select), `->autofocus()`, `->hiddenLabel()` (a11y-only label),
-  `->inlineLabel()` (label beside input). Map to widget template flags.
+- **FRM-10** **Cross-field reactivity — ✅ delivered.** `->afterStateUpdated(Closure)`
+  on a field (auto-implies `->live()`). Receives `($state, Get $get, Set $set)`
+  and may mutate other fields (e.g. derive `slug` from `name`). The Form diffs
+  `formData` against the previous render in a `#[PreReRender]` pass — a sub-path
+  model write (`formData[name]`) can't be caught by an `onUpdated` hook with
+  dynamic field names, so the snapshot diff is the correct mechanism.
+- **FRM-11** **State accessors** — `Get` and `Set` value objects over the form
+  state, replacing raw `$formData` access in callbacks. **Both ✅ delivered**
+  (`Atrium\Form\Get` invokable read; `Atrium\Form\Set` invokable write). (Stretch:
+  typed reads `$get->int()`, `$get->bool()`, …, matching Filament.)
+- **FRM-12** **Fluent validation helpers — ✅ delivered (partly).** `->maxLength()`,
+  `->minLength()`, `->length()`, `->regex()` (→ `Length`/`Regex`) and numeric
+  `NumberField::min()/max()` (→ `GreaterThanOrEqual`/`LessThanOrEqual`).
+  `rules([...])` stays the escape hatch. *Deferred:* `->same(field)` — cross-field
+  equality needs the contextual validator, not a standalone constraint.
+- **FRM-13** **Presentation niceties — ✅ delivered (partly).** `->placeholder(string)`
+  (Text/Textarea/Number), `->autofocus()`, `->hiddenLabel()` (a11y-only label).
+  *Deferred:* `->inlineLabel()` (needs a flex wrapper layout).
 - **FRM-14** **Dehydration control** — `->dehydrated(false)` (a field shown but
   not written to the model) and confirm the existing `normalize()` /
   `toFormValue()` cover Filament's `dehydrateStateUsing()` / `formatStateUsing()`
@@ -311,9 +312,12 @@ Phase 2), before Actions.
   three content components from §4.4 (`CNT-01..03`). *Verified:* a field
   appears/disappears on a `->live()` change (subcategory follows category) and per
   operation (`visibleOn('edit')`); hidden fields are not validated.
-- **M3 — Reactivity + validation DX (`FRM-10, FRM-11 Set, FRM-12, FRM-13`).**
-  `afterStateUpdated`, `Get`/`Set`, fluent validation helpers, placeholder/
-  autofocus/hiddenLabel. *Acceptance:* name→slug demo works; `maxLength()` rejects.
+- **M3 — Reactivity + validation DX (`FRM-10, FRM-11 Set, FRM-12, FRM-13`) — ✅ delivered.**
+  `afterStateUpdated` (via a `#[PreReRender]` snapshot diff), the `Set` accessor,
+  fluent validation helpers (`maxLength`/`minLength`/`length`/`regex`, numeric
+  `min`/`max`), and `placeholder`/`autofocus`/`hiddenLabel`. *Verified:* name→SKU
+  derivation works live in the browser; helpers compile to the right constraints.
+  *Deferred:* `same()` (contextual validator), `inlineLabel()`.
 - **M4 — Cheap field types (`FLD-01..05`).** Radio, Toggle, Hidden, Color,
   ToggleButtons. *Acceptance:* each renders, normalizes, validates, round-trips.
 - **M5 — Stretch (`SCH-10` Tabs/Wizard, `FLD-06..07`, `FRM-14`).**

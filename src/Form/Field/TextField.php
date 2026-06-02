@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atrium\Form\Field;
 
+use Atrium\Form\Concern\HasPlaceholder;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\Url;
 
@@ -13,6 +14,8 @@ use Symfony\Component\Validator\Constraints\Url;
  */
 class TextField extends Field
 {
+    use HasPlaceholder;
+
     private string $inputType = 'text';
 
     public function getType(): string

@@ -6,8 +6,10 @@ namespace Atrium\Tests\Functional;
 
 use Atrium\DataProvider\ArrayDataWriter;
 use Atrium\Tests\Fixtures\Entity\Tag;
+use Atrium\Twig\Components\Form;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
+use Symfony\UX\LiveComponent\Test\TestLiveComponent;
 
 /**
  * SCH-* : a form whose schema is a Section + nested Grid renders its layout and
@@ -72,6 +74,15 @@ final class FormLayoutComponentTest extends KernelTestCase
         self::assertStringContainsString('atrium_notes', $edit);
     }
 
+    public function testAfterStateUpdatedDerivesSlugFromName(): void
+    {
+        $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag']);
+
+        $component->set('formData', ['name' => 'Hello World'])->render();
+
+        self::assertSame('hello-world', $this->form($component)->formData['slug'] ?? null);
+    }
+
     public function testLayoutFormStillPersists(): void
     {
         $component = $this->createLiveComponent('Atrium:Form', ['resource' => 'layout-tag']);
@@ -87,5 +98,13 @@ final class FormLayoutComponentTest extends KernelTestCase
         self::assertInstanceOf(Tag::class, $tags[0]);
         self::assertSame('Gridberry', $tags[0]->name);
         self::assertTrue($tags[0]->active);
+    }
+
+    private function form(TestLiveComponent $component): Form
+    {
+        $instance = $component->component();
+        self::assertInstanceOf(Form::class, $instance);
+
+        return $instance;
     }
 }
