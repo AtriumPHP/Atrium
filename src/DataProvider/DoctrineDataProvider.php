@@ -48,6 +48,11 @@ final readonly class DoctrineDataProvider implements DataProviderInterface
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
+    public function find(string $entityClass, int|string $id): ?object
+    {
+        return $this->entityManager->find($entityClass, $id);
+    }
+
     /**
      * @param class-string $entityClass
      */

@@ -1,0 +1,21 @@
+<div {{ attributes }} class="atrium-form">
+    {% if saved %}
+        <div role="status" class="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+            {{ this.resourceLabel }} saved successfully.
+        </div>
+    {% endif %}
+
+    <form data-action="live#action:prevent" data-live-action-param="save" novalidate>
+        {% for field in this.fields %}
+            {{ include('@Atrium/components/form/field.html.twig', { field: field }) }}
+        {% endfor %}
+
+        <div class="mt-6 flex items-center gap-3">
+            <button type="button" data-action="live#action" data-live-action-param="save"
+                    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                {{ this.isEdit() ? 'Save changes' : 'Create' }}
+            </button>
+            <span data-loading class="text-sm text-gray-500">Saving…</span>
+        </div>
+    </form>
+</div>

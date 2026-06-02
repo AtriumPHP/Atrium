@@ -1,0 +1,8 @@
+<select id="atrium_{{ name }}" data-model="{{ model }}" {{ field.isDisabled() ? 'disabled' }} class="{{ inputClass }}">
+    {% if field.getPlaceholder() is not null %}
+        <option value="">{{ field.getPlaceholder() }}</option>
+    {% endif %}
+    {% for value, label in this.optionsFor(field) %}
+        <option value="{{ value }}" {{ this.getValue(name) == value ? 'selected' }}>{{ label }}</option>
+    {% endfor %}
+</select>

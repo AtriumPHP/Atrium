@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Atrium\DataProvider\DataProviderInterface;
+use Atrium\DataProvider\DataWriterInterface;
 use Atrium\DataProvider\DoctrineDataProvider;
+use Atrium\DataProvider\DoctrineDataWriter;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 /*
@@ -18,4 +20,9 @@ return static function (ContainerConfigurator $container): void {
         ->autowire();
 
     $services->alias(DataProviderInterface::class, DoctrineDataProvider::class);
+
+    $services->set(DoctrineDataWriter::class)
+        ->autowire();
+
+    $services->alias(DataWriterInterface::class, DoctrineDataWriter::class);
 };

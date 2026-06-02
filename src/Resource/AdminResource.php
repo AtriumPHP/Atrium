@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Atrium\Resource;
 
+use Atrium\Form\Schema;
+use Atrium\Page\CreatePage;
+use Atrium\Page\EditPage;
+use Atrium\Page\ListPage;
+use Atrium\Page\Page;
 use Atrium\Table\Column;
 
 /**
@@ -35,6 +40,42 @@ abstract class AdminResource
     }
 
     /**
+     * Configure the create/edit form schema (FRM-01).
+     *
+     * Inline for small resources, or delegated to a dedicated `Schemas/*` class
+     * (PRD §9b). Returns the schema unchanged by default.
+     */
+    public function form(Schema $schema): Schema
+    {
+        return $schema;
+    }
+
+    /**
+     * Map action keys (index/create/edit/custom) to Page classes (RES-06).
+     * Override to supply custom Page subclasses per §9b.
+     *
+     * @return array<string, class-string<Page>>
+     */
+    public static function pages(): array
+    {
+        return [
+            'index' => ListPage::class,
+            'create' => CreatePage::class,
+            'edit' => EditPage::class,
+        ];
+    }
+
+    /**
+     * Instantiate the Page for an action, or null if the resource exposes none.
+     */
+    public function resolvePage(string $action): ?Page
+    {
+        $class = static::pages()[$action] ?? null;
+
+        return null === $class ? null : new $class();
+    }
+
+    /**
      * URL-friendly identifier, used for routing and registry lookups.
      *
      * Defaults to a kebab-case form of the entity's short name.
@@ -48,11 +89,19 @@ abstract class AdminResource
     }
 
     /**
+     * Human-readable singular label (e.g. "Customer").
+     */
+    public function getSingularLabel(): string
+    {
+        return ucfirst(str_replace('-', ' ', $this->getSlug()));
+    }
+
+    /**
      * Human-readable, pluralised label for navigation and headings.
      */
     public function getLabel(): string
     {
-        return ucfirst(str_replace('-', ' ', $this->getSlug())).'s';
+        return $this->getSingularLabel().'s';
     }
 
     /**

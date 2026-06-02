@@ -49,3 +49,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     (search/sort/paginate via `InteractsWithLiveComponents`).
   - Promoted `symfony/ux-live-component`, `symfony/ux-twig-component`,
     `symfony/routing` and `symfony/http-foundation` to runtime requirements.
+- Forms, persistence and Pages (FRM-01..06, DAT-03, LAY-03..05).
+  - `Schema` + fluent `Field` hierarchy: Text (email/url), Textarea, Number,
+    Select (static + `optionsUsing()` for dependent selects), Checkbox, Date,
+    DateTime — with normalize/format and Symfony-constraint validation.
+  - `DataWriterInterface` (DAT-03) with `DoctrineDataWriter` + in-memory
+    `ArrayDataWriter`; `DataProviderInterface::find()` for single-record loads.
+  - `Form` Live Component: hydrate/dehydrate via `formData` LiveProp, inline
+    validation (keeps last values), reactive `->live()` fields driving dependent
+    selects, save through the writer, success notice / redirect. Field rendering
+    is split into per-type widget partials under `components/form/widget/`.
+  - Page descriptor classes (`Page`, `ListPage`, `CreatePage`, `EditPage`) with a
+    `getRedirectUrl()` hook and `PageContext`; `AdminResource::pages()`. Generic
+    dispatcher routes — `/admin/{resource}/new` and `/admin/{resource}/{id}/edit`
+    — resolve resource + action → Page → embed the Form component, so adding a
+    CRUD resource needs no route registration.
+  - Added `symfony/validator` as a runtime requirement.

@@ -44,6 +44,18 @@ final class ArrayDataProvider implements DataProviderInterface
         return \count($this->filtered($entityClass, $query));
     }
 
+    public function find(string $entityClass, int|string $id): ?object
+    {
+        foreach ($this->records[$entityClass] ?? [] as $record) {
+            $recordId = $this->read($record, 'id');
+            if (null !== $recordId && (string) $id === $this->scalarToString($recordId)) {
+                return $record;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * @param class-string $entityClass
      *
@@ -102,6 +114,11 @@ final class ArrayDataProvider implements DataProviderInterface
         $value = $this->read($row, $field);
 
         return \is_scalar($value) || $value instanceof \Stringable ? (string) $value : null;
+    }
+
+    private function scalarToString(mixed $value): string
+    {
+        return \is_scalar($value) || $value instanceof \Stringable ? (string) $value : '';
     }
 
     private function readComparable(object $row, string $field): int|float|string|null

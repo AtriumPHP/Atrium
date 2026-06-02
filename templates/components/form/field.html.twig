@@ -1,0 +1,31 @@
+{#
+    Field wrapper: computes the shared rendering context (name, error, live model
+    binding, input classes) and delegates the actual widget to a per-type partial
+    under form/widget/. Adding a field type is a matter of dropping in a widget
+    template — no central if/elseif ladder.
+#}
+{% set name = field.getName() %}
+{% set error = this.getError(name) %}
+{% set model = field.isLive() ? 'formData[' ~ name ~ ']' : 'norender|formData[' ~ name ~ ']' %}
+{% set inputClass = 'mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ' ~ (error
+    ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
+    : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500') %}
+
+<div class="mb-4">
+    {% if field.getType() != 'checkbox' %}
+        <label for="atrium_{{ name }}" class="block text-sm font-medium text-gray-700">
+            {{ field.getLabel() }}{% if field.isRequired() %} <span class="text-red-500">*</span>{% endif %}
+        </label>
+    {% endif %}
+
+    {{ include('@Atrium/components/form/widget/' ~ field.getType() ~ '.html.twig', {
+        field: field, name: name, model: model, inputClass: inputClass,
+    }) }}
+
+    {% if field.getHelp() %}
+        <p class="mt-1 text-xs text-gray-500">{{ field.getHelp() }}</p>
+    {% endif %}
+    {% if error %}
+        <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+    {% endif %}
+</div>

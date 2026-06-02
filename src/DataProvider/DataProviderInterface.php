@@ -31,4 +31,11 @@ interface DataProviderInterface
      * @param class-string $entityClass
      */
     public function count(string $entityClass, DataQuery $query): int;
+
+    /**
+     * Load a single record by its identifier, or null if not found.
+     *
+     * @param class-string $entityClass
+     */
+    public function find(string $entityClass, int|string $id): ?object;
 }

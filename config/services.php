@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Atrium\Controller\AdminController;
+use Atrium\DataProvider\DataProviderInterface;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Twig\PanelAssetsExtension;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -31,6 +32,7 @@ return static function (ContainerConfigurator $container): void {
             service(ResourceRegistry::class),
             param('atrium.brand'),
             param('atrium.path_prefix'),
+            service(DataProviderInterface::class)->ignoreOnInvalid(),
         ])
         ->tag('controller.service_arguments');
 

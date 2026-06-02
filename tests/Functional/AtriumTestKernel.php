@@ -6,7 +6,9 @@ namespace Atrium\Tests\Functional;
 
 use Atrium\AtriumBundle;
 use Atrium\DataProvider\ArrayDataProvider;
+use Atrium\DataProvider\ArrayDataWriter;
 use Atrium\DataProvider\DataProviderInterface;
+use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Tests\Fixtures\Data\SampleData;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
@@ -57,6 +59,7 @@ final class AtriumTestKernel extends Kernel
             'http_method_override' => false,
             'handle_all_throwables' => true,
             'php_errors' => ['log' => true],
+            'validation' => ['enabled' => true],
             'asset_mapper' => [
                 'paths' => ['%kernel.project_dir%/assets'],
             ],
@@ -73,10 +76,13 @@ final class AtriumTestKernel extends Kernel
             ->autoconfigure()
             ->autowire();
 
-        // Bind the backend-agnostic read layer to an in-memory provider.
+        // Bind the backend-agnostic read/write layer to in-memory adapters.
         $services->set(ArrayDataProvider::class)
             ->factory([SampleData::class, 'provider']);
         $services->alias(DataProviderInterface::class, ArrayDataProvider::class);
+
+        $services->set(ArrayDataWriter::class)->public();
+        $services->alias(DataWriterInterface::class, ArrayDataWriter::class);
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void

@@ -21,6 +21,7 @@
         "symfony/property-access": "^8.1",
         "symfony/routing": "^8.1",
         "symfony/twig-bundle": "^8.1",
+        "symfony/validator": "^8.1",
         "symfony/ux-live-component": "^3.0",
         "symfony/ux-twig-component": "^3.0"
     },

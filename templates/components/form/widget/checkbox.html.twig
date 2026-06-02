@@ -1,0 +1,6 @@
+<label class="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+    <input type="checkbox" id="atrium_{{ name }}" data-model="{{ model }}"
+           {{ this.getValue(name) ? 'checked' }} {{ field.isDisabled() ? 'disabled' }}
+           class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+    {{ field.getLabel() }}{% if field.isRequired() %} <span class="text-red-500">*</span>{% endif %}
+</label>
