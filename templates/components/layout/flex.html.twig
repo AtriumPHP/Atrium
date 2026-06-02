@@ -1,0 +1,11 @@
+{#
+    Flex: children sit in a row from the configured breakpoint up, stacked below.
+    Each child fills available space unless it opted out with grow(false).
+#}
+<div class="flex flex-col gap-4 {{ component.getFromBreakpoint() }}:flex-row">
+    {% for child in component.getChildComponents() %}
+        <div class="{{ child.getGrowClass() }}">
+            {{ include(child.getTemplate(), { component: child }) }}
+        </div>
+    {% endfor %}
+</div>

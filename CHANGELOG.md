@@ -76,8 +76,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   list.
   - New top-level **`Atrium\Layout`** subsystem (view-agnostic, reusable by future
     dashboards/infolists): `Component` contract, `LayoutComponent` base,
-    `Grid`/`Section`/`Fieldset`, and a `HasColumnSpan` concern
-    (`columnSpan()`/`columnSpanFull()`).
+    `Grid`/`Flex`/`Section`/`Fieldset`, and placement concerns `HasColumnSpan`
+    (`columnSpan()`/`columnSpanFull()`) and `HasGrow` (`grow()` for `Flex`
+    children; `Flex::from()` sets the row's breakpoint).
   - `Schema::components([...])` builds the tree; `Schema::fields([...])` is kept
     as the flat shortcut. `Schema::getFields()` flattens leaves depth-first for
     hydration/validation; `getComponents()` exposes the tree for rendering.

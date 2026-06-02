@@ -35,6 +35,9 @@ final class FormLayoutComponentTest extends KernelTestCase
         // Responsive grid + the full-width span on "slug".
         self::assertStringContainsString('lg:grid-cols-2', $html);
         self::assertStringContainsString('col-span-full', $html);
+        // Flex row + a child that opted out of growing.
+        self::assertStringContainsString('md:flex-row', $html);
+        self::assertStringContainsString('flex-none', $html);
         // The flattened fields still render their inputs.
         self::assertStringContainsString('atrium_name', $html);
         self::assertStringContainsString('atrium_slug', $html);

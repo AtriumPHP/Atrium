@@ -106,6 +106,11 @@ the keystone change here; everything else composes onto it.
   tiny bit of local JS is acceptable, as pure progressive enhancement).
 - **SCH-10** (Stretch) **Tabs** and **Wizard** (multi-step) layout components,
   building on the same tree; Wizard adds step validation + next/prev actions.
+- **SCH-11** **Flex** — `Flex::make()->schema([...])->from('md')`; a flexbox row
+  (children side by side from the `from()` breakpoint up, stacked below) where
+  widths are content-driven. Children opt out of growing with `->grow(false)`
+  (`flex-none`) so siblings expand around them. Complements Grid (fixed columns)
+  for toolbar-like rows of compact controls.
 
 ### 4.2 Field-level capabilities — `FRM` (continued)
 
@@ -261,14 +266,15 @@ done (tests green, PHPStan max, CS clean, `CHANGELOG.md` + docs updated). This
 slots in as **Phase 2.5** (after the `make:atrium:resource` maker that closes
 Phase 2), before Actions.
 
-- **M1 — Schema tree + layout (`SCH-01..08`) — ✅ delivered.** The keystone.
-  `Atrium\Layout\Component`, `components()`, `Grid`/`Section`/`Fieldset`,
-  `columnSpan`/`columnSpanFull`, the view-agnostic recursive renderer + layout
-  templates + safelisted grid CSS. Layout was promoted to the top-level
-  `Atrium\Layout` namespace for reuse beyond forms. *Verified:* two-column
-  sections with full-width spans render and save (and a reactive dependent select
-  works inside a grid); nested Grid-in-Section works; flat `fields([...])` is
-  unchanged. *Deferred to a later milestone:* responsive `columnSpan` arrays,
+- **M1 — Schema tree + layout (`SCH-01..08`, `SCH-11`) — ✅ delivered.** The
+  keystone. `Atrium\Layout\Component`, `components()`,
+  `Grid`/`Flex`/`Section`/`Fieldset`, `columnSpan`/`columnSpanFull` and
+  `grow()`/`from()`, the view-agnostic recursive renderer + layout templates +
+  safelisted grid/flex CSS. Layout was promoted to the top-level `Atrium\Layout`
+  namespace for reuse beyond forms. *Verified:* two-column sections with
+  full-width spans and a Flex row render and save (a reactive dependent select
+  works inside a grid); nested layout works; flat `fields([...])` is unchanged.
+  *Deferred to a later milestone:* responsive `columnSpan` arrays,
   `columnStart`/`columnOrder`, Section `aside`/`icon`, Tabs/Wizard (`SCH-10`).
 - **M2 — Conditional visibility (`FRM-08, FRM-09, FRM-11 Get`).** Server-evaluated
   `visible/hidden/visibleOn/hiddenOn`; hidden fields skip validation. *Acceptance:*

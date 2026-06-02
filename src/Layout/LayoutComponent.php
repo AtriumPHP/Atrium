@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Atrium\Layout;
 
 use Atrium\Layout\Concern\HasColumnSpan;
+use Atrium\Layout\Concern\HasGrow;
 
 /**
- * Base class for layout containers (Grid, Section, Fieldset).
+ * Base class for layout containers (Grid, Flex, Section, Fieldset).
  *
  * A layout component arranges child components into a responsive CSS grid. It is
  * pure presentation: it carries no view state of its own. Custom containers can
@@ -16,6 +17,7 @@ use Atrium\Layout\Concern\HasColumnSpan;
 abstract class LayoutComponent implements Component
 {
     use HasColumnSpan;
+    use HasGrow;
 
     /** @var list<Component> */
     protected array $components = [];

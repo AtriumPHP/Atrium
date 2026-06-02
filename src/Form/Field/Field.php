@@ -6,6 +6,7 @@ namespace Atrium\Form\Field;
 
 use Atrium\Layout\Component;
 use Atrium\Layout\Concern\HasColumnSpan;
+use Atrium\Layout\Concern\HasGrow;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -27,6 +28,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 abstract class Field implements Component
 {
     use HasColumnSpan;
+    use HasGrow;
 
     protected ?string $label = null;
 

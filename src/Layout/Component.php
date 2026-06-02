@@ -39,4 +39,10 @@ interface Component
      * default single-column span.
      */
     public function getColumnSpanClass(): string;
+
+    /**
+     * Tailwind flex class controlling whether this node grows to fill space when
+     * it is a child of a {@see Flex} row (`flex-1` vs `flex-none`).
+     */
+    public function getGrowClass(): string;
 }

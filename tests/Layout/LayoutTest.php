@@ -6,6 +6,7 @@ namespace Atrium\Tests\Layout;
 
 use Atrium\Form\Field\TextField;
 use Atrium\Layout\Fieldset;
+use Atrium\Layout\Flex;
 use Atrium\Layout\Grid;
 use Atrium\Layout\Section;
 use PHPUnit\Framework\TestCase;
@@ -60,6 +61,26 @@ final class LayoutTest extends TestCase
         self::assertSame('grid-cols-1 lg:grid-cols-2', $fieldset->getGridClass());
         self::assertTrue($fieldset->isContained());
         self::assertFalse($fieldset->contained(false)->isContained());
+    }
+
+    public function testFlexBreakpointAndGrow(): void
+    {
+        $flex = Flex::make()->from('lg')->schema([
+            TextField::make('a'),
+            TextField::make('b')->grow(false),
+        ]);
+
+        self::assertSame('lg', $flex->getFromBreakpoint());
+        self::assertSame('@Atrium/components/layout/flex.html.twig', $flex->getTemplate());
+
+        [$grows, $fixed] = $flex->getChildComponents();
+        self::assertSame('flex-1', $grows->getGrowClass());
+        self::assertSame('flex-none', $fixed->getGrowClass());
+    }
+
+    public function testFlexDefaultsToMdBreakpoint(): void
+    {
+        self::assertSame('md', Flex::make()->getFromBreakpoint());
     }
 
     public function testLayoutExposesItsChildren(): void
