@@ -120,9 +120,12 @@
             </thead>
             <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
                 {% for row in this.rows %}
-                    <tr class="transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/40 {{ row.selected ? 'bg-primary-50/40 dark:bg-primary-950/20' : '' }}">
+                    {# A `row.url` makes the whole row a link via a stretched overlay
+                       anchor (no JS); the checkbox and action cells are raised above
+                       it (relative z-10) so they stay independently clickable. #}
+                    <tr class="transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/40 {{ row.selected ? 'bg-primary-50/40 dark:bg-primary-950/20' : '' }} {{ row.url ? 'relative cursor-pointer' }}">
                         {% if this.hasBulkActions %}
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 {{ row.url ? 'relative z-10' }}">
                                 <input
                                     type="checkbox"
                                     aria-label="Select row"
@@ -136,6 +139,11 @@
                         {% endif %}
                         {% for cell in row.cells %}
                             <td class="whitespace-nowrap px-4 py-3 text-gray-700 first:font-medium first:text-gray-900 dark:text-gray-300 dark:first:text-gray-100 {{ alignClasses[cell.align] }}">
+                                {% if loop.first and row.url %}
+                                    <a href="{{ row.url }}" class="absolute inset-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500">
+                                        <span class="sr-only">{{ cell.value|default('View') }}</span>
+                                    </a>
+                                {% endif %}
                                 {% if cell.boolean %}
                                     {% if cell.state %}
                                         <span class="text-green-600 dark:text-green-400" title="Yes">{{ atrium_icon('check', { class: 'h-5 w-5' }) }}</span>
@@ -151,7 +159,7 @@
                             </td>
                         {% endfor %}
                         {% if this.hasRecordActions %}
-                            <td class="whitespace-nowrap px-4 py-3 text-right">
+                            <td class="whitespace-nowrap px-4 py-3 text-right {{ row.url ? 'relative z-10' }}">
                                 {{ include('@Atrium/components/actions.html.twig', { actions: row.actions }) }}
                             </td>
                         {% endif %}

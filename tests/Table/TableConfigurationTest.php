@@ -70,4 +70,14 @@ final class TableConfigurationTest extends TestCase
         self::assertSame('Add one to begin.', $table->getEmptyDescription());
         self::assertSame('cube', $table->getEmptyIcon());
     }
+
+    public function testRecordUrlDefaultsToViewAndIsConfigurable(): void
+    {
+        self::assertSame('view', TableConfiguration::make()->getRecordUrl());
+        self::assertSame('edit', TableConfiguration::make()->recordUrl('edit')->getRecordUrl());
+        self::assertNull(TableConfiguration::make()->recordUrl(null)->getRecordUrl());
+
+        $closure = static fn (object $record): string => '/custom';
+        self::assertSame($closure, TableConfiguration::make()->recordUrl($closure)->getRecordUrl());
+    }
 }

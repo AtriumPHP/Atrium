@@ -86,6 +86,28 @@ final class RecordViewTest extends WebTestCase
         self::assertResponseStatusCodeSame(403);
     }
 
+    public function testListRowsLinkToTheViewScreen(): void
+    {
+        $client = self::createClient();
+        $client->request('GET', '/admin/view-tag');
+
+        self::assertResponseIsSuccessful();
+        // The row is a link to the bare record URL (the View screen) via the
+        // stretched overlay anchor in the first cell.
+        self::assertSelectorExists('tbody a[href="/admin/view-tag/3"]');
+    }
+
+    public function testListRowsAreNotClickableWithoutAViewScreen(): void
+    {
+        $client = self::createClient();
+        $client->request('GET', '/admin/tag');
+
+        self::assertResponseIsSuccessful();
+        // TagResource has no 'view' page, so the default 'view' target suppresses
+        // the row link (the bare record URL is not linked).
+        self::assertSelectorNotExists('tbody a[href="/admin/tag/3"]');
+    }
+
     public function testCreateRouteStillWinsOverTheViewRoute(): void
     {
         $client = self::createClient();

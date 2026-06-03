@@ -8,6 +8,8 @@ use Atrium\Form\Schema;
 use Atrium\Layout\Section;
 use Atrium\Page\ViewPage;
 use Atrium\Resource\AdminResource;
+use Atrium\Table\Column;
+use Atrium\Table\TableConfiguration;
 use Atrium\Tests\Fixtures\Entity\Tag;
 use Atrium\View\RepeatableEntry;
 use Atrium\View\TextEntry;
@@ -28,6 +30,13 @@ final class ViewTagResource extends AdminResource
     public function getSlug(): string
     {
         return 'view-tag';
+    }
+
+    public function table(TableConfiguration $table): TableConfiguration
+    {
+        // A column so the list renders cells (the clickable-row overlay attaches to
+        // the first one); the row target stays the default (view).
+        return $table->columns([Column::make('name')]);
     }
 
     public function view(Schema $schema): Schema

@@ -31,6 +31,15 @@ final readonly class ActionContext
      */
     public function recordUrl(string $action): string
     {
-        return $this->resourceUrl().'/'.rawurlencode($this->recordId).'/'.$action;
+        return $this->recordRootUrl().'/'.$action;
+    }
+
+    /**
+     * The bare per-record URL with no action segment, e.g. `/admin/product/42` —
+     * the read-only View screen and the counterpart of {@see recordUrl()}.
+     */
+    public function recordRootUrl(): string
+    {
+        return $this->resourceUrl().'/'.rawurlencode($this->recordId);
     }
 }

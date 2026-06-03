@@ -9,6 +9,7 @@ use Atrium\Action\ActionContext;
 use Atrium\DataProvider\ArrayDataWriter;
 use Atrium\Table\Action\DeleteAction;
 use Atrium\Table\Action\EditAction;
+use Atrium\Table\Action\ViewAction;
 use PHPUnit\Framework\TestCase;
 
 final class ActionTest extends TestCase
@@ -19,6 +20,18 @@ final class ActionTest extends TestCase
 
         self::assertSame('/admin/product', $context->resourceUrl());
         self::assertSame('/admin/product/42/edit', $context->recordUrl('edit'));
+        self::assertSame('/admin/product/42', $context->recordRootUrl());
+    }
+
+    public function testViewActionResolvesTheBareRecordUrl(): void
+    {
+        $view = ViewAction::make();
+
+        self::assertSame('view', $view->getName());
+        self::assertSame('View', $view->getLabel());
+        self::assertSame('view', $view->getAbility());
+        self::assertSame('/admin/product/7', $view->getUrl(new \stdClass(), new ActionContext('/admin', 'product', '7')));
+        self::assertFalse($view->isServerAction());
     }
 
     public function testFluentPresentationAndView(): void

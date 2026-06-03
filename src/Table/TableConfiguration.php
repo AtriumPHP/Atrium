@@ -52,6 +52,14 @@ final class TableConfiguration
 
     private ?string $emptyIcon = null;
 
+    /**
+     * What a row click navigates to: `'view'` / `'edit'`, a
+     * `fn (object $record): ?string` for a custom URL, or `null` to disable
+     * clickable rows. `'view'`/`'edit'` auto-suppress when the resource has no such
+     * page or the user lacks the ability for that record.
+     */
+    private string|\Closure|null $recordUrl = 'view';
+
     public function __construct()
     {
         $this->recordActions = [EditAction::make()];
@@ -156,6 +164,24 @@ final class TableConfiguration
         $this->emptyIcon = $icon;
 
         return $this;
+    }
+
+    /**
+     * Set what a row click navigates to: `'view'` (the default), `'edit'`, a
+     * `fn (object $record): ?string` for a custom URL, or `null` to make rows
+     * non-clickable. A `'view'`/`'edit'` target is auto-suppressed per record when
+     * the resource has no such page or the user lacks the ability.
+     */
+    public function recordUrl(string|\Closure|null $target): static
+    {
+        $this->recordUrl = $target;
+
+        return $this;
+    }
+
+    public function getRecordUrl(): string|\Closure|null
+    {
+        return $this->recordUrl;
     }
 
     /**

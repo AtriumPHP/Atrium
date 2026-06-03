@@ -543,10 +543,44 @@ final class DataTable
                 'selected' => null !== $id && $this->isRecordSelected($id),
                 'cells' => $cells,
                 'actions' => $rowActions,
+                'url' => $this->resolveRowUrl($record, $context),
             ];
         }
 
         return $rows;
+    }
+
+    /**
+     * The URL a row click navigates to, per the table's configured target
+     * (`recordUrl()`): a custom closure's result, or the bare view / edit URL —
+     * auto-suppressed when the resource has no such page or the user lacks the
+     * ability for this record. `null` leaves the row non-clickable.
+     */
+    private function resolveRowUrl(object $record, ActionContext $context): ?string
+    {
+        $target = $this->tableConfig()->getRecordUrl();
+
+        if ($target instanceof \Closure) {
+            $url = $target($record);
+
+            return \is_string($url) && '' !== $url ? $url : null;
+        }
+
+        return match ($target) {
+            'view' => $this->canReachPage('view', $record) ? $context->recordRootUrl() : null,
+            'edit' => $this->canReachPage('edit', $record) ? $context->recordUrl('edit') : null,
+            default => null,
+        };
+    }
+
+    /**
+     * Whether the resource exposes the given page and the user may reach it for
+     * this record (the page exists and its ability passes).
+     */
+    private function canReachPage(string $action, object $record): bool
+    {
+        return null !== $this->resource()->resolvePage($action)
+            && $this->resource()->can($action, $record);
     }
 
     public function getTotalCount(): int
