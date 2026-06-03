@@ -54,18 +54,6 @@ abstract class Widget
     }
 
     /**
-     * Grid width when placed in a dashboard (or any grid). An int spans N columns
-     * at `lg`+; `'full'` always spans the row; a per-breakpoint map (e.g.
-     * `['md' => 2, 'xl' => 3]`) gives responsive control.
-     *
-     * @return int|string|array<string, int>
-     */
-    public function getColumnSpan(): int|string|array
-    {
-        return 1;
-    }
-
-    /**
      * Auto-refresh cadence (e.g. `'10s'`, `'500ms'`, `'2m'`); null disables
      * polling. Each tick re-renders only this widget and recomputes its data.
      */
@@ -81,29 +69,4 @@ abstract class Widget
      * @internal
      */
     abstract public function getView(): string;
-
-    /**
-     * Tailwind column-span classes derived from {@see getColumnSpan()}.
-     *
-     * @internal
-     */
-    public function getColumnSpanClass(): string
-    {
-        $span = $this->getColumnSpan();
-
-        if (\is_int($span)) {
-            return 'lg:col-span-'.$span;
-        }
-
-        if (\is_string($span)) {
-            return 'full' === $span ? 'col-span-full' : '';
-        }
-
-        $classes = [];
-        foreach ($span as $breakpoint => $count) {
-            $classes[] = $breakpoint.':col-span-'.$count;
-        }
-
-        return implode(' ', $classes);
-    }
 }

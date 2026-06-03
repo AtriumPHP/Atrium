@@ -8,8 +8,9 @@ namespace Atrium\Widget;
  * A widget that renders a row of {@see Stat} cards (WGT-09).
  *
  * Subclass it, inject your data source, and return the stats — the framework lays
- * them out in a responsive grid and makes the whole widget refreshable. The
- * widget spans the full grid width by default, since it is itself a row of cards.
+ * them out in a responsive grid and makes the whole widget refreshable. Where the
+ * widget sits and how wide it is are decided by its placement (a
+ * {@see \Atrium\Dashboard\WidgetSlot} in a dashboard layout), not the widget.
  */
 abstract class StatsWidget extends Widget
 {
@@ -27,11 +28,6 @@ abstract class StatsWidget extends Widget
     public function getColumns(): int
     {
         return 3;
-    }
-
-    public function getColumnSpan(): int|string|array
-    {
-        return 'full';
     }
 
     public function getView(): string

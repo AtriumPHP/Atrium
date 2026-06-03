@@ -51,11 +51,6 @@ abstract class ChartWidget extends Widget
         return null;
     }
 
-    public function getColumnSpan(): int|string|array
-    {
-        return 'full';
-    }
-
     public function getView(): string
     {
         return '@Atrium/components/widget/chart.html.twig';

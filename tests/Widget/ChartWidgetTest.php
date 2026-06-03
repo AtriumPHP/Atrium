@@ -19,7 +19,6 @@ final class ChartWidgetTest extends TestCase
         self::assertSame([], $widget->getOptions());
         self::assertNull($widget->getHeading());
         self::assertSame('@Atrium/components/widget/chart.html.twig', $widget->getView());
-        self::assertSame('col-span-full', $widget->getColumnSpanClass());
     }
 
     public function testBuildChartSetsTypeDataAndMergesResponsiveDefaults(): void

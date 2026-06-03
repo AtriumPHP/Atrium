@@ -4,12 +4,14 @@
 {% block heading %}{{ dashboard.getTitle() }}{% endblock %}
 
 {% block body %}
-    {% if dashboard.getWidgets() is not empty %}
-        <div class="grid gap-4 {{ dashboard.getColumnsClass() }}">
-            {% for widgetClass in dashboard.getWidgets() %}
-                <twig:Atrium:Widget :widget="widgetClass" />
-            {% endfor %}
-        </div>
+    {% set components = configuration.getComponents() %}
+    {% if components is not empty %}
+        {# Render the layout tree (widget slots + Grid/Section/…) as a stack;
+           columns come from nested Grids, exactly like a form schema. #}
+        {{ include('@Atrium/components/layout/components.html.twig', {
+            components: components,
+            gridClass: 'grid-cols-1',
+        }) }}
     {% endif %}
 
     {% if dashboard.rendersResourceLinks() %}
@@ -47,11 +49,11 @@
                 {% endfor %}
             </div>
         {% endif %}
-    {% elseif dashboard.getWidgets() is empty %}
+    {% elseif components is empty %}
         {# A custom dashboard with no widgets configured yet. #}
         <div class="rounded-2xl border border-dashed border-gray-300 bg-white/50 p-12 text-center dark:border-gray-700 dark:bg-gray-900/40">
             <p class="font-medium text-gray-900 dark:text-gray-100">No widgets yet</p>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Add widget classes to this dashboard's <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800">getWidgets()</code>.</p>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Add widgets in this dashboard's <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800">dashboard()</code> method.</p>
         </div>
     {% endif %}
 {% endblock %}

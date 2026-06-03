@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atrium\Tests\Dashboard;
 
 use Atrium\Dashboard\Dashboard;
+use Atrium\Dashboard\DashboardConfiguration;
 use Atrium\Dashboard\DefaultDashboard;
 use PHPUnit\Framework\TestCase;
 
@@ -31,29 +32,17 @@ final class DashboardTest extends TestCase
 
         self::assertSame('Finance', $dashboard->getTitle());
         self::assertSame('Finance', $dashboard->getNavigationLabel());
-        self::assertSame([], $dashboard->getWidgets());
         self::assertTrue($dashboard->canAccess());
         self::assertTrue($dashboard->shouldRegisterNavigation());
         self::assertNull($dashboard->getNavigationSort());
         self::assertFalse($dashboard->rendersResourceLinks());
     }
 
-    public function testColumnsClassForInt(): void
+    public function testDashboardDefaultsToAnEmptyConfiguration(): void
     {
-        self::assertSame('grid-cols-1 lg:grid-cols-2', (new FinanceDashboard())->getColumnsClass());
-    }
+        $configuration = (new FinanceDashboard())->dashboard(new DashboardConfiguration());
 
-    public function testColumnsClassForResponsiveMap(): void
-    {
-        $dashboard = new class extends Dashboard {
-            /** @return array<string, int> */
-            public function getColumns(): array
-            {
-                return ['md' => 2, 'xl' => 3];
-            }
-        };
-
-        self::assertSame('grid-cols-1 md:grid-cols-2 xl:grid-cols-3', $dashboard->getColumnsClass());
+        self::assertSame([], $configuration->getComponents());
     }
 
     public function testDefaultDashboardIsRootAndRendersResourceLinks(): void

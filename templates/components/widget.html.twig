@@ -3,9 +3,8 @@
    column-span class sits on the component root so it is a grid item when the
    host is embedded directly inside a dashboard grid. #}
 {%- set definition = this.definition -%}
-{%- set rootClass = ('atrium-widget ' ~ (definition ? definition.columnSpanClass : ''))|trim -%}
 <div
-    {{ attributes.defaults({ class: rootClass }) }}
+    {{ attributes.defaults({ class: 'atrium-widget' }) }}
     {%- if this.pollDirective %} data-poll="{{ this.pollDirective }}"{% endif %}
 >
     {% if definition %}

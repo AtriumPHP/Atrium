@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Atrium\Dashboard;
 
-use Atrium\Widget\Widget;
-
 /**
  * Base class for a dashboard — a routable panel page that composes
- * {@see Widget}s into a responsive grid (DSH-01).
+ * {@see \Atrium\Widget\Widget}s into a responsive layout (DSH-01).
  *
  * Like a {@see \Atrium\Page\Page}, a dashboard is a controller/descriptor class,
  * NOT a Live Component: the reactive widgets it lays out are the Live Components.
@@ -46,25 +44,19 @@ abstract class Dashboard
     }
 
     /**
-     * The widgets to render, in order. Each entry is a widget descriptor class.
+     * Configure the dashboard's layout (DSH-08) — the widgets it shows and how
+     * they are arranged. Mirrors {@see \Atrium\Resource\AdminResource::table()}
+     * and `form()`: the framework hands you a {@see DashboardConfiguration}, you
+     * populate it and return it.
      *
-     * @return list<class-string<Widget>>
+     * The simple path is `$dashboard->widgets([A::class, B::class])`; richer
+     * dashboards nest {@see WidgetSlot}s inside layout containers via
+     * `$dashboard->schema([...])`. Returns it unchanged (an empty dashboard) by
+     * default.
      */
-    public function getWidgets(): array
+    public function dashboard(DashboardConfiguration $dashboard): DashboardConfiguration
     {
-        return [];
-    }
-
-    /**
-     * Grid columns for the widget layout. An int is N columns at `lg`+ (one on
-     * small screens); a per-breakpoint map (e.g. `['md' => 2, 'xl' => 3]`) gives
-     * responsive control.
-     *
-     * @return int|array<string, int>
-     */
-    public function getColumns(): int|array
-    {
-        return 2;
+        return $dashboard;
     }
 
     /**
@@ -127,26 +119,5 @@ abstract class Dashboard
     public function rendersResourceLinks(): bool
     {
         return false;
-    }
-
-    /**
-     * Tailwind grid-template-columns classes for the widget grid.
-     *
-     * @internal
-     */
-    public function getColumnsClass(): string
-    {
-        $columns = $this->getColumns();
-
-        if (\is_int($columns)) {
-            return 1 >= $columns ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-'.$columns;
-        }
-
-        $classes = ['grid-cols-1'];
-        foreach ($columns as $breakpoint => $count) {
-            $classes[] = $breakpoint.':grid-cols-'.$count;
-        }
-
-        return implode(' ', $classes);
     }
 }

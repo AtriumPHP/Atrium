@@ -31,7 +31,8 @@ final class DashboardPageTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Insights');
-        // The stats widget and the chart widget both render.
+        // The Section heading and both widgets render through the layout tree.
+        self::assertSelectorTextContains('body', 'Key metrics');
         self::assertSelectorTextContains('body', 'Renders');
         self::assertSelectorTextContains('body', 'Sales per month');
         self::assertSelectorExists('canvas');

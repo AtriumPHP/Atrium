@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atrium\Controller;
 
 use Atrium\Dashboard\Dashboard;
+use Atrium\Dashboard\DashboardConfiguration;
 use Atrium\Dashboard\DashboardRegistry;
 use Atrium\Dashboard\DefaultDashboard;
 use Atrium\DataProvider\DataProviderInterface;
@@ -133,6 +134,7 @@ final readonly class AdminController
         return $this->render('@Atrium/admin/dashboard.html.twig', [
             'panel' => $this->panel($activeSlug),
             'dashboard' => $dashboard,
+            'configuration' => $dashboard->dashboard(new DashboardConfiguration()),
         ]);
     }
 
