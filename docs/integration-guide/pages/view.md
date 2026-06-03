@@ -193,6 +193,33 @@ payload). An array state is shown as pretty-printed JSON.
 CodeEntry::make('payload')->language('json')->columnSpanFull();
 ```
 
+#### `RepeatableEntry`
+
+Repeats a **nested schema** once per item of a relation or array attribute — an
+order's line items, a record's addresses, a list of JSON rows. Each item is bound
+as the **record** for the nested entries, so dotted paths and the full entry
+vocabulary work inside the block.
+
+| Method | Description |
+| --- | --- |
+| `schema(array $entries)` | The entries rendered for each item. |
+| `columns(int\|array)` | Column grid **within** each item's block. |
+| `grid(int\|array)` | Lay the blocks out in N columns (a gallery); default one per row. |
+| `contained(bool $contained = true)` | Wrap each block in a card (border + padding). On by default. |
+
+```php
+RepeatableEntry::make('items')->columns(3)->schema([
+    TextEntry::make('name')->weight('semibold'),
+    TextEntry::make('qty')->label('Qty'),
+    TextEntry::make('price')->money('USD', divideBy: 100),
+]);
+```
+
+The state must be a list — a Doctrine collection, an array of entities, or an array
+of maps (each map is treated as a record, so a nested `TextEntry::make('name')`
+reads its `name` key). It is the one recursive entry: nested layout containers, and
+even nested repeatables, compose naturally.
+
 ## The View page — presentation
 
 `ViewPage` (a peer of `ListPage`/`CreatePage`/`EditPage`) owns the screen's

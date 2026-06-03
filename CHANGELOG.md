@@ -36,6 +36,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   block; `language()`, `copyable()`). The semantic colour vocabulary is shared with
   `Content\Text` / `Table\Column` via a common `ResolvesColor` concern. Docs:
   `docs/integration-guide/pages/view.md`.
+- **Record View — `RepeatableEntry` (`VIEW-09`).** Repeats a nested entry schema
+  once per item of a relation / array attribute (a Doctrine collection, an array of
+  entities, or an array of maps), binding each item as the record for the nested
+  entries — `schema()`, `columns()`, `grid()` and `contained()`. It re-enters the
+  shared layout renderer, so nested containers and nested repeatables compose. This
+  completes the entry family.
 
 ### Changed
 

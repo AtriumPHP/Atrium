@@ -1,0 +1,21 @@
+{#
+    Read-only repeatable entry: render the nested schema once per item, each item
+    bound as the `record` for its entries. Re-enters the shared layout renderer so
+    nested containers (and nested repeatables) compose. `component` and the outer
+    `record` come from the surrounding context; `v` is the toView() descriptor.
+#}
+{% embed '@Atrium/components/view/_field.html.twig' %}
+    {% block value %}
+        <div class="grid gap-4 {{ component.getItemsGridClass() }}">
+            {% for item in v.items %}
+                <div class="{{ component.isContained() ? 'rounded-lg border border-gray-200 p-4 dark:border-gray-700' }}">
+                    {{ include('@Atrium/components/layout/components.html.twig', {
+                        components: component.getSchemaComponents(),
+                        record: item,
+                        gridClass: component.getColumnsGridClass(),
+                    }) }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endblock %}
+{% endembed %}

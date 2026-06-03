@@ -9,6 +9,7 @@ use Atrium\Layout\Section;
 use Atrium\Page\ViewPage;
 use Atrium\Resource\AdminResource;
 use Atrium\Tests\Fixtures\Entity\Tag;
+use Atrium\View\RepeatableEntry;
 use Atrium\View\TextEntry;
 
 /**
@@ -41,6 +42,15 @@ final class ViewTagResource extends AdminResource
                     ->formatStateUsing(static fn (mixed $state): string => $state ? 'Active' : 'Inactive')
                     ->color(static fn (mixed $state): string => $state ? 'success' : 'gray'),
                 TextEntry::make('kind')->badge(),
+            ]),
+            // A repeatable over a synthesised list: exercises that each item is
+            // bound as the record for the nested entries (the recursive render).
+            RepeatableEntry::make('variants')->columns(2)->schema([
+                TextEntry::make('label')->weight('semibold'),
+                TextEntry::make('qty')->label('Qty'),
+            ])->getStateUsing(static fn (Tag $tag): array => [
+                (object) ['label' => 'Small', 'qty' => 1],
+                (object) ['label' => 'Large', 'qty' => 2],
             ]),
         ]);
     }

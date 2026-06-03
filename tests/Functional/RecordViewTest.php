@@ -29,6 +29,18 @@ final class RecordViewTest extends WebTestCase
         self::assertSelectorTextContains('body', 'Inactive');
     }
 
+    public function testViewScreenRendersARepeatableBlockPerItem(): void
+    {
+        $client = self::createClient();
+        $client->request('GET', '/admin/view-tag/3');
+
+        self::assertResponseIsSuccessful();
+        // Each item is bound as the record for the nested entries, so both
+        // synthesised variants render their own label.
+        self::assertSelectorTextContains('body', 'Small');
+        self::assertSelectorTextContains('body', 'Large');
+    }
+
     public function testViewScreenShowsAnEditLinkInTheHeader(): void
     {
         $client = self::createClient();
