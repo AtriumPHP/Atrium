@@ -93,26 +93,16 @@ final class RepeatableEntry extends Entry
         return $this->schemaComponents;
     }
 
-    public function getItemsGridClass(): string
-    {
-        return self::gridClass($this->grid);
-    }
-
-    public function getColumnsGridClass(): string
-    {
-        return self::gridClass($this->columns);
-    }
-
-    public function isContained(): bool
-    {
-        return $this->contained;
-    }
-
     public function getTemplate(): string
     {
         return '@Atrium/components/view/repeatable.html.twig';
     }
 
+    /**
+     * The render descriptor — everything the template needs in one place: the
+     * resolved items, the nested schema to render for each, the two grid classes
+     * (the gallery of blocks, and the columns within a block) and the card flag.
+     */
     protected function viewExtras(mixed $state, object $record): array
     {
         $items = self::normaliseItems($this->applyFormatter($state, $record));
@@ -120,6 +110,13 @@ final class RepeatableEntry extends Entry
         return [
             'items' => $items,
             'isEmpty' => [] === $items,
+            'schema' => $this->schemaComponents,
+            // The blocks gallery engages at `sm` so `grid(n)` actually lays cards
+            // out at normal widths; the columns within a block follow the layout
+            // convention (`lg`), like a Section's own grid.
+            'gridClass' => self::gridClass($this->grid, 'sm'),
+            'columnsClass' => self::gridClass($this->columns, 'lg'),
+            'contained' => $this->contained,
         ];
     }
 
@@ -153,19 +150,21 @@ final class RepeatableEntry extends Entry
     }
 
     /**
-     * Tailwind grid-template-columns classes, mirroring the layout containers.
+     * Tailwind grid-template-columns classes, mirroring the layout containers. An
+     * int count stacks to one column below `$breakpoint` and opens to N at it; a
+     * per-breakpoint map is emitted verbatim (the caller controls the breakpoints).
      *
      * @param int|array<string, int> $columns
      */
-    private static function gridClass(int|array $columns): string
+    private static function gridClass(int|array $columns, string $breakpoint): string
     {
         if (\is_int($columns)) {
-            return 1 >= $columns ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-'.$columns;
+            return 1 >= $columns ? 'grid-cols-1' : 'grid-cols-1 '.$breakpoint.':grid-cols-'.$columns;
         }
 
         $classes = ['grid-cols-1'];
-        foreach ($columns as $breakpoint => $count) {
-            $classes[] = $breakpoint.':grid-cols-'.$count;
+        foreach ($columns as $at => $count) {
+            $classes[] = $at.':grid-cols-'.$count;
         }
 
         return implode(' ', $classes);

@@ -74,15 +74,16 @@ final class RepeatableEntryTest extends TestCase
 
     public function testGridAndColumnClasses(): void
     {
-        $entry = RepeatableEntry::make('items')->grid(2)->columns(3);
+        $view = RepeatableEntry::make('items')->grid(2)->columns(3)->toView(new Tag());
 
-        self::assertSame('grid-cols-1 lg:grid-cols-2', $entry->getItemsGridClass());
-        self::assertSame('grid-cols-1 lg:grid-cols-3', $entry->getColumnsGridClass());
+        // The blocks gallery engages at `sm`; the within-block columns at `lg`.
+        self::assertSame('grid-cols-1 sm:grid-cols-2', $view['gridClass']);
+        self::assertSame('grid-cols-1 lg:grid-cols-3', $view['columnsClass']);
     }
 
     public function testContainedDefaultsTrueAndIsToggleable(): void
     {
-        self::assertTrue(RepeatableEntry::make('items')->isContained());
-        self::assertFalse(RepeatableEntry::make('items')->contained(false)->isContained());
+        self::assertTrue(RepeatableEntry::make('items')->toView(new Tag())['contained']);
+        self::assertFalse(RepeatableEntry::make('items')->contained(false)->toView(new Tag())['contained']);
     }
 }
