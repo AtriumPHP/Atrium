@@ -50,7 +50,7 @@ public function table(TableConfiguration $table): TableConfiguration
                     }
                 }),
         ]);
-    // headerActions default to [CreateAction::make()] — the "New" button.
+    // The list's "New" button is a header action on the page/resource, not here.
 }
 ```
 
@@ -66,10 +66,15 @@ table.
 
 ## Header actions
 
-Buttons above the table, with no record in scope — typically links. The default is
-`[CreateAction::make()]` (the "New" button). Because there's no record, a header
-action's `visible()` must be a plain bool (a record-bound closure can't be
-evaluated and fails closed). Remove the New button with `headerActions([])`.
+Header actions — the list's "New" button and the buttons above the create/edit
+screens — live on the **page / resource**, not the table. Set them inline with
+`AdminResource::getHeaderActions(string $action, PageContext)` (the default is a
+`CreateAction` on the list), or on a dedicated [`Page`](../pages/overview.md#header-actions).
+The list screen still renders them above the table.
+
+> The table no longer has a `headerActions()` setter — header actions moved to the
+> page model so the create/edit screens can have them too. See
+> [Pages → Header actions](../pages/overview.md#header-actions).
 
 ## Bulk actions & selection
 
@@ -98,5 +103,6 @@ Every action runs inside a transaction, bracketed by the resource's
 ## See also
 
 - [Actions](../actions/overview.md) — the `Action` / `ActionGroup` builders and built-ins
-- [Table configuration](table-configuration.md) — the `recordActions` / `headerActions` / `bulkActions` setters
+- [Table configuration](table-configuration.md) — the `recordActions` / `bulkActions` setters
+- [Pages → Header actions](../pages/overview.md#header-actions) — the list "New" button and edit-screen actions
 - [Authorization](../resources/authorization.md) — gating who sees and runs each action

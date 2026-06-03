@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Page screens: headings & header actions.** `Atrium\Page\Page` is now a screen
+  descriptor: `getTitle()`/`getHeading()`/`getSubheading()` (computed defaults per
+  screen; the previously-dead `ListPage` is now used) and `getHeaderActions(): ?array`.
+  Header actions are unified onto the page model — set them inline on the resource
+  via `AdminResource::getHeaderActions(string $action, PageContext): array` (default:
+  a `CreateAction` on the list), or on a dedicated Page (which takes precedence via a
+  null sentinel). They are hosted by the screen's Live Component: the DataTable for
+  the list, and the **Form component for create/edit**, where a server-driven action
+  (e.g. `DeleteAction`) runs against the loaded record with the confirm flow and a
+  generic post-action redirect (the record is re-resolved; if it's gone — deleted or
+  out of scope — the form redirects to the list). Data/lifecycle hooks remain on the
+  resource (pages aren't DI services). **BC:** `TableConfiguration::headerActions()`
+  is removed (the default New button moved to the resource). Docs:
+  `docs/integration-guide/pages/overview.md`; PRD: `docs/PRD-page-screens.md`.
+  (PAG-01..06.) **Public API change.**
+
 - **Dashboards & widgets.** A new widget layer: `Atrium\Widget\Widget` (an
   abstract descriptor service, not a Live Component), with two concrete families —
   `StatsWidget` (a row of `Stat` cards) and `ChartWidget` (a Chart.js chart via

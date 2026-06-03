@@ -1,15 +1,21 @@
 # Pages
 
 > The screens a resource exposes — list, create, edit — and how to customise their
-> behaviour (like where a save sends the user).
+> presentation (heading, header actions) and behaviour (post-save redirect).
 
 ## When to use
 
 A **Page** is a controller/descriptor class — *not* a Live Component. It owns a
-panel screen's behaviour and hooks; the reactive widgets inside it (the table, the
-form) are the Live Components. You rarely write a page from scratch: every
-resource gets the three defaults automatically. You reach for this when you want to
-**change a screen's behaviour** — most commonly, the post-save redirect.
+panel screen's **presentation and behaviour** — its heading/subheading, its header
+actions, and its post-save redirect; the reactive widgets inside it (the table, the
+form) are the Live Components. You rarely write a page from scratch: every resource
+gets the three defaults automatically. You reach for a custom Page (or the inline
+shortcuts below) to change one of those.
+
+> Pages own *presentation*, not data. They are plain descriptor classes
+> instantiated with `new` — **not** services — so they cannot inject dependencies.
+> Data and lifecycle hooks (form mutation, save side-effects, authorization) live
+> on the [resource](../resources/lifecycle-hooks.md), which is a service.
 
 ## The default pages
 
@@ -24,6 +30,62 @@ Each resource exposes three pages, mapped by action:
 They are wired to the parametric routes (`/admin/{resource}`,
 `/admin/{resource}/new`, `/admin/{resource}/{id}/edit`), so adding a resource
 needs no routing.
+
+## Heading & subheading
+
+Each page renders a heading (the `<h1>`) and an optional subheading, with sensible
+defaults: the list shows the plural label, create shows `New {singular}`, edit
+shows `Edit {singular}`. Override on a custom page — for example, an edit page with
+a subheading:
+
+```php
+namespace App\Admin\Pages;
+
+use Atrium\Page\EditPage;
+use Atrium\Page\PageContext;
+
+final class EditProduct extends EditPage
+{
+    public function getSubheading(PageContext $context): ?string
+    {
+        return 'Editing product #'.$context->entityId;
+    }
+}
+```
+
+`getHeading()`, `getTitle()` (the browser tab title, defaults to the heading) and
+`getSubheading()` all receive the `PageContext` (slug, path prefix, entity id, and
+the resource's singular/plural labels).
+
+## Header actions
+
+Header actions are the buttons above a screen — the list's "New" button, or
+record-scoped actions on the edit screen (Delete, Duplicate). They run
+server-driven through the screen's Live Component, so an `->action()` handler works
+(on the edit screen it runs against the **record being edited**; after a
+destructive action the screen redirects to the list).
+
+The **inline shortcut** lives on the resource — one method, no Page class:
+
+```php
+use Atrium\Page\PageContext;
+use Atrium\Table\Action\DeleteAction;
+
+public function getHeaderActions(string $action, PageContext $context): array
+{
+    return 'edit' === $action
+        ? [DeleteAction::make()]          // server-driven; deletes the edited record
+        : parent::getHeaderActions($action, $context); // keep the default New button on the list
+}
+```
+
+`$action` is `index`/`create`/`edit`; the default is a `CreateAction` on the list
+and nothing elsewhere. Header actions respect each action's `authorize()`/`visible()`.
+
+For a dedicated screen, override `getHeaderActions(PageContext)` on a **Page**
+instead — it returns the actions and **takes precedence** over the resource's
+inline method (the base Page returns `null`, which defers to the resource). Inline
+for small cases, a Page when you want one — exactly like `table()`/`form()`.
 
 ## Customising the post-save redirect
 

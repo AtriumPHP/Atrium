@@ -6,9 +6,10 @@
 ## When to use
 
 Every resource with a list screen defines `table()`. You receive a
-`TableConfiguration` already carrying the framework defaults (an **Edit** record
-action and a **New** header action) and return it after setting what you need. It
-is the single place the whole list is described.
+`TableConfiguration` already carrying the framework default (an **Edit** record
+action) and return it after setting what you need. It is the single place the whole
+list is described. (The list's **New** button is a header action, which lives on
+the [page/resource](../pages/overview.md#header-actions), not the table.)
 
 ```php
 use Atrium\Table\Column;
@@ -41,20 +42,22 @@ public function table(TableConfiguration $table): TableConfiguration
 | `paginated(int $perPage, array $perPageOptions = []): static` | Default page size, and the sizes offered in the per-page selector. |
 | `filters(array $filters): static` | The [filters](filters.md) shown above the table. |
 | `recordActions(array $actions): static` | Per-row [actions](actions.md) (default: `EditAction`). |
-| `headerActions(array $actions): static` | Actions above the table (default: `CreateAction` — the "New" button). |
 | `bulkActions(array $actions): static` | Actions run against the selection. Adding any enables row selection. |
 | `emptyState(string $heading, ?string $description = null, ?string $icon = null): static` | The message shown when the table has no rows. |
 
 ## Defaults and how to remove them
 
-A fresh `TableConfiguration` already includes the Edit and New actions, so the
-inline example above keeps both without mentioning them. To **remove** a default,
-pass an empty list to its setter:
+A fresh `TableConfiguration` already includes the Edit record action, so the
+inline example above keeps it without mentioning it. To **remove** it, pass an
+empty list:
 
 ```php
-$table->headerActions([]);   // no "New" button (e.g. a read-only resource)
 $table->recordActions([]);   // no per-row actions
 ```
+
+To remove the list's **New** button, override the resource's header actions to
+return `[]` for the `index` screen — see
+[Pages → Header actions](../pages/overview.md#header-actions).
 
 To add to them, list the defaults alongside your own (the built-ins are plain
 classes you can re-add — see [Actions](actions.md)).
