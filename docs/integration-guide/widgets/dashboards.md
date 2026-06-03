@@ -55,8 +55,10 @@ final class FinanceDashboard extends Dashboard
 ```
 
 Atrium discovers it automatically (no tags, no YAML). It is reachable at
-`/admin/finance`, listed in the sidebar (sorted among the resources), and 403s for
-users `canAccess()` denies.
+`/admin/finance`, listed in the sidebar's **dashboards group** (above the
+resources, which sit below a divider), and 403s for users `canAccess()` denies.
+When an app defines no dashboard, the built-in default is shown in the group so
+there is always a home entry.
 
 ## Routing & the panel root
 

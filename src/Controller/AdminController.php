@@ -46,9 +46,9 @@ final readonly class AdminController
     {
         $dashboard = $this->rootDashboard();
         $this->denyUnless($dashboard->canAccess());
-        $activeSlug = $this->dashboards->hasSlug($dashboard->getSlug()) ? $dashboard->getSlug() : null;
 
-        return $this->renderDashboard($dashboard, $activeSlug);
+        // Highlight the root dashboard's nav entry (the built-in default included).
+        return $this->renderDashboard($dashboard, $dashboard->getSlug());
     }
 
     /**
@@ -171,7 +171,7 @@ final readonly class AdminController
     }
 
     /**
-     * @return array{brand: string, pathPrefix: string, items: list<array{slug: string, label: string, group: string|null, icon: string|null, url: string, active: bool, badge: string|null, badgeColor: string, sort: int}>, resources: list<array{slug: string, label: string, group: string|null, icon: string|null, url: string, active: bool, badge: string|null, badgeColor: string, sort: int}>}
+     * @return array{brand: string, pathPrefix: string, dashboards: list<array{slug: string, label: string, group: string|null, icon: string|null, url: string, active: bool, badge: string|null, badgeColor: string, sort: int}>, resources: list<array{slug: string, label: string, group: string|null, icon: string|null, url: string, active: bool, badge: string|null, badgeColor: string, sort: int}>}
      */
     private function panel(?string $activeSlug = null): array
     {
@@ -185,6 +185,7 @@ final readonly class AdminController
             }
             $resources[] = $this->resourceNavItem($resource, $activeSlug);
         }
+        usort($resources, static fn (array $a, array $b): int => $a['sort'] <=> $b['sort']);
 
         $dashboards = [];
         foreach ($this->dashboards->all() as $dashboard) {
@@ -193,20 +194,20 @@ final readonly class AdminController
             }
             $dashboards[] = $this->dashboardNavItem($dashboard, $activeSlug);
         }
+        usort($dashboards, static fn (array $a, array $b): int => $a['sort'] <=> $b['sort']);
 
-        // Sidebar: dashboards and resources merged, sorted together by weight.
-        // Unweighted entries (PHP_INT_MAX) keep their order thanks to the stable
-        // sort, listing dashboards before resources.
-        $items = array_merge($dashboards, $resources);
-        usort($items, static fn (array $a, array $b): int => $a['sort'] <=> $b['sort']);
+        // Always surface a dashboard entry: when the app defines none, show the
+        // built-in default (the /admin home).
+        if ([] === $dashboards) {
+            $dashboards[] = $this->dashboardNavItem(new DefaultDashboard(), $activeSlug);
+        }
 
-        // The default dashboard's welcome cards list resources only.
-        usort($resources, static fn (array $a, array $b): int => $a['sort'] <=> $b['sort']);
-
+        // The sidebar keeps dashboards and resources in separate, divided groups;
+        // the default dashboard's welcome cards list resources only.
         return [
             'brand' => $this->brand,
             'pathPrefix' => $this->pathPrefix,
-            'items' => $items,
+            'dashboards' => $dashboards,
             'resources' => $resources,
         ];
     }
@@ -237,13 +238,16 @@ final readonly class AdminController
     private function dashboardNavItem(Dashboard $dashboard, ?string $activeSlug): array
     {
         $slug = $dashboard->getSlug();
+        // The root-slug dashboard is served at /admin, not /admin/{slug}.
+        $base = rtrim($this->pathPrefix, '/');
+        $url = DefaultDashboard::ROOT_SLUG === $slug ? $base : $base.'/'.$slug;
 
         return [
             'slug' => $slug,
             'label' => $dashboard->getNavigationLabel(),
             'group' => $dashboard->getNavigationGroup(),
             'icon' => $dashboard->getNavigationIcon(),
-            'url' => rtrim($this->pathPrefix, '/').'/'.$slug,
+            'url' => $url,
             'active' => $slug === $activeSlug,
             'badge' => $dashboard->getNavigationBadge(),
             'badgeColor' => $dashboard->getNavigationBadgeColor(),

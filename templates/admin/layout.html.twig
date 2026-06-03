@@ -33,19 +33,32 @@
                 amber:   'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
                 sky:     'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
             } %}
-            {% for item in panel.items %}
-                <a href="{{ item.url }}"
-                   class="group flex items-center gap-3 rounded-lg px-3 py-2 font-medium transition-colors {{ item.active
-                       ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
-                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/70 dark:hover:text-white' }}">
-                    {{ include('@Atrium/icon.html.twig', { name: item.icon ?? 'squares', class: 'h-5 w-5 shrink-0' }) }}
-                    <span class="flex-1 truncate">{{ item.label }}</span>
-                    {% if item.badge is not null and item.badge != '' %}
-                        <span class="ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ item.active
-                            ? 'bg-white/20 text-white'
-                            : (navBadgeClasses[item.badgeColor] ?? navBadgeClasses.primary) }}">{{ item.badge }}</span>
-                    {% endif %}
-                </a>
+            {# Dashboards and resources are separate groups, divided by a rule. #}
+            {% set navGroups = [
+                { label: null, items: panel.dashboards },
+                { label: 'Resources', items: panel.resources },
+            ]|filter(group => group.items is not empty) %}
+            {% for group in navGroups %}
+                {% if not loop.first %}
+                    <div class="mx-3 my-3 border-t border-gray-200/70 dark:border-gray-800/70"></div>
+                {% endif %}
+                {% if group.label %}
+                    <p class="px-3 pb-1 text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">{{ group.label }}</p>
+                {% endif %}
+                {% for item in group.items %}
+                    <a href="{{ item.url }}"
+                       class="group flex items-center gap-3 rounded-lg px-3 py-2 font-medium transition-colors {{ item.active
+                           ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
+                           : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800/70 dark:hover:text-white' }}">
+                        {{ include('@Atrium/icon.html.twig', { name: item.icon ?? 'squares', class: 'h-5 w-5 shrink-0' }) }}
+                        <span class="flex-1 truncate">{{ item.label }}</span>
+                        {% if item.badge is not null and item.badge != '' %}
+                            <span class="ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ item.active
+                                ? 'bg-white/20 text-white'
+                                : (navBadgeClasses[item.badgeColor] ?? navBadgeClasses.primary) }}">{{ item.badge }}</span>
+                        {% endif %}
+                    </a>
+                {% endfor %}
             {% endfor %}
         </nav>
 

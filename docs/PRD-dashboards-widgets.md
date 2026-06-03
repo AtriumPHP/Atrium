@@ -198,8 +198,10 @@ its Stimulus controller via AssetMapper — **no JS build step** for consumers).
   **dashboard or a resource** (dashboard checked first), 404 if neither.
 - **PNL-07** Slugs are **unique across dashboards and resources**; a collision is
   detected **fast** (a compiler pass / registry build error), never silently.
-- **PNL-08** The sidebar is generated from **both** registries, sorted by the
-  shared navigation-sort vocabulary, grouped by nav group.
+- **PNL-08** The sidebar shows dashboards and resources as **two divided groups**
+  (dashboards first, a rule between them), each sorted by the shared
+  navigation-sort vocabulary. When the app defines no dashboard, the built-in
+  default dashboard is shown in the group so there is always a home entry.
 
 ## 6. Developer-facing API contract (DX spec)
 

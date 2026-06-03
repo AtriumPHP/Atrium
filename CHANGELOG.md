@@ -24,8 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   generalised — `/admin` renders the root dashboard (the built-in
   `DefaultDashboard` welcome, replaceable at the root slug), and the former
   `/admin/{resource}` route is now `/admin/{slug}`, dispatching to a dashboard or a
-  resource (slugs unique across both; collisions fail fast). The sidebar merges
-  dashboards and resources, sorted together. New dependency: `symfony/ux-chartjs`.
+  resource (slugs unique across both; collisions fail fast). The sidebar shows
+  dashboards and resources as two divided groups (the built-in default dashboard
+  appears when the app defines none). New dependency: `symfony/ux-chartjs`.
   Docs: `docs/integration-guide/widgets/`; PRD: `docs/PRD-dashboards-widgets.md`.
   (WGT-03..10, DSH-01..07, PNL-06..08.) **New public API.**
 - **Relation columns.** `Column::make('author.name')` (any depth, e.g.

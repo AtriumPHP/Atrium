@@ -64,10 +64,12 @@ final class PanelTest extends WebTestCase
         self::assertStringContainsString('Badged tags', $aside->text());
         self::assertSelectorTextContains('aside', '7');
 
+        // The dashboards group comes first; within the resources group,
         // getNavigationSort(-5) puts the badged entry ahead of the unweighted ones.
         $labels = $crawler->filter('aside nav a span.flex-1')->each(static fn ($node): string => trim($node->text()));
         self::assertNotEmpty($labels);
-        self::assertSame('Badged tags', $labels[0]);
+        self::assertSame('Insights', $labels[0]);
+        self::assertSame('Badged tags', $labels[1]);
     }
 
     public function testUnlistedResourceIsStillReachable(): void

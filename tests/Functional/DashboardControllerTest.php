@@ -40,14 +40,18 @@ final class DashboardControllerTest extends KernelTestCase
         self::assertStringNotContainsString('Welcome to', $html);
     }
 
-    public function testDefaultDashboardServedWhenNoRootRegistered(): void
+    public function testDefaultDashboardServedAndListedWhenNoneDefined(): void
     {
         $controller = $this->controller(
             new ResourceRegistry(),
             new DashboardRegistry(),
         );
 
-        self::assertStringContainsString('Welcome to', (string) $controller->dashboard()->getContent());
+        $html = (string) $controller->dashboard()->getContent();
+
+        self::assertStringContainsString('Welcome to', $html);
+        // With no user dashboards, the built-in default appears in the sidebar.
+        self::assertStringContainsString('flex-1 truncate">Dashboard</span>', $html);
     }
 
     public function testSlugCollisionBetweenDashboardAndResourceThrows(): void
