@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atrium\Resource;
 
+use Atrium\Action\Action;
 use Atrium\DataProvider\DataQuery;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Form\Schema;
@@ -13,6 +14,8 @@ use Atrium\Page\CreatePage;
 use Atrium\Page\EditPage;
 use Atrium\Page\ListPage;
 use Atrium\Page\Page;
+use Atrium\Page\PageContext;
+use Atrium\Table\Action\CreateAction;
 use Atrium\Table\TableConfiguration;
 
 /**
@@ -94,7 +97,7 @@ abstract class AdminResource
 
     /**
      * Dispatch a named ability check to the matching hook above. Used to gate an
-     * {@see \Atrium\Action\Action} by its {@see \Atrium\Action\Action::getAbility()}.
+     * {@see Action} by its {@see Action::getAbility()}.
      * Record-scoped abilities are denied when no record is supplied; an unknown
      * ability is allowed (it is not an Atrium-managed permission).
      */
@@ -353,6 +356,36 @@ abstract class AdminResource
         $class = static::pages()[$action] ?? null;
 
         return null === $class ? null : new $class();
+    }
+
+    /**
+     * Header actions for a screen — the **inline** path (no Page class needed).
+     * `$action` is `index`/`create`/`edit`. Defaults to a "New" button on the
+     * list and nothing elsewhere; override to add buttons (Import, a custom
+     * link/handler). For a dedicated screen, override {@see Page::getHeaderActions()}
+     * instead — it takes precedence (see {@see resolveHeaderActions()}).
+     *
+     * @return list<Action>
+     */
+    public function getHeaderActions(string $action, PageContext $context): array
+    {
+        return 'index' === $action ? [CreateAction::make()] : [];
+    }
+
+    /**
+     * The effective header actions for a screen: a dedicated Page's
+     * {@see Page::getHeaderActions()} wins; otherwise the resource's inline
+     * {@see getHeaderActions()}. The host Live Component renders and dispatches
+     * the result.
+     *
+     * @return list<Action>
+     *
+     * @internal
+     */
+    final public function resolveHeaderActions(string $action, PageContext $context): array
+    {
+        return $this->resolvePage($action)?->getHeaderActions($context)
+            ?? $this->getHeaderActions($action, $context);
     }
 
     /**

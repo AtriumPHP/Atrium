@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Atrium\Page;
 
+use Atrium\Action\Action;
+
 /**
  * A Page is a controller/descriptor class, NOT a Live Component (LAY-03).
  *
@@ -35,6 +37,20 @@ abstract class Page
      * An optional sub-line under the heading; null for none.
      */
     public function getSubheading(PageContext $context): ?string
+    {
+        return null;
+    }
+
+    /**
+     * Header actions for this screen, or null to defer to the resource's inline
+     * {@see \Atrium\Resource\AdminResource::getHeaderActions()}. Override to take
+     * control of the screen's header buttons; they are rendered and dispatched by
+     * the screen's Live Component (server-driven actions on the edit screen run
+     * against the loaded record).
+     *
+     * @return list<Action>|null
+     */
+    public function getHeaderActions(PageContext $context): ?array
     {
         return null;
     }

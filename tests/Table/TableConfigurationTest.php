@@ -16,7 +16,6 @@ final class TableConfigurationTest extends TestCase
 
         self::assertSame([], $table->getColumns());
         self::assertCount(1, $table->getRecordActions());
-        self::assertCount(1, $table->getHeaderActions());
         self::assertSame([], $table->getBulkActions());
         self::assertNull($table->getDefaultSortField());
         self::assertSame('asc', $table->getDefaultSortDirection());
@@ -29,12 +28,10 @@ final class TableConfigurationTest extends TestCase
         $table = TableConfiguration::make()
             ->columns([Column::make('name'), Column::make('slug')])
             ->recordActions([])
-            ->bulkActions([])
-            ->headerActions([]);
+            ->bulkActions([]);
 
         self::assertCount(2, $table->getColumns());
         self::assertSame([], $table->getRecordActions());
-        self::assertSame([], $table->getHeaderActions());
     }
 
     public function testDefaultSortNormalisesDirection(): void

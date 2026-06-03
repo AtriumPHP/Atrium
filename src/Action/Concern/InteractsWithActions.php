@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atrium\Action\Concern;
 
 use Atrium\Action\Action;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
@@ -39,36 +40,40 @@ trait InteractsWithActions
      * reach here.
      */
     #[LiveAction]
-    public function requestAction(#[LiveArg] string $name, #[LiveArg] string $id): void
+    public function requestAction(#[LiveArg] string $name, #[LiveArg] string $id): ?Response
     {
         $action = $this->findAction($name);
         if (null === $action || !$action->isServerAction() || !$this->canExecuteAction($action, $id)) {
-            return; // unknown / link-only / not applicable to this subject
+            return null; // unknown / link-only / not applicable to this subject
         }
 
         if ($action->needsConfirmation()) {
             $this->confirmingAction = $name;
             $this->confirmingId = $id;
 
-            return;
+            return null;
         }
 
-        $this->executeAction($action, $id);
+        return $this->executeAction($action, $id);
     }
 
     /**
-     * Run the action the prompt is waiting on, then dismiss it.
+     * Run the action the prompt is waiting on, then dismiss it. May return a
+     * {@see Response} (e.g. a redirect after the subject was deleted).
      */
     #[LiveAction]
-    public function confirmAction(): void
+    public function confirmAction(): ?Response
     {
+        $response = null;
         $action = null === $this->confirmingAction ? null : $this->findAction($this->confirmingAction);
         if (null !== $action && null !== $this->confirmingId
             && $action->isServerAction() && $this->canExecuteAction($action, $this->confirmingId)) {
-            $this->executeAction($action, $this->confirmingId);
+            $response = $this->executeAction($action, $this->confirmingId);
         }
 
         $this->cancelAction();
+
+        return $response;
     }
 
     /**
@@ -120,7 +125,9 @@ trait InteractsWithActions
     abstract protected function canExecuteAction(Action $action, string $subjectId): bool;
 
     /**
-     * Run a server action against the subject identified by $subjectId.
+     * Run a server action against the subject identified by $subjectId. Returns a
+     * {@see Response} to redirect (e.g. to the list after the subject was
+     * deleted), or null to re-render in place.
      */
-    abstract protected function executeAction(Action $action, string $subjectId): void;
+    abstract protected function executeAction(Action $action, string $subjectId): ?Response;
 }

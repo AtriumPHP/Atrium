@@ -7,6 +7,7 @@ namespace Atrium\Tests\Fixtures\Resource;
 use Atrium\DataProvider\DataQuery;
 use Atrium\Form\Field\TextField;
 use Atrium\Form\Schema;
+use Atrium\Page\PageContext;
 use Atrium\Resource\AdminResource;
 use Atrium\Table\Column;
 use Atrium\Table\TableConfiguration;
@@ -33,8 +34,12 @@ final class ScopedTagResource extends AdminResource
     {
         return $table
             ->columns([Column::make('name')])
-            ->recordActions([])
-            ->headerActions([]);
+            ->recordActions([]);
+    }
+
+    public function getHeaderActions(string $action, PageContext $context): array
+    {
+        return [];
     }
 
     public function form(Schema $schema): Schema

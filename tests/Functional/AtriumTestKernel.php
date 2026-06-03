@@ -18,6 +18,7 @@ use Atrium\Tests\Fixtures\Resource\ConfirmTagResource;
 use Atrium\Tests\Fixtures\Resource\DehydrateTagResource;
 use Atrium\Tests\Fixtures\Resource\FilteredTagResource;
 use Atrium\Tests\Fixtures\Resource\ForbiddenTagResource;
+use Atrium\Tests\Fixtures\Resource\HeaderActionTagResource;
 use Atrium\Tests\Fixtures\Resource\HookedTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
 use Atrium\Tests\Fixtures\Resource\PaginatedTagResource;
@@ -146,6 +147,10 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(ActionsTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(HeaderActionTagResource::class)
             ->autoconfigure()
             ->autowire();
 

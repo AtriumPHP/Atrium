@@ -34,7 +34,8 @@ final class ActionsTagResource extends AdminResource
 
     public function table(TableConfiguration $table): TableConfiguration
     {
-        // headerActions are left at the default (a CreateAction).
+        // Header actions are left at the resource default (a CreateAction on the
+        // list, via AdminResource::getHeaderActions()).
         return $table
             ->columns([Column::make('name')->searchable()])
             ->recordActions([

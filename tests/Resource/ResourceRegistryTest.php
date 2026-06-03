@@ -58,7 +58,6 @@ final class ResourceRegistryTest extends TestCase
         self::assertSame([], $table->getColumns());
         // A fresh table carries the framework defaults.
         self::assertCount(1, $table->getRecordActions());
-        self::assertCount(1, $table->getHeaderActions());
         self::assertSame([], $table->getBulkActions());
     }
 }

@@ -12,11 +12,13 @@ use Atrium\Action\Concern\InteractsWithBulkActions;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataQuery;
 use Atrium\DataProvider\DataWriterInterface;
+use Atrium\Page\PageContext;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Table\Column;
 use Atrium\Table\Filter\Filter;
 use Atrium\Table\TableConfiguration;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -214,7 +216,20 @@ final class DataTable
      */
     public function getHeaderActions(): array
     {
-        return $this->tableConfig()->getHeaderActions();
+        return $this->resource()->resolveHeaderActions('index', $this->pageContext());
+    }
+
+    private function pageContext(): PageContext
+    {
+        $resource = $this->resource();
+
+        return new PageContext(
+            $this->resource,
+            $this->pathPrefix,
+            null,
+            $resource->getSingularLabel(),
+            $resource->getLabel(),
+        );
     }
 
     public function hasHeaderActions(): bool
@@ -314,13 +329,15 @@ final class DataTable
         return null !== $record && $action->isVisibleFor($record) && $this->actionAuthorized($action, $record);
     }
 
-    protected function executeAction(Action $action, string $subjectId): void
+    // A table action never redirects (it mutates the list in place), so this
+    // narrows the trait's ?Response to null.
+    protected function executeAction(Action $action, string $subjectId): null
     {
         $handler = $action->getHandler();
         $record = $this->findRecord($subjectId);
         if (null === $handler || null === $record
             || !$action->isVisibleFor($record) || !$this->actionAuthorized($action, $record)) {
-            return;
+            return null;
         }
 
         $deletes = 'delete' === $action->getAbility();
@@ -345,6 +362,8 @@ final class DataTable
         $this->pageIds = null;
         $this->pageRecords = null;
         $this->page = min($this->page, $this->getPageCount());
+
+        return null;
     }
 
     /**

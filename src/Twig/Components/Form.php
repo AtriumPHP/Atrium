@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Atrium\Twig\Components;
 
+use Atrium\Action\Action;
+use Atrium\Action\ActionContext;
+use Atrium\Action\Concern\InteractsWithActions;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Form\Field\Field;
@@ -16,6 +19,7 @@ use Atrium\Layout\Component;
 use Atrium\Layout\LayoutComponent;
 use Atrium\Layout\Tab;
 use Atrium\Layout\Tabs;
+use Atrium\Page\PageContext;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -47,6 +51,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 class Form
 {
     use DefaultActionTrait;
+    use InteractsWithActions;
 
     #[LiveProp]
     public string $resource = '';
@@ -56,6 +61,10 @@ class Form
 
     #[LiveProp]
     public ?string $redirectAfterSave = null;
+
+    /** Panel path prefix, kept in state so header-action URLs survive re-renders. */
+    #[LiveProp]
+    public string $pathPrefix = '';
 
     /** @var array<string, mixed> */
     #[LiveProp(writable: true)]
@@ -100,11 +109,12 @@ class Form
     ) {
     }
 
-    public function mount(string $resource, ?string $entityId = null, ?string $redirectAfterSave = null): void
+    public function mount(string $resource, ?string $entityId = null, ?string $redirectAfterSave = null, string $pathPrefix = ''): void
     {
         $this->resource = $resource;
         $this->entityId = $entityId;
         $this->redirectAfterSave = $redirectAfterSave;
+        $this->pathPrefix = $pathPrefix;
         $this->formData = $this->initialFormData();
         $this->previousFormData = $this->formData;
     }
@@ -209,6 +219,130 @@ class Form
     public function operation(): string
     {
         return null === $this->entityId ? 'create' : 'edit';
+    }
+
+    // -- Header actions (PAG-05): hosted via InteractsWithActions --------------
+
+    public function hasHeaderActions(): bool
+    {
+        return [] !== $this->getHeaderActionViews();
+    }
+
+    /**
+     * Render-ready descriptors for the screen's visible header actions.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getHeaderActionViews(): array
+    {
+        $context = new ActionContext($this->pathPrefix, $this->resource, $this->entityId ?? '');
+
+        $views = [];
+        foreach ($this->headerActions() as $action) {
+            if ($action->isVisible() && $this->standaloneAuthorized($action)) {
+                $views[] = $action->toStandaloneView($context);
+            }
+        }
+
+        return $views;
+    }
+
+    /**
+     * The effective header actions for this screen (create or edit).
+     *
+     * @return list<Action>
+     */
+    private function headerActions(): array
+    {
+        return $this->resourceObject()->resolveHeaderActions($this->operation(), $this->pageContext());
+    }
+
+    private function pageContext(): PageContext
+    {
+        $resource = $this->resourceObject();
+
+        return new PageContext(
+            $this->resource,
+            $this->pathPrefix,
+            $this->entityId,
+            $resource->getSingularLabel(),
+            $resource->getLabel(),
+        );
+    }
+
+    protected function findAction(string $name): ?Action
+    {
+        foreach ($this->headerActions() as $action) {
+            if ($action->getName() === $name) {
+                return $action;
+            }
+        }
+
+        return null;
+    }
+
+    protected function canExecuteAction(Action $action, string $subjectId): bool
+    {
+        $record = $this->loadEntity();
+
+        return null !== $record && $action->isVisibleFor($record) && $this->actionAuthorized($action, $record);
+    }
+
+    protected function executeAction(Action $action, string $subjectId): ?Response
+    {
+        $handler = $action->getHandler();
+        $record = $this->loadEntity();
+        if (null === $handler || null === $record
+            || !$action->isVisibleFor($record) || !$this->actionAuthorized($action, $record)) {
+            return null;
+        }
+
+        $resource = $this->resourceObject();
+        $deletes = 'delete' === $action->getAbility();
+        $name = $action->getName();
+        // Run atomically: the lifecycle hooks and the handler commit together.
+        $this->writer->transactional(function () use ($resource, $handler, $record, $deletes, $name): void {
+            $resource->beforeAction($name, $record);
+            if ($deletes) {
+                $resource->beforeDelete($record);
+            }
+            $handler($record, $this->writer);
+            if ($deletes) {
+                $resource->afterDelete($record);
+            }
+            $resource->afterAction($name, $record);
+        });
+
+        // Generic post-action redirect: if the record is gone (e.g. deleted),
+        // there is nothing left to edit — return to the list. No per-action
+        // special-casing; a non-destructive action leaves the record and re-renders.
+        if (null === $this->loadEntity()) {
+            return new RedirectResponse($this->pageContext()->indexUrl());
+        }
+
+        return null;
+    }
+
+    /**
+     * Authorize a header action for rendering: on the edit screen gate a
+     * record-bound ability against the loaded record; elsewhere only panel-level
+     * abilities are judged (record-less).
+     */
+    private function standaloneAuthorized(Action $action): bool
+    {
+        $ability = $action->getAbility();
+        if (null === $ability) {
+            return true;
+        }
+
+        return $this->resourceObject()->can($ability, null === $this->entityId ? null : $this->loadEntity());
+    }
+
+    private function actionAuthorized(Action $action, ?object $record): bool
+    {
+        $ability = $action->getAbility();
+
+        return null === $ability || $this->resourceObject()->can($ability, $record);
     }
 
     /**
