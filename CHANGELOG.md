@@ -28,6 +28,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`path_prefix` is now authoritative for route matching, not just link
+  generation.** The parametric routes (`config/routes.php`) previously hardcoded
+  `/admin`, while `path_prefix` only changed the URLs the panel *generated* — so
+  setting it to anything else broke the panel (links pointed somewhere the routes
+  did not match). The routes now mount under the `%atrium.path_prefix%` parameter,
+  so a single config value relocates both matching and generation together.
+  Setting `path_prefix: '/administrator'` now actually serves the panel there; the
+  default stays `/admin` and the route import is unchanged. Subdomain hosting
+  (`admin.example.com`) is documented via the route import's `host:` option. Docs:
+  `docs/integration-guide/panel/customization.md#changing-the-url-the-panel-lives-at`.
+
 - **Icons now render through [Symfony UX Icons](https://symfony.com/bundles/ux-icons).**
   The panel's hardcoded `name → SVG path` Twig map (`@Atrium/icon.html.twig`, ~18
   heroicons-outline glyphs) is replaced by a shipped [Lucide](https://lucide.dev)

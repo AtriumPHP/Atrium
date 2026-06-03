@@ -30,6 +30,52 @@ atrium:
 These are the only PHP-config knobs — everything else below is theming or template
 overrides.
 
+## Changing the URL the panel lives at
+
+### A different path (e.g. `/administrator`)
+
+Set `path_prefix` — that is all. It is the single source of truth for the panel's
+location: the parametric routes are mounted under it **and** every URL the panel
+generates (sidebar links, the edit/view links, redirect-after-save) is built from
+it, so the two can never drift apart.
+
+```yaml
+# config/packages/atrium.yaml
+atrium:
+    path_prefix: '/administrator'
+```
+
+`/administrator` now serves the dashboard, `/administrator/{resource}` the lists,
+and so on; the old `/admin` URLs stop matching. You do **not** touch the route
+import — leave `config/routes/atrium.yaml` exactly as the
+[getting-started guide](../getting-started.md) shows it.
+
+> **Write the prefix without a trailing slash** (`/administrator`, not
+> `/administrator/`), matching the `/admin` default. A leading slash is required.
+
+### A dedicated subdomain (e.g. `admin.example.com`)
+
+The host is a routing concern, not a panel setting, so it lives on the **route
+import** rather than in `atrium.yaml`. Add a `host:` (and, if you want the panel
+at the root of that host, set `path_prefix: '/'`):
+
+```yaml
+# config/routes/atrium.yaml
+atrium:
+    resource: '@AtriumBundle/config/routes.php'
+    host: 'admin.example.com'
+```
+
+```yaml
+# config/packages/atrium.yaml
+atrium:
+    path_prefix: '/'   # serve the panel at the host root: admin.example.com/
+```
+
+Keep the default `/admin` prefix instead if you prefer `admin.example.com/admin`.
+Point the subdomain's DNS/web-server config at the same Symfony app, and make sure
+the host is allowed (Symfony's `trusted_hosts`, if you use it).
+
 ## Theming: the accent colour
 
 The entire panel is accented with a single semantic colour, **`primary`**.

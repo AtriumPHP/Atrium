@@ -53,7 +53,7 @@ use Symfony\UX\TwigComponent\TwigComponentBundle;
  * Atrium bundle alongside the Twig/Live component bundles and AssetMapper, binds
  * an in-memory data provider, and registers one resource.
  */
-final class AtriumTestKernel extends Kernel
+class AtriumTestKernel extends Kernel
 {
     use MicroKernelTrait;
 
