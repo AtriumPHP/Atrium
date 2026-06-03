@@ -62,6 +62,10 @@ atrium:
     brand: 'Acme Admin'     # shown in the panel shell (default: Atrium)
 ```
 
+`path_prefix` moves the whole panel in one place — routes and generated links
+alike. To serve it at a different path (`/administrator`) or on its own subdomain
+(`admin.example.com`), see [Changing the URL the panel lives at](panel/customization.md#changing-the-url-the-panel-lives-at).
+
 ### 4. Styling
 
 The bundle exposes a precompiled stylesheet through AssetMapper, so the panel is
