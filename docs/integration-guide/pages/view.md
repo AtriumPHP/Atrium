@@ -229,10 +229,71 @@ presentation; subclass it to customise:
 | --- | --- |
 | `getHeading(PageContext): string` | The `<h1>` (default `View {singular}`). |
 | `getSubheading(PageContext): ?string` | Optional sub-line. |
-| `getHeaderActions(PageContext): array` | Header buttons (the default includes an Edit link). |
+| `getHeaderActions(PageContext): array` | Header buttons (default: **Edit** + **Delete**). |
+| `headerWidgets(ListWidgetsConfiguration)` / `footerWidgets(...)` | Record-scoped widget bands (see below). |
 
 The content (the entries) comes from the resource's `view()`, not the page — the
 page composes the chrome around it.
+
+### Header actions — Edit and Delete
+
+The default header carries an **Edit** link (to `/{resource}/{id}/edit`) and a
+**Delete** button. Even though the View screen is a static render, **Delete runs
+server-side** through the shared confirm → delete plumbing (a server-driven
+confirmation, no client JS) and redirects to the list once the record is gone.
+Each action is gated by its own ability (`edit` / `delete`) and auto-hides when
+denied. Override `getHeaderActions()` to add, remove or reorder any
+`Action`/`ActionGroup`.
+
+### Widget bands
+
+A `ViewPage` can render widget bands above and below the entries —
+`headerWidgets()` / `footerWidgets()`, composed exactly like a dashboard or the
+[list bands](../tables/list-widgets.md). Each slot receives the **record id** in
+its context, so a record-scoped widget (related rows, an activity timeline) can
+fetch its own data:
+
+```php
+use Atrium\Layout\Grid;
+use Atrium\Page\ViewPage;
+use Atrium\Page\ListWidgetsConfiguration;
+use Atrium\Widget\WidgetSlot;
+
+final class ViewOrder extends ViewPage
+{
+    public function headerWidgets(ListWidgetsConfiguration $config): ListWidgetsConfiguration
+    {
+        return $config->schema([
+            Grid::make(3)->schema([WidgetSlot::make(OrderTotalsWidget::class)]),
+        ]);
+    }
+}
+```
+
+## Reaching the View screen — rows & actions
+
+When a resource has a View screen, its **list rows link to it** by default: a row
+click opens the record's View page (via a stretched overlay link — the row's
+buttons stay independently clickable). A **`ViewAction`** (the bare-record link,
+gated by `view`) is also available to add to row or header actions explicitly.
+
+The row-click target is configurable on the table — `TableConfiguration::recordUrl()`:
+
+| Argument | Row click goes to |
+| --- | --- |
+| `'view'` (default) | The View screen — auto-suppressed when there is no View page or the user can't `view` the record. |
+| `'edit'` | The edit screen (same auto-suppression with `edit`). |
+| `fn (object $record): ?string` | A custom URL (return `null` to skip a row). |
+| `null` | Rows are not clickable. |
+
+```php
+public function table(TableConfiguration $table): TableConfiguration
+{
+    return $table
+        ->columns([/* … */])
+        ->recordUrl('view'); // the default; pass 'edit', a closure, or null
+}
+```
 
 ## See also
 
@@ -240,3 +301,5 @@ page composes the chrome around it.
 - [Authorization](../resources/authorization.md) — the `view`/`canView` ability
 - [Forms](../forms/overview.md) — the layout containers entries reuse
 - [Columns](../tables/columns.md) — the shared badge/colour/format vocabulary
+- [Table configuration](../tables/table-configuration.md) — `recordUrl()`, the row-click target
+- [List widgets](../tables/list-widgets.md) — the widget-band mechanism the View bands reuse

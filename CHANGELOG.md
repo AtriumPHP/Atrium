@@ -42,6 +42,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   entries — `schema()`, `columns()`, `grid()` and `contained()`. It re-enters the
   shared layout renderer, so nested containers and nested repeatables compose. This
   completes the entry family.
+- **Record View — navigation, Delete and widget bands (`VIEW-12`, `VIEW-16`,
+  `VIEW-17`).** When a resource has a View screen, its **list rows link to it** by
+  default (a stretched overlay link; the row's buttons stay clickable), with a
+  configurable target — **`TableConfiguration::recordUrl()`** takes `'view'`
+  (default), `'edit'`, a `fn (object $record): ?string`, or `null` to disable.
+  Adds **`Atrium\Table\Action\ViewAction`** (the bare-record link, gated by `view`)
+  and **`ActionContext::recordRootUrl()`**. The View screen's header now runs its
+  **Delete** server action through the shared confirm → delete plumbing (hosted by
+  a small `RecordActions` Live Component, so the otherwise-static screen needs no
+  client JS). **`ViewPage::headerWidgets()`/`footerWidgets()`** add record-scoped
+  widget bands above/below the entries (the widget context gains `recordId`),
+  reusing the list/dashboard widget mechanism. Docs:
+  `docs/integration-guide/pages/view.md`.
 
 ### Changed
 

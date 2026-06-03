@@ -42,6 +42,7 @@ public function table(TableConfiguration $table): TableConfiguration
 | `paginated(int $perPage, array $perPageOptions = []): static` | Default page size, and the sizes offered in the per-page selector. |
 | `filters(array $filters): static` | The [filters](filters.md) shown above the table. |
 | `recordActions(array $actions): static` | Per-row [actions](actions.md) (default: `EditAction`). |
+| `recordUrl(string\|Closure\|null $target): static` | The row-click target: `'view'` (default), `'edit'`, a `fn (object $record): ?string`, or `null` to disable clickable rows. See [the View screen](../pages/view.md#reaching-the-view-screen--rows--actions). |
 | `bulkActions(array $actions): static` | Actions run against the selection. Adding any enables row selection. |
 | `emptyState(string $heading, ?string $description = null, ?string $icon = null): static` | The message shown when the table has no rows. |
 
