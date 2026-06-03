@@ -11,9 +11,11 @@
         {{ resource.label }}
     </a>
     {% if record %}
-        {# The page's header actions (Edit link, Delete server-action) are hosted by
-           a small Live Component so Delete runs through the shared action plumbing
-           even though the View screen itself is a static render. #}
+        {# The page's header actions (Edit link, Delete + custom server actions) are
+           hosted by a small Live Component so they run through the shared action
+           plumbing even though the View screen is a static render. Its confirmation
+           modal escapes the header because the layout keeps `backdrop-filter` off
+           the header element itself (see admin/layout.html.twig). #}
         {{ component('Atrium:RecordActions', {
             resource: resource.slug,
             entityId: entityId,

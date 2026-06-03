@@ -119,6 +119,7 @@ ability, icon and confirmation:
 | Action | Role | Notes |
 | --- | --- | --- |
 | `CreateAction` | header | The "New" button (link to the create page); ability `create`. |
+| `ViewAction` | record | Link to the read-only [View screen](../pages/view.md) (the bare record URL); ability `view`. |
 | `EditAction` | record | Link to the edit page; ability `edit`. |
 | `DeleteAction` | record | Confirmed delete; ability `delete`. |
 | `BulkDeleteAction` | bulk | Confirmed delete of the selection; ability `delete`. |

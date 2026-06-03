@@ -69,7 +69,13 @@
 
     {# ------------------------------------------------------------------- Main #}
     <div class="flex min-w-0 flex-1 flex-col">
-        <header class="sticky top-0 z-10 flex min-h-16 items-center justify-between gap-4 border-b border-gray-200/80 bg-gray-50/80 px-5 py-2.5 backdrop-blur-xl sm:px-8 dark:border-gray-800/80 dark:bg-gray-950/70">
+        {#
+            The header uses a solid (opaque) background rather than a translucent
+            one with `backdrop-filter`: a `backdrop-filter` element is a containing
+            block for `position: fixed`, which would trap a header action's
+            confirmation modal inside the header's box instead of the viewport.
+        #}
+        <header class="sticky top-0 z-10 flex min-h-16 items-center justify-between gap-4 border-b border-gray-200/80 bg-gray-50 px-5 py-2.5 sm:px-8 dark:border-gray-800/80 dark:bg-gray-950">
             <div class="min-w-0">
                 <h1 class="truncate text-lg font-semibold tracking-tight">{% block heading %}{% endblock %}</h1>
                 {% block subheading %}{% endblock %}

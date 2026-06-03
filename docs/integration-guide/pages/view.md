@@ -242,8 +242,48 @@ The default header carries an **Edit** link (to `/{resource}/{id}/edit`) and a
 server-side** through the shared confirm → delete plumbing (a server-driven
 confirmation, no client JS) and redirects to the list once the record is gone.
 Each action is gated by its own ability (`edit` / `delete`) and auto-hides when
-denied. Override `getHeaderActions()` to add, remove or reorder any
-`Action`/`ActionGroup`.
+denied. To add, remove or reorder them, register a `ViewPage` **subclass** under
+`pages()['view']` and override `getHeaderActions()` — add any `Action` /
+`ActionGroup`, including a **custom server action** (its handler receives the
+record and a [`DataWriterInterface`](../data/providers.md), exactly like a table
+action):
+
+```php
+namespace App\Admin\Pages;
+
+use App\Entity\Product;
+use Atrium\Action\Action;
+use Atrium\DataProvider\DataWriterInterface;
+use Atrium\Page\PageContext;
+use Atrium\Page\ViewPage;
+use Atrium\Table\Action\DeleteAction;
+use Atrium\Table\Action\EditAction;
+
+final class ViewProduct extends ViewPage
+{
+    public function getSubheading(PageContext $context): ?string
+    {
+        return 'Product #'.$context->entityId;
+    }
+
+    public function getHeaderActions(PageContext $context): array
+    {
+        return [
+            EditAction::make(),
+            Action::make('duplicate')->label('Duplicate')->icon('squares')
+                ->authorize('create')
+                ->requiresConfirmation()
+                ->confirmationMessage('Create a copy of this product?')
+                ->action(function (Product $product, DataWriterInterface $writer): void {
+                    // … build and persist a copy …
+                }),
+            DeleteAction::make(),
+        ];
+    }
+}
+```
+
+Register it like any page: `public static function pages(): array { return [...parent::pages(), 'view' => ViewProduct::class]; }`. A custom server action's confirmation is server-driven (no client JS), the same as Delete. The full `Action` builder (`label`/`icon`/`color`/`visible`/`authorize`/`url`/`action`/`requiresConfirmation`) is documented in [Actions](../actions/overview.md).
 
 ### Widget bands
 
