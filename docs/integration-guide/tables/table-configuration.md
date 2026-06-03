@@ -9,7 +9,7 @@ Every resource with a list screen defines `table()`. You receive a
 `TableConfiguration` already carrying the framework default (an **Edit** record
 action) and return it after setting what you need. It is the single place the whole
 list is described. (The list's **New** button is a header action, which lives on
-the [page/resource](../pages/overview.md#header-actions), not the table.)
+the [list page](../pages/overview.md#header-actions), not the table.)
 
 ```php
 use Atrium\Table\Column;
@@ -55,8 +55,8 @@ empty list:
 $table->recordActions([]);   // no per-row actions
 ```
 
-To remove the list's **New** button, override the resource's header actions to
-return `[]` for the `index` screen — see
+To remove the list's **New** button, override `ListPage::getHeaderActions()` to
+return `[]` on your list page — see
 [Pages → Header actions](../pages/overview.md#header-actions).
 
 To add to them, list the defaults alongside your own (the built-ins are plain
@@ -88,4 +88,5 @@ it falls back to a generated *"No \<label\> found."*. See
 - [Columns](columns.md) — what each cell shows, including relation columns
 - [Filters](filters.md) — `SelectFilter`, `TernaryFilter`
 - [Actions](actions.md) — record, header and bulk actions in the table
+- [List widgets](list-widgets.md) — header/footer widget bands around the table
 - [Query scoping](../data/query-scoping.md) — restrict which rows appear at all

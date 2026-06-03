@@ -23,22 +23,17 @@ final class HeaderActionsTest extends TestCase
         $this->context = new PageContext('tag', '/admin', null, 'Tag', 'Tags');
     }
 
-    public function testResourceDefaultsToACreateActionOnTheListOnly(): void
+    public function testListPageProvidesTheDefaultNewActionAndOtherScreensNone(): void
     {
+        // The "New" button is the ListPage's default; create/edit have none.
         $resource = new TagResource();
 
-        self::assertCount(1, $resource->getHeaderActions('index', $this->context));
-        self::assertSame([], $resource->getHeaderActions('create', $this->context));
-        self::assertSame([], $resource->getHeaderActions('edit', $this->context));
+        self::assertCount(1, $resource->resolveHeaderActions('index', $this->context));
+        self::assertSame([], $resource->resolveHeaderActions('create', $this->context));
+        self::assertSame([], $resource->resolveHeaderActions('edit', $this->context));
     }
 
-    public function testResolveFallsBackToTheResourceWhenThePageDefers(): void
-    {
-        // Default pages return null from getHeaderActions(), so the resource wins.
-        self::assertCount(1, (new TagResource())->resolveHeaderActions('index', $this->context));
-    }
-
-    public function testDedicatedPageHeaderActionsTakePrecedence(): void
+    public function testDedicatedPageHeaderActionsAreUsed(): void
     {
         $resource = new class extends AdminResource {
             public function getEntityClass(): string

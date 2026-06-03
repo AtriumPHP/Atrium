@@ -18,8 +18,8 @@ use Atrium\Table\Filter\Filter;
  *
  * A fresh instance already carries an {@see EditAction} record action, so a
  * resource that only sets `columns()` keeps it; pass `[]` to `recordActions()` to
- * remove it. **Header actions** (the "New" button etc.) live on the page /
- * {@see \Atrium\Resource\AdminResource::getHeaderActions()}, not here.
+ * remove it. **Header actions** (the "New" button etc.) live on the page —
+ * {@see \Atrium\Page\ListPage::getHeaderActions()}, not here.
  *
  * Part of the public API contract (PRD §9) — treat changes as BC-relevant.
  */

@@ -21,6 +21,7 @@ use Atrium\Tests\Fixtures\Resource\ForbiddenTagResource;
 use Atrium\Tests\Fixtures\Resource\HeaderActionTagResource;
 use Atrium\Tests\Fixtures\Resource\HookedTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
+use Atrium\Tests\Fixtures\Resource\ListWidgetTagResource;
 use Atrium\Tests\Fixtures\Resource\PaginatedTagResource;
 use Atrium\Tests\Fixtures\Resource\ScopedTagResource;
 use Atrium\Tests\Fixtures\Resource\TabsTagResource;
@@ -151,6 +152,10 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(HeaderActionTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(ListWidgetTagResource::class)
             ->autoconfigure()
             ->autowire();
 

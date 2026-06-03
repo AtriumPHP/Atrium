@@ -11,7 +11,7 @@ use Atrium\Action\ActionContext;
  * The built-in "create" header action: a primary button linking to the
  * resource's create page (`/{prefix}/{slug}/new`). A table-bound specialisation
  * of the generic {@see Action}, used as the default
- * {@see \Atrium\Resource\AdminResource::getHeaderActions()} on the list screen.
+ * {@see \Atrium\Page\ListPage::getHeaderActions()} on the list screen.
  */
 final class CreateAction extends Action
 {

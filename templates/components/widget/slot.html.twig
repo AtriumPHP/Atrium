@@ -1,3 +1,5 @@
-{# A widget placed in a dashboard layout (WidgetSlot leaf): renders the
-   independent live host for the wrapped widget class. `component` is the slot. #}
-<twig:Atrium:Widget :widget="component.getWidgetClass()" />
+{# A widget placed in a layout (WidgetSlot leaf): renders the independent live
+   host for the wrapped widget class, forwarding any resolution-time context
+   params (resource identity on a list screen; empty on a dashboard).
+   `component` is the slot. #}
+<twig:Atrium:Widget :widget="component.getWidgetClass()" :params="component.getParams()" />

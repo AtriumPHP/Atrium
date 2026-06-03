@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Atrium\Dashboard;
+namespace Atrium\Widget;
 
 use Atrium\Layout\Component;
 use Atrium\Layout\Concern\HasColumnSpan;
 use Atrium\Layout\Concern\HasGrow;
-use Atrium\Widget\Widget;
 
 /**
- * A widget placed in a dashboard's layout tree (DSH-10).
+ * A widget placed in a layout tree (DSH-10).
  *
  * Layout containers ({@see \Atrium\Layout\Grid}, Section, …) hold
  * {@see Component}s, but a widget is a DI service referenced by class — so this
@@ -19,13 +18,23 @@ use Atrium\Widget\Widget;
  * template renders the independent `<twig:Atrium:Widget>` host, so per-widget
  * refresh, polling and authorization are preserved.
  *
- * Lives in the Dashboard namespace (a panel-layer consumer of both Layout and
- * Widget) to keep the bridge a downward dependency, never a sideways one.
+ * Lives in the Widget package — it depends only on {@see Widget} (self) and the
+ * foundational {@see Component} contract, so consumers in the panel layer
+ * (dashboards, list screens) reference it downward.
  */
 final class WidgetSlot implements Component
 {
     use HasColumnSpan;
     use HasGrow;
+
+    /**
+     * Render-time params forwarded to the widget host (e.g. the resource-identity
+     * context a list screen injects). Mutated only during resolution, on a
+     * per-request descriptor.
+     *
+     * @var array<string, mixed>
+     */
+    private array $params = [];
 
     /**
      * @param class-string<Widget> $widgetClass
@@ -49,6 +58,33 @@ final class WidgetSlot implements Component
     public function getWidgetClass(): string
     {
         return $this->widgetClass;
+    }
+
+    /**
+     * The params handed to the widget host when this slot renders.
+     *
+     * @return array<string, mixed>
+     */
+    public function getParams(): array
+    {
+        return $this->params;
+    }
+
+    /**
+     * Merge resolution-time context (resource identity, routing) into the params
+     * forwarded to the widget host. Called by
+     * {@see WidgetLayoutConfiguration::applyContext()} while resolving a screen;
+     * not part of the authoring surface.
+     *
+     * @param array<string, mixed> $params
+     *
+     * @internal
+     */
+    public function withContext(array $params): static
+    {
+        $this->params = [...$this->params, ...$params];
+
+        return $this;
     }
 
     public function getChildComponents(): array

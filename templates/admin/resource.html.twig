@@ -8,7 +8,29 @@
    the DataTable Live Component so server-driven actions work — see headerActions(). #}
 
 {% block body %}
+    {% set headerComponents = headerWidgets.getComponents() %}
+    {% if headerComponents is not empty %}
+        {# Summary widgets above the table. Independent of the table's live
+           search/filters — they reflect the unfiltered resource (LW). #}
+        <div class="mb-6">
+            {{ include('@Atrium/components/layout/components.html.twig', {
+                components: headerComponents,
+                gridClass: 'grid-cols-1',
+            }) }}
+        </div>
+    {% endif %}
+
     <div class="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm sm:p-5 dark:border-gray-800/80 dark:bg-gray-900">
         <twig:Atrium:DataTable :resource="resource.slug" :pathPrefix="panel.pathPrefix" />
     </div>
+
+    {% set footerComponents = footerWidgets.getComponents() %}
+    {% if footerComponents is not empty %}
+        <div class="mt-6">
+            {{ include('@Atrium/components/layout/components.html.twig', {
+                components: footerComponents,
+                gridClass: 'grid-cols-1',
+            }) }}
+        </div>
+    {% endif %}
 {% endblock %}

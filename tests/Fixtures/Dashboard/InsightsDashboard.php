@@ -6,11 +6,11 @@ namespace Atrium\Tests\Fixtures\Dashboard;
 
 use Atrium\Dashboard\Dashboard;
 use Atrium\Dashboard\DashboardConfiguration;
-use Atrium\Dashboard\WidgetSlot;
 use Atrium\Layout\Grid;
 use Atrium\Layout\Section;
 use Atrium\Tests\Fixtures\Widget\CounterStatsWidget;
 use Atrium\Tests\Fixtures\Widget\SalesChartWidget;
+use Atrium\Widget\WidgetSlot;
 
 /**
  * A registered, accessible dashboard at `/admin/insights` that arranges a stats

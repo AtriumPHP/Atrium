@@ -50,7 +50,7 @@ abstract class Dashboard
      * populate it and return it.
      *
      * The simple path is `$dashboard->widgets([A::class, B::class])`; richer
-     * dashboards nest {@see WidgetSlot}s inside layout containers via
+     * dashboards nest {@see \Atrium\Widget\WidgetSlot}s inside layout containers via
      * `$dashboard->schema([...])`. Returns it unchanged (an empty dashboard) by
      * default.
      */

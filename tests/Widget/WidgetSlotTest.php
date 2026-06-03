@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Atrium\Tests\Dashboard;
+namespace Atrium\Tests\Widget;
 
-use Atrium\Dashboard\WidgetSlot;
 use Atrium\Layout\Component;
 use Atrium\Tests\Fixtures\Widget\CounterStatsWidget;
+use Atrium\Widget\WidgetSlot;
 use PHPUnit\Framework\TestCase;
 
 final class WidgetSlotTest extends TestCase
@@ -34,5 +34,15 @@ final class WidgetSlotTest extends TestCase
         self::assertSame('', WidgetSlot::make(CounterStatsWidget::class)->getColumnSpanClass());
         self::assertSame('lg:col-span-1', WidgetSlot::make(CounterStatsWidget::class)->columnSpan(1)->getColumnSpanClass());
         self::assertSame('col-span-full', WidgetSlot::make(CounterStatsWidget::class)->columnSpanFull()->getColumnSpanClass());
+    }
+
+    public function testForwardsContextParamsToTheWidgetHost(): void
+    {
+        // No context by default; applied context merges into the host params.
+        $slot = WidgetSlot::make(CounterStatsWidget::class);
+        self::assertSame([], $slot->getParams());
+
+        $slot->withContext(['resource' => 'product', 'pathPrefix' => '/admin']);
+        self::assertSame(['resource' => 'product', 'pathPrefix' => '/admin'], $slot->getParams());
     }
 }

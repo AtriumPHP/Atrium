@@ -11,6 +11,15 @@ This document turns `Atrium\Page\Page` from a single redirect hook into a real
 **header actions** (including server-driven ones on the create/edit screens). It
 introduces a new **`PAG`** requirement namespace.
 
+> **Update (superseded detail).** §4.3 below originally gave header actions a
+> dual home — an inline `AdminResource::getHeaderActions()` shortcut with a
+> null-sentinel Page override taking precedence. That was later **realigned to
+> page-owned**: header actions live only on the Page (`Page::getHeaderActions(): array`;
+> `ListPage` owns the default "New" button), and the resource's inline method was
+> removed. The realignment happened alongside list widgets — see
+> [`docs/PRD-list-widgets.md`](./PRD-list-widgets.md) §4 and the CHANGELOG. The
+> rest of this PRD (headings, Form-component hosting, redirect) stands.
+
 ---
 
 ## 1. Motivation

@@ -42,17 +42,17 @@ abstract class Page
     }
 
     /**
-     * Header actions for this screen, or null to defer to the resource's inline
-     * {@see \Atrium\Resource\AdminResource::getHeaderActions()}. Override to take
-     * control of the screen's header buttons; they are rendered and dispatched by
-     * the screen's Live Component (server-driven actions on the edit screen run
-     * against the loaded record).
+     * Header actions for this screen — the buttons above it (the list's "New", an
+     * edit-screen Delete). The base default is none; {@see ListPage} adds the
+     * "New" button, and a custom page overrides this to add its own. They are
+     * rendered and dispatched by the screen's Live Component (server-driven actions
+     * on the edit screen run against the loaded record).
      *
-     * @return list<Action>|null
+     * @return list<Action>
      */
-    public function getHeaderActions(PageContext $context): ?array
+    public function getHeaderActions(PageContext $context): array
     {
-        return null;
+        return [];
     }
 
     /**

@@ -13,9 +13,9 @@ use Atrium\Layout\Wizard;
 use Atrium\Page\CreatePage;
 use Atrium\Page\EditPage;
 use Atrium\Page\ListPage;
+use Atrium\Page\ListWidgetsConfiguration;
 use Atrium\Page\Page;
 use Atrium\Page\PageContext;
-use Atrium\Table\Action\CreateAction;
 use Atrium\Table\TableConfiguration;
 
 /**
@@ -358,25 +358,19 @@ abstract class AdminResource
         return null === $class ? null : new $class();
     }
 
-    /**
-     * Header actions for a screen — the **inline** path (no Page class needed).
-     * `$action` is `index`/`create`/`edit`. Defaults to a "New" button on the
-     * list and nothing elsewhere; override to add buttons (Import, a custom
-     * link/handler). For a dedicated screen, override {@see Page::getHeaderActions()}
-     * instead — it takes precedence (see {@see resolveHeaderActions()}).
-     *
-     * @return list<Action>
-     */
-    public function getHeaderActions(string $action, PageContext $context): array
-    {
-        return 'index' === $action ? [CreateAction::make()] : [];
-    }
+    // -- Per-screen presentation (resolution hub) ------------------------------
+    //
+    // Per-screen presentation — header actions and the list's header/footer widget
+    // bands — lives on the Page classes ({@see Page::getHeaderActions()},
+    // {@see ListPage::headerWidgets()}), next to the heading/subheading. The
+    // resource owns pages() and so resolves which Page handles an action and asks
+    // it; the host Live Components and the controller call these @internal
+    // resolvers rather than the pages directly.
 
     /**
-     * The effective header actions for a screen: a dedicated Page's
-     * {@see Page::getHeaderActions()} wins; otherwise the resource's inline
-     * {@see getHeaderActions()}. The host Live Component renders and dispatches
-     * the result.
+     * The header actions for a screen, from the Page that handles it
+     * ({@see ListPage} adds the "New" button; a custom page adds its own). The
+     * host Live Component renders and dispatches the result.
      *
      * @return list<Action>
      *
@@ -384,8 +378,52 @@ abstract class AdminResource
      */
     final public function resolveHeaderActions(string $action, PageContext $context): array
     {
-        return $this->resolvePage($action)?->getHeaderActions($context)
-            ?? $this->getHeaderActions($action, $context);
+        return $this->resolvePage($action)?->getHeaderActions($context) ?? [];
+    }
+
+    /**
+     * The resolved header widgets for the list screen — the tree from
+     * {@see ListPage::headerWidgets()} with the resource-identity context (slug,
+     * path prefix, labels) baked onto every slot, so widgets can scope their own
+     * data without extra wiring.
+     *
+     * @internal
+     */
+    final public function resolveHeaderWidgets(PageContext $context): ListWidgetsConfiguration
+    {
+        $page = $this->resolvePage('index');
+        $config = $page instanceof ListPage ? $page->headerWidgets(new ListWidgetsConfiguration()) : new ListWidgetsConfiguration();
+
+        return $config->applyContext($this->widgetContext($context));
+    }
+
+    /**
+     * The resolved footer widgets for the list screen (see
+     * {@see resolveHeaderWidgets()}).
+     *
+     * @internal
+     */
+    final public function resolveFooterWidgets(PageContext $context): ListWidgetsConfiguration
+    {
+        $page = $this->resolvePage('index');
+        $config = $page instanceof ListPage ? $page->footerWidgets(new ListWidgetsConfiguration()) : new ListWidgetsConfiguration();
+
+        return $config->applyContext($this->widgetContext($context));
+    }
+
+    /**
+     * Resource-identity context forwarded to every list-screen widget slot.
+     *
+     * @return array<string, mixed>
+     */
+    private function widgetContext(PageContext $context): array
+    {
+        return [
+            'resource' => $context->resourceSlug,
+            'pathPrefix' => $context->pathPrefix,
+            'singularLabel' => $context->singularLabel,
+            'pluralLabel' => $context->pluralLabel,
+        ];
     }
 
     /**

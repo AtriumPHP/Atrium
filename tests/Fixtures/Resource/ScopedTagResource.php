@@ -7,11 +7,14 @@ namespace Atrium\Tests\Fixtures\Resource;
 use Atrium\DataProvider\DataQuery;
 use Atrium\Form\Field\TextField;
 use Atrium\Form\Schema;
-use Atrium\Page\PageContext;
+use Atrium\Page\CreatePage;
+use Atrium\Page\EditPage;
+use Atrium\Page\Page;
 use Atrium\Resource\AdminResource;
 use Atrium\Table\Column;
 use Atrium\Table\TableConfiguration;
 use Atrium\Tests\Fixtures\Entity\Tag;
+use Atrium\Tests\Fixtures\Page\NoHeaderActionsListPage;
 
 /**
  * Fixture exercising query scoping: the resource only ever exposes *active* tags.
@@ -37,11 +40,6 @@ final class ScopedTagResource extends AdminResource
             ->recordActions([]);
     }
 
-    public function getHeaderActions(string $action, PageContext $context): array
-    {
-        return [];
-    }
-
     public function form(Schema $schema): Schema
     {
         return $schema->fields([TextField::make('name')]);
@@ -50,5 +48,18 @@ final class ScopedTagResource extends AdminResource
     public function scopeQuery(DataQuery $query): DataQuery
     {
         return $query->withFilters(['active' => true]);
+    }
+
+    /**
+     * @return array<string, class-string<Page>>
+     */
+    public static function pages(): array
+    {
+        // No "New" button: the scoped list is browse/edit only.
+        return [
+            'index' => NoHeaderActionsListPage::class,
+            'create' => CreatePage::class,
+            'edit' => EditPage::class,
+        ];
     }
 }

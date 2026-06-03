@@ -22,6 +22,17 @@ final class PageTest extends TestCase
         self::assertSame('Edit Customer', (new EditPage())->getHeading($context));
     }
 
+    public function testListPageOwnsTheDefaultNewActionOtherScreensNone(): void
+    {
+        // Header actions are page-owned: the list has the "New" button by default,
+        // create/edit have none until a custom page adds them.
+        $context = new PageContext('customer', '/admin', null, 'Customer', 'Customers');
+
+        self::assertCount(1, (new ListPage())->getHeaderActions($context));
+        self::assertSame([], (new CreatePage())->getHeaderActions($context));
+        self::assertSame([], (new EditPage())->getHeaderActions($context));
+    }
+
     public function testTitleDefaultsToHeadingAndSubheadingToNull(): void
     {
         $context = new PageContext('customer', '/admin', null, 'Customer', 'Customers');

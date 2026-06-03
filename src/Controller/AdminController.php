@@ -132,6 +132,8 @@ final readonly class AdminController
             'resource' => $resourceObject,
             'heading' => $page?->getHeading($context) ?? $resourceObject->getLabel(),
             'subheading' => $page?->getSubheading($context),
+            'headerWidgets' => $resourceObject->resolveHeaderWidgets($context),
+            'footerWidgets' => $resourceObject->resolveFooterWidgets($context),
         ]);
     }
 

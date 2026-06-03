@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Atrium\Tests\Dashboard;
 
 use Atrium\Dashboard\DashboardConfiguration;
-use Atrium\Dashboard\WidgetSlot;
 use Atrium\Layout\Grid;
 use Atrium\Tests\Fixtures\Widget\CounterStatsWidget;
 use Atrium\Tests\Fixtures\Widget\SalesChartWidget;
+use Atrium\Widget\WidgetSlot;
 use PHPUnit\Framework\TestCase;
 
 final class DashboardConfigurationTest extends TestCase

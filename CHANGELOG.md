@@ -11,19 +11,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Page screens: headings & header actions.** `Atrium\Page\Page` is now a screen
   descriptor: `getTitle()`/`getHeading()`/`getSubheading()` (computed defaults per
-  screen; the previously-dead `ListPage` is now used) and `getHeaderActions(): ?array`.
-  Header actions are unified onto the page model — set them inline on the resource
-  via `AdminResource::getHeaderActions(string $action, PageContext): array` (default:
-  a `CreateAction` on the list), or on a dedicated Page (which takes precedence via a
-  null sentinel). They are hosted by the screen's Live Component: the DataTable for
-  the list, and the **Form component for create/edit**, where a server-driven action
-  (e.g. `DeleteAction`) runs against the loaded record with the confirm flow and a
-  generic post-action redirect (the record is re-resolved; if it's gone — deleted or
-  out of scope — the form redirects to the list). Data/lifecycle hooks remain on the
+  screen; the previously-dead `ListPage` is now used) and
+  `getHeaderActions(PageContext): array`. Header actions live on the **page model** —
+  `ListPage::getHeaderActions()` provides the default `CreateAction` ("New"), and a
+  create/edit page adds its own (override `getHeaderActions()` on the relevant Page).
+  They are hosted by the screen's Live Component: the DataTable for the list, and the
+  **Form component for create/edit**, where a server-driven action (e.g.
+  `DeleteAction`) runs against the loaded record with the confirm flow and a generic
+  post-action redirect (the record is re-resolved; if it's gone — deleted or out of
+  scope — the form redirects to the list). Data/lifecycle hooks remain on the
   resource (pages aren't DI services). **BC:** `TableConfiguration::headerActions()`
-  is removed (the default New button moved to the resource). Docs:
+  is removed; the default New button lives on `ListPage::getHeaderActions()`, and the
+  resource has no header-action method. Docs:
   `docs/integration-guide/pages/overview.md`; PRD: `docs/PRD-page-screens.md`.
   (PAG-01..06.) **Public API change.**
+
+- **List-screen widgets (header & footer bands).** A `ListPage` can render
+  [widget](docs/integration-guide/widgets/overview.md) bands above
+  (`headerWidgets()`) and below (`footerWidgets()`) its table, composed with the
+  same `WidgetSlot` + layout primitives as a dashboard via a new
+  `Atrium\Page\ListWidgetsConfiguration`. Each slot widget receives the
+  resource-identity context (slug, path prefix, labels) as params so it can scope
+  its own query. The widgets are **independent of the table's live search/filters**
+  (that state lives in the sibling DataTable component) — they reflect the unfiltered
+  resource; live filter-reactivity is intentionally out of scope. The dashboard and
+  list configurations now share an abstract base,
+  `Atrium\Widget\WidgetLayoutConfiguration`. **BC:** `WidgetSlot` moved from
+  `Atrium\Dashboard\WidgetSlot` to `Atrium\Widget\WidgetSlot` (it depends only on
+  `Widget` + the foundational `Layout` contract). Docs:
+  `docs/integration-guide/tables/list-widgets.md`; PRD: `docs/PRD-list-widgets.md`.
+  (LW-01..05.) **Public API change.**
 
 - **Dashboards & widgets.** A new widget layer: `Atrium\Widget\Widget` (an
   abstract descriptor service, not a Live Component), with two concrete families —

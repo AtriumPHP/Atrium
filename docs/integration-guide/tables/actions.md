@@ -50,7 +50,7 @@ public function table(TableConfiguration $table): TableConfiguration
                     }
                 }),
         ]);
-    // The list's "New" button is a header action on the page/resource, not here.
+    // The list's "New" button is a header action on the ListPage, not here.
 }
 ```
 
@@ -67,13 +67,13 @@ table.
 ## Header actions
 
 Header actions — the list's "New" button and the buttons above the create/edit
-screens — live on the **page / resource**, not the table. Set them inline with
-`AdminResource::getHeaderActions(string $action, PageContext)` (the default is a
-`CreateAction` on the list), or on a dedicated [`Page`](../pages/overview.md#header-actions).
-The list screen still renders them above the table.
+screens — live on the **page**, not the table. `ListPage` provides the default
+`CreateAction` ("New"); override `getHeaderActions(PageContext)` on the relevant
+[`Page`](../pages/overview.md#header-actions) (list / create / edit) to change
+them. The list screen renders them above the table.
 
-> The table no longer has a `headerActions()` setter — header actions moved to the
-> page model so the create/edit screens can have them too. See
+> The table has no `headerActions()` setter — header actions live on the page
+> model so the create/edit screens can have them too. See
 > [Pages → Header actions](../pages/overview.md#header-actions).
 
 ## Bulk actions & selection
