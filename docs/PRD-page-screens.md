@@ -118,6 +118,19 @@ This mirrors `table()`/`form()`: inline on the resource for small cases, a
 dedicated class when you want one. The cost — header actions can live in two
 places — is bounded by the clear precedence rule and documented.
 
+**Two honest notes on this choice:**
+
+- **Naming.** `Page::getHeaderActions(PageContext): ?array` and
+  `AdminResource::getHeaderActions(string $action, PageContext): array` share a
+  name but differ by class, signature and return type (the resource is
+  multi-screen so it takes `$action`; the Page is one screen so it does not; the
+  Page returns `null` to defer). Intentional, but the docs must call out the two
+  explicitly so it does not read as an accident.
+- **God-object pressure.** This adds another method to `AdminResource`, which is
+  already large. It is justified (the inline path needs a resource-level entry
+  point), but it is a real cost, not a free one — the mitigation is that it is the
+  *only* new resource method here, and everything else lives on the Page.
+
 ### 4.4 Headings flow (static, controller-driven)
 
 The controller resolves the Page for **all three** screens (finally using
@@ -131,24 +144,45 @@ The Page *declares* header actions; the screen's **existing Live Component rende
 and dispatches** them, reusing the generic
 `Atrium\Action\Concern\InteractsWithActions` (the `requestAction` / `confirmAction`
 / `cancelAction` machinery + confirm modal; the host implements `findAction()`,
-`canExecuteAction()`, `executeAction()`):
+`canExecuteAction()`, `executeAction()`).
+
+**Where the bar renders (the two-zone model).** Server-driven actions must live
+*inside* the Live Component, but the heading/subheading live in the layout's sticky
+`<header>` (outside it). So a screen has two header zones, exactly as the **list
+screen already does today** (sticky `h1` + the New button inside the DataTable):
+
+- the **sticky header** carries the `h1` + subheading (controller-driven, §4.4)
+  and keeps the existing "back to list" link as chrome;
+- the **screen's Live Component** renders a header-actions bar (top of its own DOM)
+  that dispatches the actions.
+
+Per screen:
 
 - **List screen → DataTable.** It already hosts header actions; change the *source*
   from `table()->headerActions()` to the resolved index page / resource
   (§4.3). Server-driven list header actions keep working unchanged.
 - **Create / Edit screen → Form component.** The Form component gains
   `InteractsWithActions`, resolves its page (create when `entityId` is null, else
-  edit) and the effective header actions, renders a header-actions bar at the top
-  of its own DOM, and dispatches:
-  - **Edit:** the action runs against the **loaded entity** (the record being
-    edited) — so `DeleteAction` / a `Duplicate` handler work. After a successful
-    delete the component redirects to the list.
+  edit) and the effective header actions, renders the bar, and dispatches:
+  - **Edit:** the action runs against the **persisted, loaded entity** — *not* the
+    user's unsaved form edits (a `Delete`/`Duplicate` operates on the saved record;
+    in-progress changes in `formData` are ignored). So `DeleteAction` / a custom
+    `Duplicate` handler work on the record being edited.
   - **Create:** there is no record; create header actions are typically links, and
     a server-driven one runs record-less (consistent with table header actions,
     which are already record-less).
 
-This matches the **existing** list-screen split — heading in the sticky bar,
-actions inside the Live Component — now applied to all three screens.
+**Authorization.** Header actions respect the action's own `authorize()` /
+`visible()` exactly like table actions — a hidden/forbidden header action is not
+rendered and cannot be dispatched (record-bound checks resolve against the loaded
+record on edit; record-less elsewhere).
+
+**Post-action redirect (generic, no per-action special-casing).** After an
+edit-screen header action runs, the Form component **re-resolves the record** via
+the scoped `find()`. If it is now gone, it redirects to the list; otherwise it
+re-renders in place. This makes a `Delete` (or any destructive action) redirect
+correctly without the component needing to know what the action *did* — the same
+mechanism that already removes an out-of-scope record from the edit screen.
 
 ### 4.6 BC change
 
@@ -167,8 +201,11 @@ Unreleased, so internal-only migration (playground, fixtures, docs).
 - **PAG-04** `ListPage` is resolved for the index screen (no longer dead); the
   DataTable sources its header actions from the page/resource.
 - **PAG-05** The Form component hosts and dispatches the create/edit screen's
-  header actions via `InteractsWithActions`, server-driven, against the loaded
-  record on edit (post-delete redirect to the list).
+  header actions via `InteractsWithActions`, server-driven, against the persisted
+  loaded record on edit, respecting each action's `authorize()`/`visible()`. After
+  an action runs, the record is re-resolved via the scoped `find()`; if it is gone
+  the component redirects to the list (generic — no per-action special-casing),
+  otherwise it re-renders.
 - **PAG-06** `TableConfiguration::headerActions()` removed; default New button
   relocated. **BC.**
 
@@ -183,7 +220,8 @@ use Atrium\Table\Action\CreateAction;
 public function getHeaderActions(string $action, PageContext $context): array
 {
     return match ($action) {
-        'index' => [CreateAction::make(), ImportAction::make()],
+        // CreateAction is built-in; a custom link/handler action is just Action::make().
+        'index' => [CreateAction::make(), Action::make('import')->label('Import')->url('/admin/import')],
         default => [],
     };
 }
@@ -223,6 +261,7 @@ final class EditProduct extends EditPage
 | Risk | Severity | Mitigation |
 | --- | --- | --- |
 | Form component grows (hosting + dispatching actions). | Medium | Reuse `InteractsWithActions` (verified generic — three abstract hooks); the Form already loads the record. Cover with functional tests. |
+| The `InteractsWithActions` confirm modal currently only renders in the DataTable; it must work inside the Form component too. | Low | Verify-step in M2 — the modal template reads generic `this.confirming*` state, so it should drop in; confirm with a functional test of the confirm→execute flow on the edit screen. |
 | Removing `table()->headerActions()` is a BC break. | Medium | Unreleased; migrate playground/fixtures/docs in the same change; call it out in `CHANGELOG`. |
 | Header actions can live in two places (resource inline vs Page). | Low | One precedence rule (`page ?? resource`), documented; default pages return null. |
 | Create-screen server-driven header action with no record. | Low | Record-less dispatch (consistent with table header actions); document that record-bound header actions belong on the edit screen. |
@@ -233,9 +272,12 @@ final class EditProduct extends EditPage
 - **Unit:** `Page` heading/title/subheading defaults per subclass (from a
   `PageContext`); the null-sentinel precedence resolution.
 - **Functional (kernel boot):** list/create/edit headings render; DataTable shows
-  the resolved header actions; the Form component renders create/edit header
-  actions and **dispatches a server-driven edit action** (e.g. a toggle/delete on
-  the loaded record), with the confirm flow; post-delete redirect.
+  the resolved header actions; an unauthorized/hidden header action is not
+  rendered; the Form component renders create/edit header actions and **dispatches
+  a server-driven edit action** through the confirm flow. Specifically test the
+  generic post-action redirect both ways — a destructive action (record gone after
+  `find()`) **redirects to the list**, a non-destructive one (record still
+  present) **stays on the edit screen** and re-renders.
 - **Browser (playground):** an edit screen with a server-driven header action
   (Delete or Duplicate) — no console errors, the action runs and redirects.
 
