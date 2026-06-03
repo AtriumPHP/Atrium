@@ -70,6 +70,10 @@ styled with no Tailwind setup in your app. If you use AssetMapper (the Symfony
 default), there is nothing to do. Apps that don't use AssetMapper can override the
 layout's `stylesheets` Twig block to load the CSS another way.
 
+To re-skin the panel — the accent colour, the logo, the surrounding shell — or to
+replace the `/admin` landing screen, see
+[Customising the panel](panel/customization.md).
+
 ## Your first resource
 
 A resource is one class per entity. Point it at your entity, describe the table
