@@ -4,10 +4,8 @@
 > **Extends:** §8.3 Forms (`FRM`), §8.11 Layout (`LAY`), §9 DX contract
 > **Supersedes nothing** — all existing `FRM-01..07` behaviour is preserved.
 
-This document scopes the next evolution of Atrium's **form layer**, taking the
-proven ideas from Filament's
-[Forms](https://filamentphp.com/docs/5.x/forms/overview) and
-[Schemas/Layouts](https://filamentphp.com/docs/5.x/schemas/layouts) docs and
+This document scopes the next evolution of Atrium's **form layer**, taking
+proven form-layer ideas from established admin-panel frameworks and
 adapting them to Atrium's architecture (server-driven Live Components, no client
 framework, no Doctrine in core, the inline path stays valid).
 
@@ -32,7 +30,7 @@ vertical stack. This is fine for tiny forms but breaks down quickly:
 - Only the v1 field set exists (text, textarea, number, select, checkbox,
   date, datetime).
 
-Filament's central abstraction is that a **Schema is a tree** whose nodes are
+The central abstraction here is that a **Schema is a tree** whose nodes are
 *either* fields *or* layout containers, every node carrying a `columnSpan`. That
 single idea unlocks grids, sections, tabs, wizards and conditional layout. It is
 the keystone change here; everything else composes onto it.
@@ -46,13 +44,13 @@ the keystone change here; everything else composes onto it.
   Tailwind config**, consistent with how the panel ships CSS today.
 - Add **conditional visibility** and **cross-field reactivity** that ride on the
   Live Component re-render we already have.
-- Add the **cheap, high-frequency field types** Filament has that we lack.
+- Add the **cheap, high-frequency field types** that we lack.
 - Keep every new capability **optional and additive**; a resource that only calls
   `->fields([...])` keeps working unchanged.
 
 ## 3. Non-goals (v1 of this addendum)
 
-- **Client-side (Alpine/JS) evaluation** — Filament's `hiddenJs()`,
+- **Client-side (Alpine/JS) evaluation** — e.g. `hiddenJs()`,
   `visibleJs()`, `afterStateUpdatedJs()`, `JsContent`. These evaluate logic in the
   browser to skip a round-trip. They conflict with the **server-driven** rule
   (PRD §5.2, CLAUDE.md #1). Visibility/reactivity here are **server-evaluated**
@@ -141,7 +139,7 @@ the keystone change here; everything else composes onto it.
 - **FRM-11** **State accessors** — `Get` and `Set` value objects over the form
   state, replacing raw `$formData` access in callbacks. **Both ✅ delivered**
   (`Atrium\Form\Get` invokable read; `Atrium\Form\Set` invokable write). (Stretch:
-  typed reads `$get->int()`, `$get->bool()`, …, matching Filament.)
+  typed reads `$get->int()`, `$get->bool()`, ….)
 - **FRM-12** **Fluent validation helpers — ✅ delivered.** `->maxLength()`,
   `->minLength()`, `->length()`, `->regex()` (→ `Length`/`Regex`) and numeric
   `NumberField::min()/max()` (→ `GreaterThanOrEqual`/`LessThanOrEqual`).
@@ -153,8 +151,8 @@ the keystone change here; everything else composes onto it.
   `->inlineLabel()` (label rendered beside the input in a responsive column).
 - **FRM-14** **Dehydration control — ✅ delivered.** `->dehydrated(false)` — a field
   shown and validated but not written to the model (the save hydrate loop skips
-  it). The existing `normalize()` / `toFormValue()` already cover Filament's
-  `dehydrateStateUsing()` / `formatStateUsing()`.
+  it). The existing `normalize()` / `toFormValue()` already cover the
+  dehydrate/format-state concern.
 
 > **Container-level visibility — ✅ delivered.** `visible()`/`hidden()`/`visibleOn()`/
 > `hiddenOn()` now also work on **layout containers** (`Section`/`Grid`/`Flex`/
@@ -198,7 +196,7 @@ Roadmap / out of scope for the first milestones, catalogued for completeness:
 ### 4.4 Content components — `CNT`
 
 Static building blocks that insert arbitrary content into a schema — the
-equivalent of Filament's "prime" components, named for what they do. They live in
+equivalent of static "prime" components, named for what they do. They live in
 `Atrium\Content\*`, implement `Atrium\Layout\Component`, and are leaves with **no
 form state**: never hydrated, never validated, skipped by `getFields()`. They can
 still take grid/flex placement (`columnSpan`, `grow`), which makes them ideal for
@@ -372,7 +370,7 @@ Phase 2), before Actions.
 ## 9. Open questions
 
 - **`Get`/`Set` shape:** invokable objects (`$get('x')`) vs array-ish — go
-  invokable to match Filament and allow typed reads later.
+  invokable to allow typed reads later.
 - **Collapsible JS:** Stimulus controller in the bundle vs a tiny inline toggle —
   prefer a small bundled Stimulus controller (still server-rendered markup).
 - **Tabs vs Wizard priority** for M5 — Tabs is lower-risk; Wizard needs step

@@ -14,8 +14,7 @@
 
 ## 1. Summary
 
-A PHP-configured, modular, open-source admin panel framework for Symfony — the
-spiritual shape of [Filament](https://filamentphp.com/), built for the Symfony
+A PHP-configured, modular, open-source admin panel framework for Symfony, built for the Symfony
 ecosystem. Developers describe an admin interface entirely in PHP (resources,
 columns, fields, actions) and get a polished, reactive UI with **no JavaScript
 build step and no separate API**. Reactivity is delivered server-side via
@@ -173,7 +172,7 @@ IDs are referenceable from commits/PRs.
 
 ### 8.11 Resource layout & Pages — `LAY`
 
-Mirrors Filament's per-resource organization, adapted to Symfony's HTTP model.
+A per-resource organization, adapted to Symfony's HTTP model.
 
 - **LAY-01** Recommended layout per resource (scaffolded by the maker, `RES`/`LAY`
   do not *require* the user to follow it but the framework defaults to it):
@@ -298,7 +297,7 @@ Mirrors Filament's per-resource organization, adapted to Symfony's HTTP model.
 
 ## 9. Developer-facing API contract (DX spec)
 
-The framework's "configured in PHP like Filament" promise is its primary product
+The framework's "configure everything in PHP" promise is its primary product
 surface. Two valid shapes: **(a) inline** for small resources, **(b) the
 multi-class layout** (the default the maker scaffolds) for everything else. Both
 must be supported.
@@ -477,7 +476,7 @@ packages.
 - `LICENSE` (MIT) in every package.
 - `README.md` per package + a root README.
 - `CONTRIBUTING.md`, code of conduct, issue/PR templates.
-- Unique Packagist vendor namespace; **do not** use "Filament" in the name and
+- Unique Packagist vendor namespace; **do not** name it after another admin-panel framework and
   avoid implying official Symfony endorsement (follow Symfony's trademark
   guidelines; verify before finalizing branding). *(This is a flag to check, not
   legal advice.)*

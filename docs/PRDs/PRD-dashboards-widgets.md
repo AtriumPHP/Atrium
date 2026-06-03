@@ -7,11 +7,9 @@
 > behaviour is preserved; the current `/admin` welcome screen becomes a
 > replaceable default dashboard.
 
-This document scopes Atrium's **dashboard and widget layer**, taking the proven
-ideas from Filament's
-[Widgets](https://filamentphp.com/docs/5.x/widgets/overview) and
-[multiple dashboards](https://filamentphp.com/docs/5.x/widgets/overview#creating-multiple-dashboards)
-docs and adapting them to Atrium's architecture (server-driven Live Components,
+This document scopes Atrium's **dashboard and widget layer**, taking proven
+ideas from established admin-panel frameworks (widgets and multiple
+dashboards) and adapting them to Atrium's architecture (server-driven Live Components,
 no client framework, no Doctrine in core, the inline path stays valid, downward
 dependencies only).
 
@@ -31,7 +29,7 @@ non-resource screen**. An integrator who wants "show me revenue and a sales char
 on the landing page", or "give the finance team their own dashboard", has nowhere
 to put it.
 
-Filament's model is two coupled abstractions:
+A common model in prior art is two coupled abstractions:
 
 - A **Widget** is a self-contained, independently-refreshing UI unit — a stat
   card, a chart, a small table.
@@ -68,7 +66,7 @@ client framework or leaking data-store types into core.
 
 - **Table widgets** (embedding a `DataTable` as a widget). Deferred; the tables
   subsystem reuse and its edge cases warrant their own slice.
-- **Dashboard filter forms** (Filament's `HasFiltersForm` / `InteractsWithPageFilters`).
+- **Dashboard filter forms** (page-level filter state shared into the widgets).
   Deferred; ad-hoc scalar `params` on an embedded widget cover the simple case.
 - **A first-class "resource header widgets" API** (`getHeaderWidgets()`). The
   embed-anywhere Twig tag already lets an integrator place a widget above a list
@@ -103,8 +101,8 @@ Component* renders it reactively.
 
 Two alternatives were rejected:
 
-- **Each widget IS a Live Component** (Filament's literal shape). Closest to
-  Filament, but every widget would drag HMAC/hydration machinery, become harder to
+- **Each widget IS a Live Component.** The most literal reactive shape, but
+  every widget would drag HMAC/hydration machinery, become harder to
   unit-test, and break Atrium's descriptor/component split.
 - **Server-rendered partials with dashboard-level refresh only.** Simplest, but
   violates `WGT-02` (independent refresh) and the embed-anywhere goal.

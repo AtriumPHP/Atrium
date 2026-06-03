@@ -47,7 +47,7 @@ custom page. The slots cover the 90% case; they do not try to be a layout engine
 
 - **Filter reactivity.** Header/footer widgets do **not** recompute when the user
   searches/filters/sorts the table. They reflect the unfiltered resource. This is
-  a deliberate boundary (§6), documented so no one expects Filament's reactive
+  a deliberate boundary (§6), documented so no one expects reactive
   header widgets.
 - **A new layout engine.** We reuse `WidgetSlot` + layout containers verbatim. No
   list-specific layout components.
@@ -75,7 +75,7 @@ rejected as complexity for no gain. Draft 2 made it **resource-only**
 page classes. The final model: **page classes own all per-screen presentation**
 (heading, subheading, header actions, header/footer widgets, redirect); the
 **resource owns the entity and the data-shaped `table()`/`form()`** (these are
-shared/data config, and Filament keeps them on the resource too). To add a widget
+shared/data config). To add a widget
 band you write a `ListPage` subclass and point `pages()['index']` at it — the same
 mechanism as a custom heading. The cost is a page subclass for the common case;
 the benefit is one obvious home per concern.

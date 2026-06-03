@@ -6,9 +6,8 @@ short, always-applicable rulebook.
 
 ## What this project is
 
-Atrium is a **PHP-configured, modular admin panel framework for Symfony** — the
-Filament-style developer experience, built on **Symfony UX Live Components** for
-server-driven reactivity and **Tailwind** for styling. Developers configure
+Atrium is a **PHP-configured, modular admin panel framework for Symfony**, built
+on **Symfony UX Live Components** for server-driven reactivity and **Tailwind** for styling. Developers configure
 everything in PHP; there is **no JavaScript build step for consumers and no
 separate API**.
 
@@ -51,9 +50,10 @@ separate API**.
 - Route names: `atrium_<thing>` (e.g. `atrium_dashboard`, `atrium_resource`)
 - Twig namespace: `@Atrium`
 
-Do **not** use "Filament" in any package/class/marketing name, and do not imply
-official Symfony endorsement (follow Symfony's trademark guidelines). This is a
-flag to respect, not legal advice.
+Do **not** name the project after — or imply it is derived from or endorsed by —
+another admin-panel framework, and do not imply official Symfony endorsement
+(follow Symfony's trademark guidelines). This is a flag to respect, not legal
+advice.
 
 ## Code standards
 

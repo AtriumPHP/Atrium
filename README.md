@@ -1,9 +1,9 @@
 # Atrium
 
-A PHP-configured, modular, open-source **admin panel framework for Symfony** —
-the spiritual shape of Filament, built for the Symfony ecosystem. Describe an
-admin interface entirely in PHP (resources, columns, fields, actions) and get a
-polished, reactive UI with **no JavaScript build step and no separate API**.
+A PHP-configured, modular, open-source **admin panel framework for Symfony**.
+Describe an admin interface entirely in PHP (resources, columns, fields,
+actions) and get a polished, reactive UI with **no JavaScript build step and no
+separate API**.
 Reactivity is delivered server-side via Symfony UX Live Components; styling via
 Tailwind.
 

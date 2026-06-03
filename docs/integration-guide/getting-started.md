@@ -11,8 +11,7 @@ renders a polished, reactive UI. There is **no JavaScript build step** for your
 app and **no separate API**: reactivity is delivered server-side by Symfony UX
 Live Components, and styling ships precompiled with the bundle.
 
-If you have used Filament in the Laravel world, the shape will feel familiar; the
-mechanics are pure Symfony (Doctrine, the validator, Twig, UX).
+The mechanics are pure Symfony (Doctrine, the validator, Twig, UX).
 
 ## Requirements
 

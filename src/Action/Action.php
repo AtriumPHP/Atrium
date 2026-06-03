@@ -9,8 +9,8 @@ namespace Atrium\Action;
  *
  * The {@see Atrium\Action} subsystem is deliberately decoupled from where an
  * action appears: the same builder backs table record actions today, and will
- * back header, page and bulk actions as the panel grows — exactly like a single
- * Actions layer is shared across a Filament app.
+ * back header, page and bulk actions as the panel grows — a single Actions
+ * layer shared across the whole panel.
  *
  * An action is either a **link** (it resolves a URL via {@see url()}, or a
  * subclass like {@see EditAction}) or a **server action** (it carries a handler,
