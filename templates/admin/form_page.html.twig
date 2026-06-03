@@ -2,6 +2,7 @@
 
 {% block title %}{{ heading }} · {{ panel.brand }}{% endblock %}
 {% block heading %}{{ heading }}{% endblock %}
+{% block subheading %}{% if subheading %}<p class="mt-0.5 truncate text-sm text-gray-500 dark:text-gray-400">{{ subheading }}</p>{% endif %}{% endblock %}
 
 {% block header_actions %}
     <a href="{{ panel.pathPrefix }}/{{ resource.slug }}"

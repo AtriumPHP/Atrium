@@ -31,6 +31,8 @@ final class PanelTest extends WebTestCase
         $crawler = $client->request('GET', '/admin/tag');
 
         self::assertResponseIsSuccessful();
+        // The list heading comes from the (now-resolved) ListPage — the plural label.
+        self::assertSelectorTextContains('h1', 'Tags');
         self::assertSelectorExists('input[type="search"]');
         self::assertSelectorTextContains('thead', 'Name');
         self::assertSelectorTextContains('thead', 'Slug');

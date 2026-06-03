@@ -9,4 +9,8 @@ namespace Atrium\Page;
  */
 class CreatePage extends Page
 {
+    public function getHeading(PageContext $context): string
+    {
+        return 'New '.$context->singularLabel;
+    }
 }

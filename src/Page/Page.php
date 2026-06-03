@@ -15,6 +15,31 @@ namespace Atrium\Page;
 abstract class Page
 {
     /**
+     * The screen's browser `<title>`. Defaults to the heading.
+     */
+    public function getTitle(PageContext $context): string
+    {
+        return $this->getHeading($context);
+    }
+
+    /**
+     * The screen's `<h1>`. The base default is the resource's plural label
+     * (suited to the list screen); the create/edit pages override it.
+     */
+    public function getHeading(PageContext $context): string
+    {
+        return $context->pluralLabel;
+    }
+
+    /**
+     * An optional sub-line under the heading; null for none.
+     */
+    public function getSubheading(PageContext $context): ?string
+    {
+        return null;
+    }
+
+    /**
      * Where to send the user after a successful save. Defaults to the resource
      * list; override to change the post-save destination (e.g. stay on the
      * edit screen).

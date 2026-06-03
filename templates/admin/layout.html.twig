@@ -69,8 +69,11 @@
 
     {# ------------------------------------------------------------------- Main #}
     <div class="flex min-w-0 flex-1 flex-col">
-        <header class="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b border-gray-200/80 bg-gray-50/80 px-5 backdrop-blur-xl sm:px-8 dark:border-gray-800/80 dark:bg-gray-950/70">
-            <h1 class="truncate text-lg font-semibold tracking-tight">{% block heading %}{% endblock %}</h1>
+        <header class="sticky top-0 z-10 flex min-h-16 items-center justify-between gap-4 border-b border-gray-200/80 bg-gray-50/80 px-5 py-2.5 backdrop-blur-xl sm:px-8 dark:border-gray-800/80 dark:bg-gray-950/70">
+            <div class="min-w-0">
+                <h1 class="truncate text-lg font-semibold tracking-tight">{% block heading %}{% endblock %}</h1>
+                {% block subheading %}{% endblock %}
+            </div>
             <div class="flex items-center gap-3">{% block header_actions %}{% endblock %}</div>
         </header>
         <main class="flex-1 p-5 sm:p-8">

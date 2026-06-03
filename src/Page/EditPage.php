@@ -9,4 +9,8 @@ namespace Atrium\Page;
  */
 class EditPage extends Page
 {
+    public function getHeading(PageContext $context): string
+    {
+        return 'Edit '.$context->singularLabel;
+    }
 }

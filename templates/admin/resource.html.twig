@@ -1,7 +1,8 @@
 {% extends '@Atrium/admin/layout.html.twig' %}
 
-{% block title %}{{ resource.label }} · {{ panel.brand }}{% endblock %}
-{% block heading %}{{ resource.label }}{% endblock %}
+{% block title %}{{ heading }} · {{ panel.brand }}{% endblock %}
+{% block heading %}{{ heading }}{% endblock %}
+{% block subheading %}{% if subheading %}<p class="mt-0.5 truncate text-sm text-gray-500 dark:text-gray-400">{{ subheading }}</p>{% endif %}{% endblock %}
 
 {# Header actions (the "New" button, custom create/import actions) render inside
    the DataTable Live Component so server-driven actions work — see headerActions(). #}

@@ -14,6 +14,8 @@ final readonly class PageContext
         public string $resourceSlug,
         public string $pathPrefix,
         public ?string $entityId = null,
+        public string $singularLabel = '',
+        public string $pluralLabel = '',
     ) {
     }
 

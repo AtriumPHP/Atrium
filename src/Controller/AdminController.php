@@ -73,12 +73,13 @@ final readonly class AdminController
         $resourceObject = $this->requireResource($resource);
         $this->denyUnless($resourceObject->canAccess() && $resourceObject->canCreate());
         $page = $resourceObject->resolvePage('create');
-        $context = new PageContext($resource, $this->pathPrefix);
+        $context = $this->pageContext($resourceObject, $resource);
 
         return $this->render('@Atrium/admin/form_page.html.twig', [
             'panel' => $this->panel($resource),
             'resource' => $resourceObject,
-            'heading' => 'New '.$resourceObject->getSingularLabel(),
+            'heading' => $page?->getHeading($context) ?? 'New '.$resourceObject->getSingularLabel(),
+            'subheading' => $page?->getSubheading($context),
             'entityId' => null,
             'redirectUrl' => $page?->getRedirectUrl($context),
         ]);
@@ -104,12 +105,13 @@ final readonly class AdminController
         }
 
         $page = $resourceObject->resolvePage('edit');
-        $context = new PageContext($resource, $this->pathPrefix, $id);
+        $context = $this->pageContext($resourceObject, $resource, $id);
 
         return $this->render('@Atrium/admin/form_page.html.twig', [
             'panel' => $this->panel($resource),
             'resource' => $resourceObject,
-            'heading' => 'Edit '.$resourceObject->getSingularLabel(),
+            'heading' => $page?->getHeading($context) ?? 'Edit '.$resourceObject->getSingularLabel(),
+            'subheading' => $page?->getSubheading($context),
             'entityId' => $id,
             'redirectUrl' => $page?->getRedirectUrl($context),
         ]);
@@ -122,11 +124,26 @@ final readonly class AdminController
         // ability — here canViewAny(); create adds canCreate(), edit canEdit().
         // canAccess() defaults to canViewAny(), so by default they coincide.
         $this->denyUnless($resourceObject->canAccess() && $resourceObject->canViewAny());
+        $page = $resourceObject->resolvePage('index');
+        $context = $this->pageContext($resourceObject, $resource);
 
         return $this->render('@Atrium/admin/resource.html.twig', [
             'panel' => $this->panel($resource),
             'resource' => $resourceObject,
+            'heading' => $page?->getHeading($context) ?? $resourceObject->getLabel(),
+            'subheading' => $page?->getSubheading($context),
         ]);
+    }
+
+    private function pageContext(AdminResource $resource, string $slug, ?string $entityId = null): PageContext
+    {
+        return new PageContext(
+            $slug,
+            $this->pathPrefix,
+            $entityId,
+            $resource->getSingularLabel(),
+            $resource->getLabel(),
+        );
     }
 
     private function renderDashboard(Dashboard $dashboard, ?string $activeSlug): Response
