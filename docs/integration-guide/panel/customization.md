@@ -146,12 +146,65 @@ the layout into your override and replace the badge markup (around the
 </a>
 ```
 
-### Custom icons
+## Icons
 
-Navigation and built-in actions render icons through `@Atrium/icon.html.twig`
-(heroicons v2, outline), looked up by name (`cube`, `users`, `squares`, …). To add
-a glyph the bundle doesn't ship, or to swap the icon set, override that template
-with your own `name → SVG` map.
+Every glyph in the panel is rendered with [Symfony UX Icons][ux-icons], which
+Atrium requires (you don't install it yourself — it comes with the bundle). The
+panel ships its own [Lucide][lucide] set under the **`atrium:`** prefix, so it
+renders fully offline with no icon setup in your app.
+
+Anywhere Atrium accepts an icon name — navigation (`getNavigationIcon()`), actions
+(`->icon()`), tabs and wizard steps — the value resolves like this:
+
+- **A bare name** (`cube`, `users`, `pencil`, …) resolves to the bundle's built-in
+  set. These are the glyphs the panel itself uses; an unknown bare name falls back
+  to a neutral placeholder rather than erroring.
+- **A namespaced name** (`lucide:rocket`, `mdi:home`, `tabler:flask`, …) is passed
+  straight through to UX Icons, which fetches it on demand from
+  [Iconify][iconify] (190 000+ icons) and caches it locally. You are never limited
+  to the built-in set:
+
+  ```php
+  public function getNavigationIcon(): ?string
+  {
+      return 'lucide:shopping-cart';
+  }
+  ```
+
+### Overriding a built-in glyph
+
+To change one of the panel's own icons, alias its name in your app's
+`config/packages/ux_icons.yaml` (your app config wins over the bundle's):
+
+```yaml
+ux_icons:
+    aliases:
+        'atrium:cube': 'lucide:package'   # re-point the panel's "cube" glyph
+```
+
+To replace the whole built-in set with your own SVGs, point the `atrium` icon set
+at your directory:
+
+```yaml
+ux_icons:
+    icon_sets:
+        atrium:
+            path: '%kernel.project_dir%/assets/atrium-icons'
+```
+
+### Rendering an icon in a template override
+
+In a layout override, render icons with the UX Icons Twig function — a built-in
+panel glyph or any Iconify icon:
+
+```twig
+{{ ux_icon('atrium:home', { class: 'h-5 w-5' }) }}
+{{ ux_icon('lucide:rocket', { class: 'h-5 w-5' }) }}
+```
+
+[ux-icons]: https://symfony.com/bundles/ux-icons
+[lucide]: https://lucide.dev
+[iconify]: https://iconify.design
 
 ## How the stylesheet is loaded
 
@@ -229,6 +282,7 @@ appears at all — are controlled per resource (and per dashboard), not here. Se
 | --- | --- |
 | `atrium_stylesheet()` | Emits the panel stylesheet `<link>` (AssetMapper). |
 | `atrium_importmap('app')` | Emits the panel's import-map script tags. |
+| `ux_icon('atrium:home', { … })` | Renders an icon (built-in `atrium:` set or any Iconify name). |
 
 **Theme variables** (override in CSS): `--color-primary-50` … `--color-primary-950`.
 

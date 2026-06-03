@@ -18,7 +18,7 @@
                         ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                         : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200' }}">
                 {% if tab.getIcon() %}
-                    {{ include('@Atrium/icon.html.twig', { name: tab.getIcon(), class: 'h-4 w-4' }) }}
+                    {{ atrium_icon(tab.getIcon(), { class: 'h-4 w-4' }) }}
                 {% endif %}
                 {{ tab.getLabel() }}
                 {% if tab.getBadge() is not null %}

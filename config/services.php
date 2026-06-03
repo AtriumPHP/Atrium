@@ -6,6 +6,7 @@ use Atrium\Controller\AdminController;
 use Atrium\Dashboard\DashboardRegistry;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\Resource\ResourceRegistry;
+use Atrium\Twig\IconExtension;
 use Atrium\Twig\PanelAssetsExtension;
 use Atrium\Widget\WidgetRegistry;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -56,5 +57,9 @@ return static function (ContainerConfigurator $container): void {
             service('asset_mapper.importmap.renderer')->ignoreOnInvalid(),
             service('assets.packages')->ignoreOnInvalid(),
         ])
+        ->tag('twig.extension');
+
+    $services->set(IconExtension::class)
+        ->args([service('.ux_icons.icon_renderer')])
         ->tag('twig.extension');
 };

@@ -44,7 +44,7 @@
 {% set cls = classes[style] %}
 {% set iconOnly = style == 'icon' %}
 {% set inner %}
-    {% if action.icon %}{{ include('@Atrium/icon.html.twig', { name: action.icon, class: 'h-4 w-4 shrink-0' }) }}{% endif %}
+    {% if action.icon %}{{ atrium_icon(action.icon, { class: 'h-4 w-4 shrink-0' }) }}{% endif %}
     {% if not iconOnly %}<span>{{ action.label }}</span>{% endif %}
     {% if action.badge is not null and action.badge is not same as(false) and action.badge != '' %}
         <span class="ml-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold leading-none {{ badgeColors[color]|default(badgeColors.gray) }}">{{ action.badge }}</span>

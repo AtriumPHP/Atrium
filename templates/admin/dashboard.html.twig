@@ -36,14 +36,14 @@
                     <a href="{{ item.url }}"
                        class="group flex items-center gap-4 rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-md dark:border-gray-800/80 dark:bg-gray-900 dark:hover:border-primary-800">
                         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600 ring-1 ring-inset ring-primary-100 transition-colors group-hover:bg-primary-600 group-hover:text-white group-hover:ring-primary-600 dark:bg-primary-950 dark:text-primary-300 dark:ring-primary-900">
-                            {{ include('@Atrium/icon.html.twig', { name: item.icon ?? 'squares', class: 'h-6 w-6' }) }}
+                            {{ atrium_icon(item.icon ?? 'squares', { class: 'h-6 w-6' }) }}
                         </span>
                         <span class="min-w-0 flex-1">
                             <span class="block font-semibold tracking-tight">{{ item.label }}</span>
                             <span class="block text-sm text-gray-400 dark:text-gray-500">Manage {{ item.label|lower }}</span>
                         </span>
                         <span class="text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-primary-500 dark:text-gray-600">
-                            {{ include('@Atrium/icon.html.twig', { name: 'chevron-right', class: 'h-5 w-5' }) }}
+                            {{ atrium_icon('chevron-right', { class: 'h-5 w-5' }) }}
                         </span>
                     </a>
                 {% endfor %}

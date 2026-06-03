@@ -49,13 +49,32 @@ final class AtriumBundle extends AbstractBundle
     }
 
     /**
-     * Expose the bundle's precompiled stylesheet through AssetMapper so the
-     * panel is styled out of the box, with no Tailwind setup in the consuming
-     * app. Apps not using AssetMapper can override the layout's `stylesheets`
-     * block instead.
+     * Prepend configuration onto bundles the panel builds on:
+     *
+     *  - AssetMapper: expose the bundle's precompiled stylesheet through the
+     *    `atrium` path so the panel is styled out of the box, with no Tailwind
+     *    setup in the consuming app. Apps not using AssetMapper can override the
+     *    layout's `stylesheets` block instead.
+     *  - UX Icons: register the bundle's shipped Lucide set under the `atrium:`
+     *    prefix, so `ux_icon('atrium:cube')` (and the `atrium_icon()` helper)
+     *    resolve the panel's own glyphs from disk — no network, no consumer
+     *    setup. The host app's bare `assets/icons` namespace is left untouched.
      */
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        $container->extension('ux_icons', [
+            'icon_sets' => [
+                'atrium' => [
+                    'path' => \dirname(__DIR__).'/assets/icons',
+                    // The shipped glyphs are stroke-based (Lucide); pin fill to
+                    // none so they render correctly even when the host app's
+                    // `default_icon_attributes` set `fill: currentColor` (the
+                    // value the ux-icons recipe writes by default).
+                    'icon_attributes' => ['fill' => 'none'],
+                ],
+            ],
+        ]);
+
         if (!class_exists(AssetMapper::class)) {
             return;
         }

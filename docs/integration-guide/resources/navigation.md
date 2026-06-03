@@ -46,7 +46,7 @@ final class OrderResource extends AdminResource
 
     public function getNavigationIcon(): ?string
     {
-        return 'cart';
+        return 'lucide:shopping-cart';
     }
 
     public function getNavigationSort(): ?int
@@ -85,7 +85,7 @@ final class OrderResource extends AdminResource
 | `getNavigationBadge(): ?string` | Badge text next to the entry, or `null` for none. |
 | `getNavigationBadgeColor(): string` | Badge colour key (`gray`, `primary`, `red`, `green`, `amber`, `sky`). Defaults to `primary`. |
 | `getNavigationGroup(): ?string` | Group heading the entry is listed under, or `null`. |
-| `getNavigationIcon(): ?string` | Icon identifier for the entry, or `null`. |
+| `getNavigationIcon(): ?string` | Icon for the entry, or `null`. A bare name (`cube`, `users`) uses the panel's built-in set; a namespaced name (`lucide:shopping-cart`, `mdi:home`) uses any [Iconify](https://iconify.design) icon. See [Icons](../panel/customization.md#icons). |
 | `getLabel(): string` | The menu label (pluralised). |
 
 > **Render slots** (custom HTML in the page header/footer, `beforeRender`) are a

@@ -26,7 +26,7 @@
             <summary class="flex cursor-pointer list-none items-center justify-between gap-3 {{ headerPad }}">
                 <div class="min-w-0">{{ header }}</div>
                 <span class="shrink-0 text-gray-400 transition-transform group-open:rotate-90 dark:text-gray-500">
-                    {{ include('@Atrium/icon.html.twig', { name: 'chevron-right', class: 'h-4 w-4' }) }}
+                    {{ atrium_icon('chevron-right', { class: 'h-4 w-4' }) }}
                 </span>
             </summary>
             <div class="border-t border-gray-100 {{ bodyPad }} dark:border-gray-800">{{ body }}</div>

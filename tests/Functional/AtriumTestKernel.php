@@ -41,6 +41,7 @@ use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Symfony\UX\Chartjs\ChartjsBundle;
+use Symfony\UX\Icons\UXIconsBundle;
 use Symfony\UX\LiveComponent\LiveComponentBundle;
 use Symfony\UX\StimulusBundle\StimulusBundle;
 use Symfony\UX\TwigComponent\TwigComponentBundle;
@@ -66,6 +67,7 @@ final class AtriumTestKernel extends Kernel
             new TwigComponentBundle(),
             new LiveComponentBundle(),
             new ChartjsBundle(),
+            new UXIconsBundle(),
             new AtriumBundle(),
         ];
     }

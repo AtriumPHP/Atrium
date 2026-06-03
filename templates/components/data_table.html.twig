@@ -2,7 +2,7 @@
     <div class="mb-4 flex items-center gap-3">
         <div class="relative w-full max-w-sm">
             <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                {{ include('@Atrium/icon.html.twig', { name: 'search', class: 'h-4 w-4' }) }}
+                {{ atrium_icon('search', { class: 'h-4 w-4' }) }}
             </span>
             <input
                 type="search"
@@ -35,7 +35,7 @@
             {% if this.hasActiveFilters %}
                 <button type="button" data-action="live#action" data-live-action-param="resetFilters"
                         class="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                    {{ include('@Atrium/icon.html.twig', { name: 'x-mark', class: 'h-4 w-4' }) }}
+                    {{ atrium_icon('x-mark', { class: 'h-4 w-4' }) }}
                     Reset
                 </button>
             {% endif %}
@@ -138,9 +138,9 @@
                             <td class="whitespace-nowrap px-4 py-3 text-gray-700 first:font-medium first:text-gray-900 dark:text-gray-300 dark:first:text-gray-100 {{ alignClasses[cell.align] }}">
                                 {% if cell.boolean %}
                                     {% if cell.state %}
-                                        <span class="text-green-600 dark:text-green-400" title="Yes">{{ include('@Atrium/icon.html.twig', { name: 'check', class: 'h-5 w-5' }) }}</span>
+                                        <span class="text-green-600 dark:text-green-400" title="Yes">{{ atrium_icon('check', { class: 'h-5 w-5' }) }}</span>
                                     {% else %}
-                                        <span class="text-gray-300 dark:text-gray-600" title="No">{{ include('@Atrium/icon.html.twig', { name: 'x-mark', class: 'h-5 w-5' }) }}</span>
+                                        <span class="text-gray-300 dark:text-gray-600" title="No">{{ atrium_icon('x-mark', { class: 'h-5 w-5' }) }}</span>
                                     {% endif %}
                                     <span class="sr-only">{{ cell.state ? 'Yes' : 'No' }}</span>
                                 {% elseif cell.badge and cell.value != '' %}
@@ -161,7 +161,7 @@
                         <td colspan="{{ this.columns|length + (this.hasRecordActions ? 1 : 0) + (this.hasBulkActions ? 1 : 0) }}" class="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
                             <div class="mx-auto flex max-w-sm flex-col items-center gap-2">
                                 {% if this.emptyIcon %}
-                                    <span class="text-gray-300 dark:text-gray-600">{{ include('@Atrium/icon.html.twig', { name: this.emptyIcon, class: 'h-10 w-10' }) }}</span>
+                                    <span class="text-gray-300 dark:text-gray-600">{{ atrium_icon(this.emptyIcon, { class: 'h-10 w-10' }) }}</span>
                                 {% endif %}
                                 <p class="font-medium text-gray-900 dark:text-gray-100">{{ this.emptyHeading }}</p>
                                 {% if this.emptyDescription %}
@@ -206,7 +206,7 @@
                     aria-label="Previous page"
                     class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                 >
-                    <span class="rotate-180">{{ include('@Atrium/icon.html.twig', { name: 'chevron-right', class: 'h-4 w-4' }) }}</span>
+                    <span class="rotate-180">{{ atrium_icon('chevron-right', { class: 'h-4 w-4' }) }}</span>
                 </button>
                 <button
                     type="button"
@@ -217,7 +217,7 @@
                     aria-label="Next page"
                     class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                 >
-                    {{ include('@Atrium/icon.html.twig', { name: 'chevron-right', class: 'h-4 w-4' }) }}
+                    {{ atrium_icon('chevron-right', { class: 'h-4 w-4' }) }}
                 </button>
             </div>
         </div>

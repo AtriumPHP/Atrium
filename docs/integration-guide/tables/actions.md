@@ -33,7 +33,7 @@ public function table(TableConfiguration $table): TableConfiguration
             EditAction::make(),
             DeleteAction::make(),
             ActionGroup::make([
-                Action::make('feature')->label('Toggle featured')->icon('star')
+                Action::make('feature')->label('Toggle featured')->icon('lucide:star')
                     ->action(function (object $record, DataWriterInterface $writer): void {
                         $record->featured = !$record->featured;
                         $writer->update($record);
@@ -42,7 +42,7 @@ public function table(TableConfiguration $table): TableConfiguration
         ])
         ->bulkActions([
             BulkDeleteAction::make(),
-            Action::make('feature')->label('Feature selected')->icon('star')
+            Action::make('feature')->label('Feature selected')->icon('lucide:star')
                 ->action(function (array $records, DataWriterInterface $writer): void {
                     foreach ($records as $record) {
                         $record->featured = true;

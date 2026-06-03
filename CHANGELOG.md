@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Icons now render through [Symfony UX Icons](https://symfony.com/bundles/ux-icons).**
+  The panel's hardcoded `name → SVG path` Twig map (`@Atrium/icon.html.twig`, ~18
+  heroicons-outline glyphs) is replaced by a shipped [Lucide](https://lucide.dev)
+  set registered under the `atrium:` icon-set prefix (via the bundle's
+  `prependExtension()`), rendered with the `ux_icon()` function and an internal
+  `atrium_icon()` helper that defaults bare names to the `atrium:` set. Icon names
+  anywhere in the panel — `getNavigationIcon()`, `Action::icon()`, tab/step icons —
+  now also accept **any [Iconify](https://iconify.design) icon** by passing a
+  namespaced name (`lucide:rocket`, `mdi:home`, …); bare names resolve to the
+  built-in set and an unknown one degrades to a neutral placeholder instead of
+  erroring. The panel's glyphs change appearance (heroicons → Lucide). New required
+  dependency: `symfony/ux-icons`. The `@Atrium/icon.html.twig` template is removed —
+  apps that overrode it should instead alias or repoint the `atrium` icon set in
+  `config/packages/ux_icons.yaml`. Docs:
+  `docs/integration-guide/panel/customization.md#icons`.
+
 ## [0.1.0] - 2026-06-03
 
 First tagged release: the panel shell, resources, tables, forms, actions, pages,

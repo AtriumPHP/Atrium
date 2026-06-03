@@ -5,7 +5,7 @@
 #}
 <details class="atrium-action-group group relative inline-block text-left">
     <summary class="inline-flex cursor-pointer list-none items-center gap-1 rounded-lg px-2 py-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white [&::-webkit-details-marker]:hidden">
-        {% if action.icon %}{{ include('@Atrium/icon.html.twig', { name: action.icon, class: 'h-5 w-5' }) }}{% endif %}
+        {% if action.icon %}{{ atrium_icon(action.icon, { class: 'h-5 w-5' }) }}{% endif %}
         {% if action.label %}<span class="text-sm font-medium">{{ action.label }}</span>{% endif %}
     </summary>
     <div class="absolute right-0 z-20 mt-1 min-w-44 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-800 dark:bg-gray-900">

@@ -41,7 +41,7 @@ Action::make('publish')->label('Publish')->icon('check')->color('green')
 | --- | --- |
 | `make(string $name): static` | Create the action (the name identifies it). |
 | `label(string): static` | Button label (defaults to a humanised name). |
-| `icon(?string): static` | Optional icon. |
+| `icon(?string): static` | Optional icon. A bare name uses the panel's built-in set; a namespaced name (`lucide:star`) uses any [Iconify](https://iconify.design) icon — see [Icons](../panel/customization.md#icons). |
 | `color(string): static` | Semantic colour: `gray`, `primary`, `red`, `green`, `amber`, `sky`. |
 | `button()` / `link()` / `iconButton()` | Render style: filled button, text link (default), or icon-only. |
 | `badge(int\|string\|null): static` | A small badge on the trigger. |
@@ -103,8 +103,8 @@ Collapse several actions into a single dropdown with `ActionGroup`:
 use Atrium\Action\ActionGroup;
 
 ActionGroup::make([
-    Action::make('duplicate')->icon('copy')->action(/* ... */),
-    Action::make('archive')->icon('archive')->authorize('edit')->action(/* ... */),
+    Action::make('duplicate')->icon('lucide:copy')->action(/* ... */),
+    Action::make('archive')->icon('lucide:archive')->authorize('edit')->action(/* ... */),
 ])->label('More');
 ```
 

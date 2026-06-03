@@ -24,7 +24,7 @@
                 <p class="mt-1 text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">{{ stat.getValue() }}</p>
                 {% if stat.getDescription() %}
                     <p class="mt-1 flex items-center gap-1 text-sm {{ statColors[color] ?? statColors.gray }}">
-                        {% if stat.getDescriptionIcon() %}{{ include('@Atrium/icon.html.twig', { name: stat.getDescriptionIcon(), class: 'h-4 w-4 shrink-0' }) }}{% endif %}
+                        {% if stat.getDescriptionIcon() %}{{ atrium_icon(stat.getDescriptionIcon(), { class: 'h-4 w-4 shrink-0' }) }}{% endif %}
                         <span>{{ stat.getDescription() }}</span>
                     </p>
                 {% endif %}

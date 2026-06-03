@@ -7,7 +7,7 @@
 {% block header_actions %}
     <a href="{{ panel.pathPrefix }}/{{ resource.slug }}"
        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white">
-        {{ include('@Atrium/icon.html.twig', { name: 'arrow-left', class: 'h-4 w-4' }) }}
+        {{ atrium_icon('arrow-left', { class: 'h-4 w-4' }) }}
         {{ resource.label }}
     </a>
 {% endblock %}
