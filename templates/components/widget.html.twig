@@ -1,0 +1,14 @@
+{# Generic widget host (WGT-04). Renders the resolved descriptor's view, or
+   nothing when the class is unregistered/forged or hidden by canView(). The
+   column-span class sits on the component root so it is a grid item when the
+   host is embedded directly inside a dashboard grid. #}
+{%- set definition = this.definition -%}
+{%- set rootClass = ('atrium-widget ' ~ (definition ? definition.columnSpanClass : ''))|trim -%}
+<div
+    {{ attributes.defaults({ class: rootClass }) }}
+    {%- if this.pollDirective %} data-poll="{{ this.pollDirective }}"{% endif %}
+>
+    {% if definition %}
+        {{ include(definition.view, { widget: definition, params: this.params }) }}
+    {% endif %}
+</div>

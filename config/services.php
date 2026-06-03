@@ -6,6 +6,7 @@ use Atrium\Controller\AdminController;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Twig\PanelAssetsExtension;
+use Atrium\Widget\WidgetRegistry;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
@@ -24,6 +25,10 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set(ResourceRegistry::class)
         ->args([tagged_iterator('atrium.resource')])
+        ->public();
+
+    $services->set(WidgetRegistry::class)
+        ->args([tagged_iterator('atrium.widget')])
         ->public();
 
     $services->set(AdminController::class)

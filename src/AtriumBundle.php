@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atrium;
 
 use Atrium\Resource\AdminResource;
+use Atrium\Widget\Widget;
 use Symfony\Component\AssetMapper\AssetMapper;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -75,6 +76,10 @@ final class AtriumBundle extends AbstractBundle
 
         $builder->registerForAutoconfiguration(AdminResource::class)
             ->addTag('atrium.resource')
+        ;
+
+        $builder->registerForAutoconfiguration(Widget::class)
+            ->addTag('atrium.widget')
         ;
 
         $container->import(\dirname(__DIR__).'/config/services.php');

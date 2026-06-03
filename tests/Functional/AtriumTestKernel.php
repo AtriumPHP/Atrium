@@ -24,6 +24,9 @@ use Atrium\Tests\Fixtures\Resource\TabsTagResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Atrium\Tests\Fixtures\Resource\UnlistedTagResource;
 use Atrium\Tests\Fixtures\Resource\WizardTagResource;
+use Atrium\Tests\Fixtures\Widget\CounterStatsWidget;
+use Atrium\Tests\Fixtures\Widget\HiddenWidget;
+use Atrium\Tests\Fixtures\Widget\ParamsStatsWidget;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -138,6 +141,19 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(ActionsTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        // Widget fixtures (tagged atrium.widget via autoconfiguration).
+        $services->set(CounterStatsWidget::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(HiddenWidget::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(ParamsStatsWidget::class)
             ->autoconfigure()
             ->autowire();
 

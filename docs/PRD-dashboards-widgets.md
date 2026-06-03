@@ -154,8 +154,9 @@ its Stimulus controller via AssetMapper — **no JS build step** for consumers).
 - **WGT-04** Generic host Live Component `atrium:widget` renders any registered
   widget; the widget class is a non-writable, checksummed LiveProp (unforgeable).
 - **WGT-05** Widgets are embeddable in **any Twig template** via
-  `<twig:atrium:widget class="…" :params="{…}">`; `params` carries optional
-  **scalar** context (ids, ranges, filter values — never hydrated entities).
+  `<twig:Atrium:Widget widget="…" :params="{…}">`; `params` carries optional
+  **scalar** context (ids, ranges, filter values — never hydrated entities). The
+  class is passed as `widget` (not `class`, which Twig reserves for CSS classes).
 - **WGT-06** Each widget refreshes **independently** via a `refresh` action and an
   optional `getPollingInterval(): ?string` (e.g. `'10s'`; default `null`).
 - **WGT-07** Per-widget authorization: `canView(): bool` (an instance method, so
@@ -332,11 +333,13 @@ for users `canAccess()` denies.
 ### 6.4 Embedding a widget anywhere
 
 ```twig
-{# In any Twig template — a record page, a custom report, an email preview… #}
-<twig:atrium:widget class="App\\Widget\\RevenueStat" />
+{# In any Twig template — a record page, a custom report, an email preview…
+   `class` is reserved by Twig components for CSS classes, so the widget class is
+   passed as the `widget` attribute. #}
+<twig:Atrium:Widget widget="App\\Widget\\RevenueStat" />
 
 {# With scalar context the descriptor can read from $params #}
-<twig:atrium:widget class="App\\Widget\\OrdersPerDay" :params="{ range: 90 }" />
+<twig:Atrium:Widget widget="App\\Widget\\OrdersPerDay" :params="{ range: 90 }" />
 ```
 
 ### 6.5 API reference (selected)
