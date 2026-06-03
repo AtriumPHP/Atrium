@@ -1,0 +1,21 @@
+{#
+    Hosts a single record's header actions on a static screen (the View page):
+    link actions (Edit / View) render as anchors, server actions (Delete) as
+    buttons that run through the shared confirm → run → cancel plumbing. The
+    confirmation is a server-driven re-render — no client JavaScript.
+#}
+<div {{ attributes }} class="inline-flex flex-wrap items-center gap-2">
+    {% if this.hasHeaderActions %}
+        {{ include('@Atrium/components/actions.html.twig', { actions: this.headerActionViews }) }}
+    {% endif %}
+
+    {% if this.isConfirming %}
+        {{ include('@Atrium/components/confirm_modal.html.twig', {
+            title: this.confirmingLabel,
+            message: this.confirmingMessage,
+            color: this.confirmingColor,
+            confirmAction: 'confirmAction',
+            cancelAction: 'cancelAction',
+        }) }}
+    {% endif %}
+</div>

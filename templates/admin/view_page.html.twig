@@ -10,12 +10,15 @@
         {{ atrium_icon('arrow-left', { class: 'h-4 w-4' }) }}
         {{ resource.label }}
     </a>
-    {% if editUrl %}
-        <a href="{{ editUrl }}"
-           class="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-700">
-            {{ atrium_icon('pencil', { class: 'h-4 w-4' }) }}
-            Edit
-        </a>
+    {% if record %}
+        {# The page's header actions (Edit link, Delete server-action) are hosted by
+           a small Live Component so Delete runs through the shared action plumbing
+           even though the View screen itself is a static render. #}
+        {{ component('Atrium:RecordActions', {
+            resource: resource.slug,
+            entityId: entityId,
+            pathPrefix: panel.pathPrefix,
+        }) }}
     {% endif %}
 {% endblock %}
 

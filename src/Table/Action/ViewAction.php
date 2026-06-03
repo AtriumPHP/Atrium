@@ -27,4 +27,13 @@ final class ViewAction extends Action
     {
         return $context->recordRootUrl();
     }
+
+    /**
+     * As a header action on a single-record screen the context carries the record
+     * id, so resolve the same bare record URL — keeping it a link.
+     */
+    public function getStandaloneUrl(ActionContext $context): string
+    {
+        return $context->recordRootUrl();
+    }
 }

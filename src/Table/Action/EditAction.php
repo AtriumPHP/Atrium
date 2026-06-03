@@ -26,4 +26,14 @@ final class EditAction extends Action
     {
         return $context->recordUrl('edit');
     }
+
+    /**
+     * As a header action on a single-record screen (the View page) the context
+     * carries the record id, so resolve the same edit URL — keeping it a link
+     * rather than a record-less server button.
+     */
+    public function getStandaloneUrl(ActionContext $context): string
+    {
+        return $context->recordUrl('edit');
+    }
 }

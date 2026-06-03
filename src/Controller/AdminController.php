@@ -146,17 +146,11 @@ final readonly class AdminController
 
         $context = $this->pageContext($resourceObject, $resource, $id);
 
-        // M1 renders link header actions only (the Edit link); server-driven header
-        // actions (Delete) need an action host and land with the M4 nav/actions work.
-        $canEdit = null === $record || $resourceObject->canEdit($record);
-        $editUrl = ($canEdit && null !== $resourceObject->resolvePage('edit')) ? $context->editUrl($id) : null;
-
         return $this->render('@Atrium/admin/view_page.html.twig', [
             'panel' => $this->panel($resource),
             'resource' => $resourceObject,
             'heading' => $page->getHeading($context),
             'subheading' => $page->getSubheading($context),
-            'editUrl' => $editUrl,
             'schema' => $resourceObject->resolveViewSchema(),
             'record' => $record,
             'entityId' => $id,
