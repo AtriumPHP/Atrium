@@ -1,0 +1,34 @@
+{#
+    Shared read-only entry shell: the label (dt) + value (dd) chrome that every
+    entry draws around its body. Concrete entry templates `embed` this and fill
+    the `value` block; `v` is the entry's toView() descriptor (resolved once here
+    and available inside the overridden block). `component` and `record` come from
+    the surrounding layout-renderer context.
+#}
+{% set v = component.toView(record) %}
+{% if v.visible %}
+    {% set inline = v.inlineLabel and not v.hiddenLabel %}
+    <div class="{{ inline ? 'sm:grid sm:grid-cols-3 sm:items-start sm:gap-4' }}"
+        {%- for key, val in v.extraAttributes %} {{ key }}="{{ val }}"{% endfor %}>
+        {% if not v.hiddenLabel %}
+            <dt class="flex items-center justify-between gap-2 text-sm font-medium text-gray-500 dark:text-gray-400{{ inline ? ' sm:pt-0.5' }}">
+                <span>{{ v.label }}</span>
+                {% if v.hint %}
+                    <span class="inline-flex items-center gap-1 text-xs font-normal text-gray-400 dark:text-gray-500">
+                        {% if v.hintIcon %}{{ atrium_icon(v.hintIcon, { class: 'h-3.5 w-3.5' }) }}{% endif %}{{ v.hint }}
+                    </span>
+                {% endif %}
+            </dt>
+        {% endif %}
+
+        <dd class="{{ inline ? 'sm:col-span-2' : 'mt-1' }} {{ v.alignClass }}"{% if v.tooltip %} title="{{ v.tooltip }}"{% endif %}>
+            {% if v.isEmpty %}
+                <span class="text-sm text-gray-400 dark:text-gray-600">{{ v.placeholder ?? '—' }}</span>
+            {% else %}
+                {% block value %}{% endblock %}
+            {% endif %}
+
+            {% if v.helperText %}<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ v.helperText }}</p>{% endif %}
+        </dd>
+    </div>
+{% endif %}

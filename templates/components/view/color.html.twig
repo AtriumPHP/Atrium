@@ -1,0 +1,10 @@
+{# Read-only colour entry: a swatch of the stored colour next to its value. #}
+{% embed '@Atrium/components/view/_field.html.twig' %}
+    {% block value %}
+        <span class="inline-flex items-center gap-2">
+            <span class="inline-block h-5 w-5 shrink-0 rounded-md ring-1 ring-inset ring-gray-900/10 dark:ring-white/15"
+                  style="background-color: {{ v.color }}"></span>
+            <span class="font-mono text-sm text-gray-900 dark:text-gray-100">{{ v.value }}</span>
+        </span>
+    {% endblock %}
+{% endembed %}

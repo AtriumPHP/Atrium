@@ -25,6 +25,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   remaining entry types (Icon/Image/Color/KeyValue/Repeatable/Code), view-screen
   widget bands, `ViewAction` + clickable rows, and docs land in the following
   milestones. PRD: `docs/PRDs/PRD-record-view.md`.
+- **Record View entry family (`VIEW-05..08`, `VIEW-10`).** Five more read-only
+  entries alongside `TextEntry`, each sharing the full base configuration surface:
+  **`Atrium\View\IconEntry`** (value as an icon; `boolean()` true/false ticks,
+  `color()`, `size()`), **`ImageEntry`** (image/avatar; `circular()`/`square()`,
+  `imageSize()`/`imageWidth()`/`imageHeight()`, `defaultImageUrl()`, with
+  URL-scheme sanitisation), **`ColorEntry`** (a sanitised colour swatch,
+  `copyable()`), **`KeyValueEntry`** (a 1-D array/JSON map as a key→value table,
+  `keyLabel()`/`valueLabel()`) and **`CodeEntry`** (a monospace, escaped code
+  block; `language()`, `copyable()`). The semantic colour vocabulary is shared with
+  `Content\Text` / `Table\Column` via a common `ResolvesColor` concern. Docs:
+  `docs/integration-guide/pages/view.md`.
 
 ### Changed
 

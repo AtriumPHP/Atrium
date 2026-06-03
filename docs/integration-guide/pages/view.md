@@ -113,6 +113,86 @@ The workhorse entry — text with formatting:
 `badge()` / `color()` use the same palette as a table [`Column`](../tables/columns.md)
 badge, so the two read identically across the panel.
 
+### Other entry types
+
+Beyond text, the entry family covers the common display shapes. Each reads state
+from the record exactly like `TextEntry` (by name, dotted path, `getStateUsing()`),
+shares the full base surface above, and shows its `placeholder()` when empty.
+
+#### `IconEntry`
+
+Renders the value **as an icon** — ideal for a status or a boolean flag.
+
+| Method | Description |
+| --- | --- |
+| `icon(string\|Closure)` | The icon to show (record-aware): `fn ($state) => …`. |
+| `boolean(string $trueIcon = 'check', string $falseIcon = 'x')` | Map a truthy/falsy state to a tick, coloured green/red by default. |
+| `color(string\|Closure)` | Override the icon colour (semantic palette). |
+| `size('sm'\|'md'\|'lg'\|'xl')` | Icon size. |
+
+```php
+IconEntry::make('verified')->boolean();
+IconEntry::make('status')
+    ->icon(fn (string $s) => $s === 'active' ? 'check' : 'minus')
+    ->color(fn (string $s) => $s === 'active' ? 'success' : 'gray');
+```
+
+#### `ImageEntry`
+
+Renders the value (an image URL) **as an image or avatar**.
+
+| Method | Description |
+| --- | --- |
+| `circular()` / `square()` | Round the image or keep it square (default). |
+| `imageSize(int)` / `imageWidth(int)` / `imageHeight(int)` | Dimensions in pixels. |
+| `defaultImageUrl(string)` | Fallback shown when the record has no URL. |
+
+```php
+ImageEntry::make('avatar')->circular()->imageSize(48)
+    ->defaultImageUrl('/img/avatar-fallback.png');
+```
+
+Only `http(s)`, root-relative and protocol-relative sources are rendered; any
+other scheme (e.g. `javascript:`, `data:`) is dropped.
+
+#### `ColorEntry`
+
+Renders the value (a CSS colour) **as a swatch** next to its textual value.
+
+| Method | Description |
+| --- | --- |
+| `copyable(bool $copyable = true, ?string $message = null)` | Mark the value copyable. |
+
+Accepts a `#hex`, `rgb()/rgba()/hsl()/hsla()` or a CSS named colour; anything else
+is treated as empty (so a stored value can never break out of the inline style).
+
+#### `KeyValueEntry`
+
+Renders a one-dimensional array / JSON map **as a key→value table** — a metadata
+bag, a settings hash, a decoded JSON column.
+
+| Method | Description |
+| --- | --- |
+| `keyLabel(string)` / `valueLabel(string)` | Column headers (default `Key` / `Value`). |
+
+```php
+KeyValueEntry::make('meta')->keyLabel('Attribute')->valueLabel('Value');
+```
+
+#### `CodeEntry`
+
+Renders the value **as a monospace, escaped code block** (a snippet, a JSON/SQL
+payload). An array state is shown as pretty-printed JSON.
+
+| Method | Description |
+| --- | --- |
+| `language(string)` | A language label shown above the block. |
+| `copyable(bool $copyable = true, ?string $message = null)` | Mark the value copyable. |
+
+```php
+CodeEntry::make('payload')->language('json')->columnSpanFull();
+```
+
 ## The View page — presentation
 
 `ViewPage` (a peer of `ListPage`/`CreatePage`/`EditPage`) owns the screen's

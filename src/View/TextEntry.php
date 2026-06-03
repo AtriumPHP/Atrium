@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Atrium\View;
 
+use Atrium\View\Concern\ResolvesColor;
+
 /**
  * The workhorse read-only entry: renders a record value as text, with optional
  * formatting (money, dates, numbers), truncation, a badge/colour treatment, a
@@ -15,19 +17,7 @@ namespace Atrium\View;
  */
 final class TextEntry extends Entry
 {
-    /**
-     * Semantic colour => Tailwind colour scale.
-     *
-     * @var array<string, string>
-     */
-    private const COLORS = [
-        'gray' => 'gray',
-        'info' => 'sky',
-        'success' => 'green',
-        'warning' => 'amber',
-        'danger' => 'red',
-        'primary' => 'primary',
-    ];
+    use ResolvesColor;
 
     private bool $badge = false;
     private string|\Closure|null $color = null;
@@ -333,13 +323,7 @@ final class TextEntry extends Entry
 
     private function colorClass(mixed $state, object $record): string
     {
-        if ($this->color instanceof \Closure) {
-            $resolved = ($this->color)($state, $record);
-            $name = \is_string($resolved) ? $resolved : '';
-        } else {
-            $name = $this->color ?? '';
-        }
-        $scale = self::COLORS[$name] ?? null;
+        $scale = $this->colorScale($this->color, $state, $record);
 
         if (!$this->badge) {
             return match (true) {

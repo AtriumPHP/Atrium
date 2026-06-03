@@ -1,0 +1,6 @@
+{# Read-only icon entry: the value rendered as an icon (e.g. a boolean tick). #}
+{% embed '@Atrium/components/view/_field.html.twig' %}
+    {% block value %}
+        <span class="{{ v.iconColorClass }}">{{ atrium_icon(v.iconName, { class: v.sizeClass }) }}</span>
+    {% endblock %}
+{% endembed %}

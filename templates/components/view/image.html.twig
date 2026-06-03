@@ -1,0 +1,10 @@
+{# Read-only image entry: the value rendered as an image / avatar. #}
+{% embed '@Atrium/components/view/_field.html.twig' %}
+    {% block value %}
+        <img src="{{ v.src }}" alt="{{ v.alt }}"
+            {%- if v.width %} width="{{ v.width }}"{% endif %}
+            {%- if v.height %} height="{{ v.height }}"{% endif %}
+            class="block max-w-full object-cover {{ v.circular ? 'rounded-full' : 'rounded-md' }}"
+            {%- if v.width or v.height %} style="{% if v.width %}width:{{ v.width }}px;{% endif %}{% if v.height %}height:{{ v.height }}px;{% endif %}"{% endif %}>
+    {% endblock %}
+{% endembed %}

@@ -1,0 +1,11 @@
+{# Read-only code entry: a monospace, escaped code block with an optional label. #}
+{% embed '@Atrium/components/view/_field.html.twig' %}
+    {% block value %}
+        <div class="overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+            {% if v.language %}
+                <div class="border-b border-gray-200 px-3 py-1 text-xs font-medium uppercase tracking-wide text-gray-400 dark:border-gray-700 dark:text-gray-500">{{ v.language }}</div>
+            {% endif %}
+            <pre class="overflow-x-auto px-3 py-2 text-sm"><code class="font-mono text-gray-800 dark:text-gray-200">{{ v.code }}</code></pre>
+        </div>
+    {% endblock %}
+{% endembed %}
