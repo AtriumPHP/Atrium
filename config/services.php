@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Atrium\Controller\AdminController;
+use Atrium\Dashboard\DashboardRegistry;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Twig\PanelAssetsExtension;
@@ -31,10 +32,15 @@ return static function (ContainerConfigurator $container): void {
         ->args([tagged_iterator('atrium.widget')])
         ->public();
 
+    $services->set(DashboardRegistry::class)
+        ->args([tagged_iterator('atrium.dashboard')])
+        ->public();
+
     $services->set(AdminController::class)
         ->args([
             service('twig'),
             service(ResourceRegistry::class),
+            service(DashboardRegistry::class),
             param('atrium.brand'),
             param('atrium.path_prefix'),
             service(DataProviderInterface::class)->ignoreOnInvalid(),

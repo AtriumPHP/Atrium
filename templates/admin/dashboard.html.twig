@@ -1,40 +1,57 @@
 {% extends '@Atrium/admin/layout.html.twig' %}
 
-{% block title %}Dashboard · {{ panel.brand }}{% endblock %}
-{% block heading %}Dashboard{% endblock %}
+{% block title %}{{ dashboard.getTitle() }} · {{ panel.brand }}{% endblock %}
+{% block heading %}{{ dashboard.getTitle() }}{% endblock %}
 
 {% block body %}
-    <div class="relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-gray-800/80 dark:bg-gray-900">
-        <div class="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gradient-to-br from-primary-400/20 to-primary-600/10 blur-2xl"></div>
-        <h2 class="relative text-xl font-semibold tracking-tight">Welcome to {{ panel.brand }}</h2>
-        <p class="relative mt-1 max-w-prose text-sm text-gray-500 dark:text-gray-400">
-            {% if panel.resources is empty %}
-                No resources are registered yet. Create a class extending
-                <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800">Atrium\Resource\AdminResource</code>
-                to see it here.
-            {% else %}
-                Manage your {{ panel.resources|length }} resource{{ panel.resources|length == 1 ? '' : 's' }} below.
-            {% endif %}
-        </p>
-    </div>
-
-    {% if panel.resources is not empty %}
-        <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {% for item in panel.resources %}
-                <a href="{{ item.url }}"
-                   class="group flex items-center gap-4 rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-md dark:border-gray-800/80 dark:bg-gray-900 dark:hover:border-primary-800">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600 ring-1 ring-inset ring-primary-100 transition-colors group-hover:bg-primary-600 group-hover:text-white group-hover:ring-primary-600 dark:bg-primary-950 dark:text-primary-300 dark:ring-primary-900">
-                        {{ include('@Atrium/icon.html.twig', { name: item.icon ?? 'squares', class: 'h-6 w-6' }) }}
-                    </span>
-                    <span class="min-w-0 flex-1">
-                        <span class="block font-semibold tracking-tight">{{ item.label }}</span>
-                        <span class="block text-sm text-gray-400 dark:text-gray-500">Manage {{ item.label|lower }}</span>
-                    </span>
-                    <span class="text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-primary-500 dark:text-gray-600">
-                        {{ include('@Atrium/icon.html.twig', { name: 'chevron-right', class: 'h-5 w-5' }) }}
-                    </span>
-                </a>
+    {% if dashboard.getWidgets() is not empty %}
+        <div class="grid gap-4 {{ dashboard.getColumnsClass() }}">
+            {% for widgetClass in dashboard.getWidgets() %}
+                <twig:Atrium:Widget :widget="widgetClass" />
             {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if dashboard.rendersResourceLinks() %}
+        {# The built-in default dashboard: a welcome card plus a link per resource. #}
+        <div class="relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm sm:p-8 dark:border-gray-800/80 dark:bg-gray-900">
+            <div class="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gradient-to-br from-primary-400/20 to-primary-600/10 blur-2xl"></div>
+            <h2 class="relative text-xl font-semibold tracking-tight">Welcome to {{ panel.brand }}</h2>
+            <p class="relative mt-1 max-w-prose text-sm text-gray-500 dark:text-gray-400">
+                {% if panel.resources is empty %}
+                    No resources are registered yet. Create a class extending
+                    <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800">Atrium\Resource\AdminResource</code>
+                    to see it here.
+                {% else %}
+                    Manage your {{ panel.resources|length }} resource{{ panel.resources|length == 1 ? '' : 's' }} below.
+                {% endif %}
+            </p>
+        </div>
+
+        {% if panel.resources is not empty %}
+            <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {% for item in panel.resources %}
+                    <a href="{{ item.url }}"
+                       class="group flex items-center gap-4 rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-md dark:border-gray-800/80 dark:bg-gray-900 dark:hover:border-primary-800">
+                        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600 ring-1 ring-inset ring-primary-100 transition-colors group-hover:bg-primary-600 group-hover:text-white group-hover:ring-primary-600 dark:bg-primary-950 dark:text-primary-300 dark:ring-primary-900">
+                            {{ include('@Atrium/icon.html.twig', { name: item.icon ?? 'squares', class: 'h-6 w-6' }) }}
+                        </span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block font-semibold tracking-tight">{{ item.label }}</span>
+                            <span class="block text-sm text-gray-400 dark:text-gray-500">Manage {{ item.label|lower }}</span>
+                        </span>
+                        <span class="text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-primary-500 dark:text-gray-600">
+                            {{ include('@Atrium/icon.html.twig', { name: 'chevron-right', class: 'h-5 w-5' }) }}
+                        </span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% elseif dashboard.getWidgets() is empty %}
+        {# A custom dashboard with no widgets configured yet. #}
+        <div class="rounded-2xl border border-dashed border-gray-300 bg-white/50 p-12 text-center dark:border-gray-700 dark:bg-gray-900/40">
+            <p class="font-medium text-gray-900 dark:text-gray-100">No widgets yet</p>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Add widget classes to this dashboard's <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800">getWidgets()</code>.</p>
         </div>
     {% endif %}
 {% endblock %}

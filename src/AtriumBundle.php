@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atrium;
 
+use Atrium\Dashboard\Dashboard;
 use Atrium\Resource\AdminResource;
 use Atrium\Widget\Widget;
 use Symfony\Component\AssetMapper\AssetMapper;
@@ -80,6 +81,10 @@ final class AtriumBundle extends AbstractBundle
 
         $builder->registerForAutoconfiguration(Widget::class)
             ->addTag('atrium.widget')
+        ;
+
+        $builder->registerForAutoconfiguration(Dashboard::class)
+            ->addTag('atrium.dashboard')
         ;
 
         $container->import(\dirname(__DIR__).'/config/services.php');

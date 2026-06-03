@@ -72,7 +72,7 @@ final class KernelBootTest extends KernelTestCase
         $twig = self::getContainer()->get('twig');
 
         $html = $twig->render('@Atrium/admin/layout.html.twig', [
-            'panel' => ['brand' => 'Atrium', 'pathPrefix' => '/admin', 'resources' => []],
+            'panel' => ['brand' => 'Atrium', 'pathPrefix' => '/admin', 'items' => [], 'resources' => []],
         ]);
 
         self::assertStringContainsString('<title>Atrium</title>', $html);

@@ -21,7 +21,8 @@ return static function (RoutingConfigurator $routes): void {
         ->controller([AdminController::class, 'edit'])
         ->requirements(['resource' => '[a-z0-9-]+', 'id' => '[^/]+']);
 
-    $routes->add('atrium_resource', '/admin/{resource}')
-        ->controller([AdminController::class, 'resource'])
-        ->requirements(['resource' => '[a-z0-9-]+']);
+    // Single-segment catch-all: a dashboard or a resource list (dashboards win).
+    $routes->add('atrium_page', '/admin/{slug}')
+        ->controller([AdminController::class, 'page'])
+        ->requirements(['slug' => '[a-z0-9-]+']);
 };

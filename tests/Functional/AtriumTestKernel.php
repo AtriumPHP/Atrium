@@ -9,6 +9,8 @@ use Atrium\DataProvider\ArrayDataProvider;
 use Atrium\DataProvider\ArrayDataWriter;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
+use Atrium\Tests\Fixtures\Dashboard\ForbiddenDashboard;
+use Atrium\Tests\Fixtures\Dashboard\InsightsDashboard;
 use Atrium\Tests\Fixtures\Data\SampleData;
 use Atrium\Tests\Fixtures\Resource\ActionsTagResource;
 use Atrium\Tests\Fixtures\Resource\BadgedTagResource;
@@ -161,6 +163,15 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(SalesChartWidget::class)
+            ->autoconfigure()
+            ->autowire();
+
+        // Dashboard fixtures (tagged atrium.dashboard via autoconfiguration).
+        $services->set(InsightsDashboard::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(ForbiddenDashboard::class)
             ->autoconfigure()
             ->autowire();
 
