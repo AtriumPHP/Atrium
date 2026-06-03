@@ -47,6 +47,24 @@ final class StayOnEditPage extends EditPage
 }
 ```
 
+Or "save and add another" — after creating a record, return to a fresh create
+form instead of the list:
+
+```php
+namespace App\Admin\Pages;
+
+use Atrium\Page\CreatePage;
+use Atrium\Page\PageContext;
+
+final class CreateProduct extends CreatePage
+{
+    public function getRedirectUrl(PageContext $context): ?string
+    {
+        return $context->createUrl(); // back to /admin/product/new
+    }
+}
+```
+
 `PageContext` exposes `indexUrl()`, `createUrl()` and `editUrl(string $id)` so you
 can compose any destination. Returning `null` keeps the user on the form and shows
 the success notice instead of redirecting.
