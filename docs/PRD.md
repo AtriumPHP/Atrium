@@ -270,6 +270,12 @@ Mirrors Filament's per-resource organization, adapted to Symfony's HTTP model.
 - **WGT-01** Dashboard widgets: stat cards and charts (UX Chart.js).
 - **WGT-02** Widgets are Live Components and can refresh independently.
 
+> **Implemented & extended.** The widget and dashboard layer (stat/chart widgets,
+> the generic host, multiple routable dashboards, the `/admin/{slug}` namespace
+> generalisation) is scoped and delivered in
+> [`docs/PRD-dashboards-widgets.md`](./PRD-dashboards-widgets.md) (WGT-03..10,
+> DSH-01..07, PNL-06..08).
+
 ### 8.8 Panel shell — `PNL`
 
 - **PNL-01** Routes: dashboard (`/admin`) + per-resource list/create/edit.
