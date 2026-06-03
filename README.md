@@ -7,6 +7,8 @@ polished, reactive UI with **no JavaScript build step and no separate API**.
 Reactivity is delivered server-side via Symfony UX Live Components; styling via
 Tailwind.
 
+![The Atrium admin panel: a dashboard with stat widgets and a bar chart, configured entirely in PHP](docs/assets/dashboard.png)
+
 > **Status: pre-1.0, under active development.** The reactive panel, tables,
 > forms (fields, layout, tabs/wizards, validation, reactivity), actions, query
 > scoping and the full resource lifecycle are implemented and tested. See the
