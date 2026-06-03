@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Configurable record identifier field.** A resource can now address its
+  records by a property other than `id` — a primary key named something else, or
+  a natural key such as a slug for human-readable URLs — by overriding the new
+  **`AdminResource::getIdentifierField(): string`** (defaults to `'id'`). The
+  field is used both to read a record's identifier (building its row/view/edit
+  URLs) and to resolve a record back from a URL, honouring `scopeQuery()`. A
+  UUID/ULID key named `$id` already worked and still needs no configuration.
+  **(API)** `DataProviderInterface::find()` gains a trailing
+  `string $idField = 'id'` parameter — backward-compatible for callers, but a
+  signature change for any third-party provider implementation. The Doctrine
+  adapter keeps the fast identity-map path for primary-key lookups and queries
+  `WHERE <field> = :id` for a custom field; the array adapter matches on the
+  given field.
 - **Record View (read-only) pages — core (`VIEW-01..04`, `VIEW-11`, `VIEW-13`,
   `VIEW-15`, `VIEW-18`).** A resource can expose a read-only View screen for one
   record at the bare URL `/{resource}/{id}`, opt-in by registering a `'view'` page

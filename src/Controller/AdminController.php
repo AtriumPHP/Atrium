@@ -97,6 +97,7 @@ final readonly class AdminController
                 $resourceObject->getEntityClass(),
                 $id,
                 $resourceObject->scopeFilters(),
+                $resourceObject->getIdentifierField(),
             );
             if (null === $record) {
                 throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
@@ -137,6 +138,7 @@ final readonly class AdminController
                 $resourceObject->getEntityClass(),
                 $id,
                 $resourceObject->scopeFilters(),
+                $resourceObject->getIdentifierField(),
             );
             if (null === $record) {
                 throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));

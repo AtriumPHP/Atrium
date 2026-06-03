@@ -83,6 +83,19 @@ final class ArrayDataProviderTest extends TestCase
         self::assertNull($provider->find(Tag::class, '2', ['kind' => 'a']));
     }
 
+    public function testFindResolvesByCustomIdentifierField(): void
+    {
+        // A resource whose getIdentifierField() is 'slug' resolves records by it.
+        $found = $this->provider->find(Tag::class, 'tag-07', idField: 'slug');
+
+        self::assertInstanceOf(Tag::class, $found);
+        self::assertSame(7, $found->id);
+
+        // The raw primary key is no longer a match when a custom field is used.
+        self::assertNull($this->provider->find(Tag::class, '7', idField: 'slug'));
+        self::assertNull($this->provider->find(Tag::class, 'no-such-slug', idField: 'slug'));
+    }
+
     public function testRelationColumnSearchSortAndFilterTraverseNestedPaths(): void
     {
         // Plain objects with a nested relation — no Doctrine: the array provider

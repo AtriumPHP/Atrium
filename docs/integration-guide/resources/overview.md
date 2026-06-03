@@ -38,6 +38,49 @@ final class ArticleResource extends AdminResource
 }
 ```
 
+## Record identity
+
+Every record is addressed in URLs by a single field — the `{id}` segment of its
+view, edit and action URLs. By default that field is `id`:
+
+| Method | Purpose |
+| --- | --- |
+| `getIdentifierField(): string` | Name of the property that identifies a record in URLs. Defaults to `id`. |
+
+The default covers the common cases without any configuration:
+
+- an **auto-increment** integer key named `$id`;
+- a **UUID** or **ULID** key named `$id` — the value is resolved through the
+  key's Doctrine type, so `/{prefix}/{slug}/0b5f…` just works.
+
+Override it when the record is addressed by a **differently-named** property —
+either a primary key called something other than `id`, or a **natural key** such
+as a slug used for human-readable URLs:
+
+```php
+final class ArticleResource extends AdminResource
+{
+    public function getEntityClass(): string
+    {
+        return Article::class;
+    }
+
+    // Address articles by their slug: /admin/articles/my-first-post
+    public function getIdentifierField(): string
+    {
+        return 'slug';
+    }
+}
+```
+
+The chosen field is used both to **read** the identifier out of a record (to
+build its row, view and edit links) and to **look the record back up** from a
+URL, so its values must be **unique**. For a non-primary-key field, give the
+column a unique index — the Doctrine adapter resolves the record with a
+`WHERE <field> = :id` query, while a plain `id` key still takes the fast
+identity-map path. [Query scoping](../data/query-scoping.md) applies to the
+lookup either way: an id outside the resource's scope resolves to a 404.
+
 ## Lifecycle & hook reference
 
 Every hook below is an override point on `AdminResource` with a safe default

@@ -88,6 +88,50 @@ final class DoctrineDataProviderTest extends TestCase
         self::assertSame(100, $lowest[0]->price);
     }
 
+    public function testFindResolvesByPrimaryKeyByDefault(): void
+    {
+        $product = new Product('Widget', 500);
+        $this->entityManager->persist($product);
+        $this->entityManager->flush();
+        $id = (string) $product->id;
+        $this->entityManager->clear();
+
+        $found = $this->provider->find(Product::class, $id);
+
+        self::assertInstanceOf(Product::class, $found);
+        self::assertSame('Widget', $found->name);
+        self::assertNull($this->provider->find(Product::class, '999999'));
+    }
+
+    public function testFindResolvesByCustomIdentifierField(): void
+    {
+        $this->entityManager->persist(new Product('Widget', 500, 'WIDGET-1'));
+        $this->entityManager->persist(new Product('Gadget', 700, 'GADGET-1'));
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        // A resource whose getIdentifierField() returns 'sku' resolves by it,
+        // even though it is not the primary key.
+        $found = $this->provider->find(Product::class, 'GADGET-1', idField: 'sku');
+
+        self::assertInstanceOf(Product::class, $found);
+        self::assertSame('Gadget', $found->name);
+        self::assertNull($this->provider->find(Product::class, 'NOPE', idField: 'sku'));
+    }
+
+    public function testFindByCustomIdentifierFieldHonoursScopeFilters(): void
+    {
+        $this->entityManager->persist(new Product('Cheap', 100, 'SKU-A'));
+        $this->entityManager->persist(new Product('Pricey', 9000, 'SKU-B'));
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        // In scope: the sku resolves.
+        self::assertNotNull($this->provider->find(Product::class, 'SKU-A', ['price' => 100], 'sku'));
+        // Out of scope: the sku exists but fails the scope condition, so it is null.
+        self::assertNull($this->provider->find(Product::class, 'SKU-B', ['price' => 100], 'sku'));
+    }
+
     private function seed(int $count): void
     {
         for ($i = 1; $i <= $count; ++$i) {

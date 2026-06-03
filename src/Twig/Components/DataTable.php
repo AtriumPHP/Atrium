@@ -677,11 +677,12 @@ final class DataTable
 
     private function recordId(object $record): ?string
     {
-        if (!$this->accessor->isReadable($record, 'id')) {
+        $idField = $this->resource()->getIdentifierField();
+        if (!$this->accessor->isReadable($record, $idField)) {
             return null;
         }
 
-        $id = $this->accessor->getValue($record, 'id');
+        $id = $this->accessor->getValue($record, $idField);
 
         return \is_scalar($id) ? (string) $id : null;
     }
@@ -735,7 +736,12 @@ final class DataTable
      */
     private function findRecord(string $id): ?object
     {
-        return $this->dataProvider->find($this->entityClass(), $id, $this->resource()->scopeFilters());
+        return $this->dataProvider->find(
+            $this->entityClass(),
+            $id,
+            $this->resource()->scopeFilters(),
+            $this->resource()->getIdentifierField(),
+        );
     }
 
     /**

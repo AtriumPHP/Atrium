@@ -716,6 +716,7 @@ class Form
             $this->entityClass(),
             $this->entityId,
             $this->resourceObject()->scopeFilters(),
+            $this->resourceObject()->getIdentifierField(),
         );
     }
 
@@ -728,11 +729,12 @@ class Form
 
     private function readId(object $entity): ?string
     {
-        if (!$this->accessor->isReadable($entity, 'id')) {
+        $idField = $this->resourceObject()->getIdentifierField();
+        if (!$this->accessor->isReadable($entity, $idField)) {
             return null;
         }
 
-        $id = $this->accessor->getValue($entity, 'id');
+        $id = $this->accessor->getValue($entity, $idField);
 
         return \is_scalar($id) ? (string) $id : null;
     }

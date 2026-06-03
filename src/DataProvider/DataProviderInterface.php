@@ -35,6 +35,12 @@ interface DataProviderInterface
     /**
      * Load a single record by its identifier, or null if not found.
      *
+     * `$idField` names the property the `$id` is matched against — `id` by
+     * default, or a resource's
+     * {@see \Atrium\Resource\AdminResource::getIdentifierField()} (a custom
+     * primary key, or a natural key such as a slug). Its values must be unique;
+     * implementations resolve at most one record by it.
+     *
      * When `$filters` is non-empty the record must also satisfy every equality
      * condition (the same field => value contract as {@see DataQuery::$filters}),
      * so a resource's {@see \Atrium\Resource\AdminResource::scopeQuery()} scope
@@ -44,6 +50,7 @@ interface DataProviderInterface
      *
      * @param class-string                    $entityClass
      * @param array<string, scalar|bool|null> $filters     trusted field => equality value scope conditions
+     * @param string                          $idField     trusted name of the identifying property
      */
-    public function find(string $entityClass, int|string $id, array $filters = []): ?object;
+    public function find(string $entityClass, int|string $id, array $filters = [], string $idField = 'id'): ?object;
 }

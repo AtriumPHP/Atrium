@@ -41,6 +41,31 @@ abstract class AdminResource
     abstract public function getEntityClass(): string;
 
     /**
+     * Name of the entity property that identifies a record in URLs.
+     *
+     * Defaults to `id`, which covers an auto-increment key and a UUID/ULID key
+     * alike, as long as the property is named `$id` (the value is resolved
+     * through the key's type when the record is looked up). Override this when
+     * the record is addressed by a differently-named property — a primary key
+     * called `$uuid`, or a natural key such as a `$slug` used for pretty URLs:
+     *
+     *     public function getIdentifierField(): string
+     *     {
+     *         return 'slug';
+     *     }
+     *
+     * The chosen field is used both to read the identifier out of a record (to
+     * build its row/view/edit URLs) and to look a record back up from a URL, so
+     * its values must be unique. For a non-primary-key field, the backing store
+     * must be able to resolve a record by it (the Doctrine adapter queries by
+     * the field; a unique index is recommended).
+     */
+    public function getIdentifierField(): string
+    {
+        return 'id';
+    }
+
+    /**
      * Configure the list table — columns plus record, header and bulk actions
      * (inline configuration for small resources; delegate to a dedicated
      * `Tables/*` class for larger ones).

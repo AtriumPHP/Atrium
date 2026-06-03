@@ -23,6 +23,10 @@ class Product
         public string $name = '',
         #[ORM\Column]
         public int $price = 0,
+        // A unique natural key, used to exercise lookups by a custom identifier
+        // field (a resource's getIdentifierField() other than the primary key).
+        #[ORM\Column(unique: true, nullable: true)]
+        public ?string $sku = null,
     ) {
     }
 }

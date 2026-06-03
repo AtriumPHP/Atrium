@@ -33,7 +33,7 @@ interface DataProviderInterface
     /** @return iterable<object> */
     public function fetch(string $entityClass, DataQuery $query): iterable;
     public function count(string $entityClass, DataQuery $query): int;
-    public function find(string $entityClass, int|string $id, array $filters = []): ?object;
+    public function find(string $entityClass, int|string $id, array $filters = [], string $idField = 'id'): ?object;
 }
 ```
 
@@ -41,7 +41,7 @@ interface DataProviderInterface
 | --- | --- |
 | `fetch($class, $query)` | The rows for a query (search, sort, pagination, filters). |
 | `count($class, $query)` | Total rows matching the query, ignoring pagination. |
-| `find($class, $id, $filters = [])` | One record by id; `$filters` scopes it (see [query scoping](query-scoping.md)) so an out-of-scope id resolves to `null`. |
+| `find($class, $id, $filters = [], $idField = 'id')` | One record by `$id`, matched against the `$idField` property (a resource's [`getIdentifierField()`](../resources/overview.md#record-identity), `id` by default); `$filters` scopes it (see [query scoping](query-scoping.md)) so an out-of-scope id resolves to `null`. |
 
 Implementations **must** bind user-supplied values (the search term, filter values)
 as parameters — field names come from trusted developer configuration, values

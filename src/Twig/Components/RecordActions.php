@@ -199,6 +199,7 @@ final class RecordActions
             $this->resourceObject()->getEntityClass(),
             $this->entityId,
             $this->resourceObject()->scopeFilters(),
+            $this->resourceObject()->getIdentifierField(),
         );
     }
 }

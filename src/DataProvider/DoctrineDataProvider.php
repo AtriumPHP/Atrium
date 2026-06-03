@@ -54,16 +54,19 @@ final readonly class DoctrineDataProvider implements DataProviderInterface
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function find(string $entityClass, int|string $id, array $filters = []): ?object
+    public function find(string $entityClass, int|string $id, array $filters = [], string $idField = 'id'): ?object
     {
-        // No scope: the identity map makes em->find the fast, cache-friendly path.
-        if ([] === $filters) {
+        // No scope and lookup by the primary key: the identity map makes em->find
+        // the fast, cache-friendly path. It resolves the id through the key's
+        // Doctrine type, so an int, a UUID or a ULID key all just work.
+        $primaryKey = $this->entityManager->getClassMetadata($entityClass)->getSingleIdentifierFieldName();
+        if ([] === $filters && $idField === $primaryKey) {
             return $this->entityManager->find($entityClass, $id);
         }
 
-        // A scoped lookup: the record must match its id *and* every scope
-        // condition, so an out-of-scope id resolves to null.
-        $idField = $this->entityManager->getClassMetadata($entityClass)->getSingleIdentifierFieldName();
+        // A custom identifier field (a natural key such as a slug) and/or a scoped
+        // lookup: the record must match the field *and* every scope condition, so
+        // an unknown or out-of-scope id resolves to null.
         $qb = $this->entityManager->getRepository($entityClass)->createQueryBuilder(self::ALIAS);
         $qb->where($qb->expr()->eq(self::ALIAS.'.'.$idField, ':atrium_id'))
             ->setParameter('atrium_id', $id);

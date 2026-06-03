@@ -44,10 +44,10 @@ final class ArrayDataProvider implements DataProviderInterface
         return \count($this->filtered($entityClass, $query));
     }
 
-    public function find(string $entityClass, int|string $id, array $filters = []): ?object
+    public function find(string $entityClass, int|string $id, array $filters = [], string $idField = 'id'): ?object
     {
         foreach ($this->records[$entityClass] ?? [] as $record) {
-            $recordId = $this->read($record, 'id');
+            $recordId = $this->read($record, $idField);
             if (null === $recordId || (string) $id !== $this->scalarToString($recordId)) {
                 continue;
             }
