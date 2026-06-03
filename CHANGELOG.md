@@ -287,7 +287,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     — resolve resource + action → Page → embed the Form component, so adding a
     CRUD resource needs no route registration.
   - Added `symfony/validator` as a runtime requirement.
-- `docs/custom-fields.md` — documents the custom field type extension point
+- `docs/integration-guide/forms/custom-fields.md` — documents the custom field type extension point
   (the `getType()` / `getTemplate()` / `rendersOwnLabel()` contract, the widget
   template context, and a worked `CountrySelect` example).
 - Forms v2 / M1 — schema tree & layout (`SCH-01..08`). A form `Schema` is now a
@@ -424,4 +424,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BC (pre-release):** `Field::getTemplate()` now returns the field's layout
   wrapper; the input widget moved to the new `Field::getWidgetTemplate()`. Custom
   field types that shipped their own widget should override `getWidgetTemplate()`
-  instead of `getTemplate()` (see `docs/custom-fields.md`).
+  instead of `getTemplate()` (see `docs/integration-guide/forms/custom-fields.md`).

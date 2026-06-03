@@ -175,8 +175,12 @@ whatever template the field declares, so a third-party bundle can add a field
 without touching the core. Override `normalize()` / `toFormValue()` to convert
 between the form value and the model value.
 
+See **[Custom field types](custom-fields.md)** for the full guide — the contract,
+what the widget template receives, and a complete worked example.
+
 ## See also
 
+- [Custom field types](custom-fields.md) — define your own field (full guide)
 - [Form overview](overview.md) — schema, the save flow, common options
 - [Validation](validation.md) — constraints and the fluent rule helpers
 - [Reactive fields](reactivity.md) — `live()`, `afterStateUpdated()`, dependent options

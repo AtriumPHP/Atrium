@@ -19,7 +19,7 @@ The guide is split by module (these mirror the planned package split):
 | [Getting started](getting-started.md) | Install, configure the panel, first resource |
 | [`resources/`](resources/overview.md) | [`AdminResource`](resources/overview.md), [authorization](resources/authorization.md), [lifecycle hooks](resources/lifecycle-hooks.md), [navigation](resources/navigation.md) |
 | [`tables/`](tables/table-configuration.md) | [Table configuration](tables/table-configuration.md), [columns](tables/columns.md) (incl. [relation columns](tables/columns.md#relation-columns)), [filters](tables/filters.md), [actions](tables/actions.md), [list widgets](tables/list-widgets.md) |
-| [`forms/`](forms/overview.md) | [Overview](forms/overview.md), [fields](forms/fields.md), [layout](forms/layout.md), [tabs & wizards](forms/tabs-and-wizards.md), [validation](forms/validation.md), [reactivity](forms/reactivity.md), [content](forms/content.md) |
+| [`forms/`](forms/overview.md) | [Overview](forms/overview.md), [fields](forms/fields.md) (incl. [custom field types](forms/custom-fields.md)), [layout](forms/layout.md), [tabs & wizards](forms/tabs-and-wizards.md), [validation](forms/validation.md), [reactivity](forms/reactivity.md), [content](forms/content.md) |
 | [`actions/`](actions/overview.md) | [`Action`, `ActionGroup`](actions/overview.md), record/header/bulk actions, built-ins |
 | [`pages/`](pages/overview.md) | [`Page`](pages/overview.md) and the default List/Create/Edit pages, post-save redirects |
 | [`widgets/`](widgets/overview.md) | [Overview](widgets/overview.md), [stats widget](widgets/stats-widget.md), [chart widget](widgets/chart-widget.md), [dashboards](widgets/dashboards.md), [embedding](widgets/embedding.md) |
