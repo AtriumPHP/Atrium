@@ -97,6 +97,18 @@ final class RecordViewTest extends WebTestCase
         self::assertSelectorExists('tbody a[href="/admin/view-tag/3"]');
     }
 
+    public function testCustomRecordUrlClosureDropsAnUnsafeScheme(): void
+    {
+        $client = self::createClient();
+        $html = (string) $client->request('GET', '/admin/row-url-tag')->html();
+
+        self::assertResponseIsSuccessful();
+        // A safe relative URL from the closure is rendered…
+        self::assertStringContainsString('href="/go/', $html);
+        // …but the javascript: scheme (row id 3) is dropped, never an href.
+        self::assertStringNotContainsString('javascript:', $html);
+    }
+
     public function testListRowsAreNotClickableWithoutAViewScreen(): void
     {
         $client = self::createClient();

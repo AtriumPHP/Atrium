@@ -563,7 +563,11 @@ final class DataTable
         if ($target instanceof \Closure) {
             $url = $target($record);
 
-            return \is_string($url) && '' !== $url ? $url : null;
+            // A custom URL may be derived from record data, so guard its scheme:
+            // a relative path or an http(s)/mailto/tel link is fine; anything else
+            // (`javascript:`, `data:`, …) is dropped so it can never become an
+            // executable href.
+            return \is_string($url) ? self::safeUrl($url) : null;
         }
 
         return match ($target) {
@@ -571,6 +575,25 @@ final class DataTable
             'edit' => $this->canReachPage('edit', $record) ? $context->recordUrl('edit') : null,
             default => null,
         };
+    }
+
+    /**
+     * Allow a relative/anchor/query URL or an explicitly safe scheme; reject any
+     * other `scheme:` so a record-derived row URL cannot carry `javascript:` and
+     * the like. Mirrors the guard on view {@see \Atrium\View\Entry} links.
+     */
+    private static function safeUrl(string $url): ?string
+    {
+        if ('' === trim($url)) {
+            return null;
+        }
+
+        $candidate = ltrim($url);
+        if (preg_match('#^(?:https?:|mailto:|tel:|/|\#|\?|\.)#i', $candidate)) {
+            return $url;
+        }
+
+        return preg_match('#^[a-z][a-z0-9+.\-]*:#i', $candidate) ? null : $url;
     }
 
     /**

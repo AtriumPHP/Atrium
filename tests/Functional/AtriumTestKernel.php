@@ -23,6 +23,7 @@ use Atrium\Tests\Fixtures\Resource\HookedTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
 use Atrium\Tests\Fixtures\Resource\ListWidgetTagResource;
 use Atrium\Tests\Fixtures\Resource\PaginatedTagResource;
+use Atrium\Tests\Fixtures\Resource\RowUrlTagResource;
 use Atrium\Tests\Fixtures\Resource\ScopedTagResource;
 use Atrium\Tests\Fixtures\Resource\TabsTagResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
@@ -181,6 +182,10 @@ class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(ViewWidgetTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(RowUrlTagResource::class)
             ->autoconfigure()
             ->autowire();
 
