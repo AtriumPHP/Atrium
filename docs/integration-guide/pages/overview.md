@@ -31,6 +31,10 @@ They are wired to the parametric routes (`/admin/{resource}`,
 `/admin/{resource}/new`, `/admin/{resource}/{id}/edit`), so adding a resource
 needs no routing.
 
+A fourth, **opt-in** page is the read-only **View** screen (`ViewPage`), reached
+at the bare record URL `/admin/{resource}/{id}`. Register it to turn it on — see
+[The View screen](view.md).
+
 ## Heading & subheading
 
 Each page renders a heading (the `<h1>`) and an optional subheading, with sensible
@@ -170,6 +174,7 @@ where it wants reactivity — it doesn't need to be a `Page`.
 
 ## See also
 
+- [The View screen](view.md) — the opt-in read-only record page and its entries
 - [Table configuration](../tables/table-configuration.md) — what the list page renders
 - [List widgets](../tables/list-widgets.md) — header/footer widget bands on the list page
 - [Form overview](../forms/overview.md) — what the create/edit pages render
