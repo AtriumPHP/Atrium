@@ -7,7 +7,8 @@
 
 Use a `StatsWidget` for headline numbers: totals, counts, this-month figures,
 conversion rates. Each number is a `Stat` card; the widget arranges them in a
-grid and spans the full dashboard width by default.
+responsive grid. How wide the widget sits is set by its placement (a
+[`WidgetSlot`](dashboards.md#widgetslot-api)), not the widget.
 
 ## Example
 
@@ -56,8 +57,9 @@ Render it on a [dashboard](dashboards.md) (`getWidgets()`) or
 | `getStats(): array` | **Required.** Return a `list<Stat>`, left to right. |
 | `getColumns(): int` | Columns for the inner stat grid at `lg`+ (1 on mobile, 2 at `sm`+). Default `3`. |
 
-It also inherits `canView()`, `getColumnSpan()` (defaults to `'full'`) and
-`getPollingInterval()` from [`Widget`](overview.md#shared-widget-api).
+It also inherits `canView()` and `getPollingInterval()` from
+[`Widget`](overview.md#shared-widget-api). Width is set by the placing
+[`WidgetSlot`](dashboards.md#widgetslot-api).
 
 ## `Stat` API
 

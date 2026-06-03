@@ -68,10 +68,11 @@ framework adds no aggregation API.
 | `getOptions(): array` | Chart.js options (scales, plugins…). Merged under responsive defaults; `[]` keeps them. |
 | `getHeading(): ?string` | Optional heading above the chart; `null` for none. |
 
-It also inherits `canView()`, `getColumnSpan()` (defaults to `'full'`) and
-`getPollingInterval()` from [`Widget`](overview.md#shared-widget-api). The card
-gives the canvas a fixed height; the defaults (`responsive`,
-`maintainAspectRatio: false`) make the chart fill it.
+It also inherits `canView()` and `getPollingInterval()` from
+[`Widget`](overview.md#shared-widget-api); width is set by the placing
+[`WidgetSlot`](dashboards.md#widgetslot-api). The card gives the canvas a fixed
+height; the defaults (`responsive`, `maintainAspectRatio: false`) make the chart
+fill it.
 
 ## See also
 

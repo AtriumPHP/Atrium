@@ -53,7 +53,8 @@ server-driven and the payload checksummable.
   subclass is autoconfigured). An unknown class renders nothing.
 - `canView()` still applies — an embedded widget the viewer may not see renders
   nothing.
-- `getColumnSpan()` only matters inside a grid; a standalone embed ignores it.
+- Width is set by a [`WidgetSlot`](dashboards.md#widgetslot-api) in a dashboard
+  layout; a standalone embed has no span — wrap it yourself to size it.
 - Refresh and polling work the same as on a dashboard.
 
 ## See also

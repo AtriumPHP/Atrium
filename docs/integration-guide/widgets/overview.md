@@ -25,8 +25,9 @@ and refreshes it independently. Two concrete families ship:
 - **[Chart widget](chart-widget.md)** — a Chart.js chart (via Symfony UX Chart.js,
   no JS build step).
 
-A **[dashboard](dashboards.md)** lists widget classes and lays them out in a
-responsive grid; you can register several, each routable and in the navigation.
+A **[dashboard](dashboards.md)** arranges widgets — a flat list, or a tree of the
+same layout components as a form (`Grid`, `Section`, …) — into a routable page;
+you can register several, each in the navigation.
 
 ## You compute the data
 
@@ -56,8 +57,11 @@ Every widget (stats or chart) inherits these from `Atrium\Widget\Widget`:
 | Method | Description |
 | --- | --- |
 | `canView(): bool` | Authorization gate, enforced on mount **and** refresh. Default `true`. |
-| `getColumnSpan(): int\|string\|array` | Grid width: `int` (N columns at `lg`+), `'full'`, or a responsive map (`['md' => 2, 'xl' => 3]`). |
 | `getPollingInterval(): ?string` | Auto-refresh cadence (`'10s'`, `'500ms'`, `'2m'`); `null` (default) disables polling. |
+
+A widget's **width** is a placement concern, set where you put it — a
+[`WidgetSlot`](dashboards.md#widgetslot-api) in a dashboard layout — not a property
+of the widget itself.
 
 Widgets refresh **independently**: a refresh (manual or polled) re-renders only
 that widget and recomputes its data, never reloading the page or its neighbours.
