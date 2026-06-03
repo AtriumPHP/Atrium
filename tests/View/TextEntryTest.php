@@ -79,6 +79,17 @@ final class TextEntryTest extends TestCase
         self::assertSame('/tags/seven', $view['url']);
     }
 
+    public function testUnsafeUrlSchemeIsDropped(): void
+    {
+        $danger = TextEntry::make('name')
+            ->url(static fn (): string => 'javascript:alert(1)')
+            ->toView(new Tag());
+        self::assertNull($danger['url']);
+
+        $absolute = TextEntry::make('name')->url('https://example.com/x')->toView(new Tag());
+        self::assertSame('https://example.com/x', $absolute['url']);
+    }
+
     public function testMoneyFormatting(): void
     {
         $view = TextEntry::make('price')->state(123456)->money('USD', divideBy: 100)->toView(new Tag());

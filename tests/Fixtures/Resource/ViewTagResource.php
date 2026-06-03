@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atrium\Tests\Fixtures\Resource;
 
 use Atrium\Form\Schema;
+use Atrium\Layout\Section;
 use Atrium\Page\ViewPage;
 use Atrium\Resource\AdminResource;
 use Atrium\Tests\Fixtures\Entity\Tag;
@@ -30,13 +31,17 @@ final class ViewTagResource extends AdminResource
 
     public function view(Schema $schema): Schema
     {
+        // Wrapped in a Section so the functional test also exercises that the
+        // record propagates through a nested layout container to the entries.
         return $schema->components([
-            TextEntry::make('name')->weight('semibold'),
-            TextEntry::make('slug'),
-            TextEntry::make('active')->badge()
-                ->formatStateUsing(static fn (mixed $state): string => $state ? 'Active' : 'Inactive')
-                ->color(static fn (mixed $state): string => $state ? 'success' : 'gray'),
-            TextEntry::make('kind')->badge(),
+            Section::make('Details')->schema([
+                TextEntry::make('name')->weight('semibold'),
+                TextEntry::make('slug'),
+                TextEntry::make('active')->badge()
+                    ->formatStateUsing(static fn (mixed $state): string => $state ? 'Active' : 'Inactive')
+                    ->color(static fn (mixed $state): string => $state ? 'success' : 'gray'),
+                TextEntry::make('kind')->badge(),
+            ]),
         ]);
     }
 

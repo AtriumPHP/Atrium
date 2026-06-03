@@ -3,6 +3,9 @@
     layout renderer and `record` (the loaded entity) from the surrounding view
     context. All presentation is resolved in PHP via Entry::toView().
 #}
+{# A record-conditional `hidden()` entry renders nothing here; note its grid cell
+   (the wrapper in the layout renderer) still occupies space — full pruning of
+   hidden entries from the layout is a later refinement. #}
 {% set v = component.toView(record) %}
 {% if v.visible %}
     {% set inline = v.inlineLabel and not v.hiddenLabel %}

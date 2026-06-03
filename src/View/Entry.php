@@ -110,6 +110,10 @@ abstract class Entry implements Component
     }
 
     /**
+     * Extra HTML attributes on the entry's wrapper. Keys are written as attribute
+     * names verbatim, so they must be trusted developer-authored strings — do not
+     * derive a key from record/user input.
+     *
      * @param array<string, string> $attributes
      */
     public function extraAttributes(array $attributes): static
@@ -331,7 +335,7 @@ abstract class Entry implements Component
             'hintColor' => $this->hintColor,
             'icon' => $this->icon instanceof \Closure ? ($this->icon)($state, $record) : $this->icon,
             'iconPosition' => $this->iconPosition,
-            'url' => $this->url instanceof \Closure ? ($this->url)($record) : $this->url,
+            'url' => self::safeUrl($this->url instanceof \Closure ? ($this->url)($record) : $this->url),
             'openInNewTab' => $this->openInNewTab,
             'extraAttributes' => $this->extraAttributes,
         ];
@@ -404,6 +408,29 @@ abstract class Entry implements Component
     private static function accessor(): PropertyAccessorInterface
     {
         return self::$sharedAccessor ??= PropertyAccess::createPropertyAccessor();
+    }
+
+    /**
+     * Guard a (possibly record-derived) `url()` value against unsafe schemes:
+     * a relative path, fragment, query, or an http(s)/mailto/tel link is allowed;
+     * anything carrying another scheme (`javascript:`, `data:`, …) is dropped so it
+     * can never become an executable `href`. Returns null for a non-string/empty.
+     */
+    private static function safeUrl(mixed $url): ?string
+    {
+        if (!\is_string($url) || '' === trim($url)) {
+            return null;
+        }
+
+        $candidate = ltrim($url);
+
+        // Allowed shapes: relative/anchor/query, or an explicitly safe scheme.
+        if (preg_match('#^(?:https?:|mailto:|tel:|/|\#|\?|\.)#i', $candidate)) {
+            return $url;
+        }
+
+        // Any other explicit `scheme:` is rejected; a schemeless relative path is fine.
+        return preg_match('#^[a-z][a-z0-9+.\-]*:#i', $candidate) ? null : $url;
     }
 
     /**
