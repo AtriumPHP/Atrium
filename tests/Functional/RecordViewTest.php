@@ -108,6 +108,23 @@ final class RecordViewTest extends WebTestCase
         self::assertSelectorNotExists('tbody a[href="/admin/tag/3"]');
     }
 
+    public function testViewScreenRendersHeaderAndFooterWidgetBands(): void
+    {
+        $client = self::createClient();
+        $html = (string) $client->request('GET', '/admin/view-widget-tag/3')->html();
+
+        self::assertResponseIsSuccessful();
+        $header = strpos($html, '+1 each render');   // CounterStatsWidget, header band
+        $entries = strpos($html, 'Tag 03');           // the record's entry
+        $footer = strpos($html, 'Sales per month');   // SalesChartWidget, footer band
+
+        self::assertNotFalse($header);
+        self::assertNotFalse($entries);
+        self::assertNotFalse($footer);
+        self::assertLessThan($entries, $header, 'The header widget band must render above the entries.');
+        self::assertGreaterThan($entries, $footer, 'The footer widget band must render below the entries.');
+    }
+
     public function testCreateRouteStillWinsOverTheViewRoute(): void
     {
         $client = self::createClient();

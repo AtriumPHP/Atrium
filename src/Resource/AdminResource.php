@@ -17,6 +17,7 @@ use Atrium\Page\ListPage;
 use Atrium\Page\ListWidgetsConfiguration;
 use Atrium\Page\Page;
 use Atrium\Page\PageContext;
+use Atrium\Page\ViewPage;
 use Atrium\Table\TableConfiguration;
 use Atrium\View\TextEntry;
 
@@ -448,7 +449,38 @@ abstract class AdminResource
     }
 
     /**
-     * Resource-identity context forwarded to every list-screen widget slot.
+     * The resolved header widgets for the **View** screen (VIEW-16) — the band from
+     * {@see ViewPage::headerWidgets()} with the resource identity **and the record
+     * id** baked onto every slot, so a record-scoped widget (related rows, an
+     * activity timeline) can fetch its own data.
+     *
+     * @internal
+     */
+    final public function resolveViewHeaderWidgets(PageContext $context): ListWidgetsConfiguration
+    {
+        $page = $this->resolvePage('view');
+        $config = $page instanceof ViewPage ? $page->headerWidgets(new ListWidgetsConfiguration()) : new ListWidgetsConfiguration();
+
+        return $config->applyContext($this->widgetContext($context));
+    }
+
+    /**
+     * The resolved footer widgets for the View screen (see
+     * {@see resolveViewHeaderWidgets()}).
+     *
+     * @internal
+     */
+    final public function resolveViewFooterWidgets(PageContext $context): ListWidgetsConfiguration
+    {
+        $page = $this->resolvePage('view');
+        $config = $page instanceof ViewPage ? $page->footerWidgets(new ListWidgetsConfiguration()) : new ListWidgetsConfiguration();
+
+        return $config->applyContext($this->widgetContext($context));
+    }
+
+    /**
+     * Resource-identity context forwarded to every screen widget slot. `recordId`
+     * is the record's id on the View screen, and null on the list (no record).
      *
      * @return array<string, mixed>
      */
@@ -459,6 +491,7 @@ abstract class AdminResource
             'pathPrefix' => $context->pathPrefix,
             'singularLabel' => $context->singularLabel,
             'pluralLabel' => $context->pluralLabel,
+            'recordId' => $context->entityId,
         ];
     }
 

@@ -23,12 +23,30 @@
 {% endblock %}
 
 {% block body %}
-    <div class="mx-auto max-w-4xl">
+    <div class="mx-auto max-w-4xl space-y-6">
         {% if record %}
+            {% set headerComponents = headerWidgets.getComponents() %}
+            {% if headerComponents is not empty %}
+                {# Record-scoped widget band above the entries (the slots carry the
+                   record id in context). #}
+                {{ include('@Atrium/components/layout/components.html.twig', {
+                    components: headerComponents,
+                    gridClass: 'grid-cols-1',
+                }) }}
+            {% endif %}
+
             {{ include('@Atrium/components/layout/components.html.twig', {
                 components: schema.getComponents(),
                 record: record,
             }) }}
+
+            {% set footerComponents = footerWidgets.getComponents() %}
+            {% if footerComponents is not empty %}
+                {{ include('@Atrium/components/layout/components.html.twig', {
+                    components: footerComponents,
+                    gridClass: 'grid-cols-1',
+                }) }}
+            {% endif %}
         {% endif %}
     </div>
 {% endblock %}

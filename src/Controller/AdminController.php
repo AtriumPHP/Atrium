@@ -152,6 +152,8 @@ final readonly class AdminController
             'heading' => $page->getHeading($context),
             'subheading' => $page->getSubheading($context),
             'schema' => $resourceObject->resolveViewSchema(),
+            'headerWidgets' => $resourceObject->resolveViewHeaderWidgets($context),
+            'footerWidgets' => $resourceObject->resolveViewFooterWidgets($context),
             'record' => $record,
             'entityId' => $id,
         ]);

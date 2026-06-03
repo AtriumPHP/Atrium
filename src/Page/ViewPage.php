@@ -31,4 +31,25 @@ class ViewPage extends Page
     {
         return [EditAction::make(), DeleteAction::make()];
     }
+
+    /**
+     * Widgets shown **above** the record's entries (VIEW-16) — a band of
+     * stats/charts scoped to this record (the slots receive its id in context).
+     * Empty by default; compose them with the layout primitives (`Grid`,
+     * `Section`, …) holding {@see \Atrium\Widget\WidgetSlot}s, exactly like a
+     * dashboard or the list bands.
+     */
+    public function headerWidgets(ListWidgetsConfiguration $config): ListWidgetsConfiguration
+    {
+        return $config;
+    }
+
+    /**
+     * Widgets shown **below** the record's entries (VIEW-16). Same record-scoped
+     * semantics as {@see headerWidgets()}.
+     */
+    public function footerWidgets(ListWidgetsConfiguration $config): ListWidgetsConfiguration
+    {
+        return $config;
+    }
 }
