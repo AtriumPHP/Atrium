@@ -17,7 +17,7 @@ Briefly describe what this PR changes and why.
 
 ## Public API impact
 
-- [ ] This PR does **not** change the public Resource API (`docs/PRD.md` §9).
+- [ ] This PR does **not** change the public Resource API (`docs/PRDs/PRD.md` §9).
 - [ ] This PR **does** change a public/stable signature (described below and
       noted in `CHANGELOG.md`).
 

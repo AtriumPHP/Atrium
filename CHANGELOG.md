@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   resource (pages aren't DI services). **BC:** `TableConfiguration::headerActions()`
   is removed; the default New button lives on `ListPage::getHeaderActions()`, and the
   resource has no header-action method. Docs:
-  `docs/integration-guide/pages/overview.md`; PRD: `docs/PRD-page-screens.md`.
+  `docs/integration-guide/pages/overview.md`; PRD: `docs/PRDs/PRD-page-screens.md`.
   (PAG-01..06.) **Public API change.**
 
 - **List-screen widgets (header & footer bands).** A `ListPage` can render
@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Atrium\Widget\WidgetLayoutConfiguration`. **BC:** `WidgetSlot` moved from
   `Atrium\Dashboard\WidgetSlot` to `Atrium\Widget\WidgetSlot` (it depends only on
   `Widget` + the foundational `Layout` contract). Docs:
-  `docs/integration-guide/tables/list-widgets.md`; PRD: `docs/PRD-list-widgets.md`.
+  `docs/integration-guide/tables/list-widgets.md`; PRD: `docs/PRDs/PRD-list-widgets.md`.
   (LW-01..05.) **Public API change.**
 
 - **Dashboards & widgets.** A new widget layer: `Atrium\Widget\Widget` (an
@@ -65,8 +65,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   resource (slugs unique across both; collisions fail fast). The sidebar shows
   dashboards and resources as two divided groups (the built-in default dashboard
   appears when the app defines none). New dependency: `symfony/ux-chartjs`.
-  Docs: `docs/integration-guide/widgets/`; PRDs: `docs/PRD-dashboards-widgets.md`,
-  `docs/PRD-dashboard-layout.md`. (WGT-03..11, DSH-01..11, PNL-06..08.)
+  Docs: `docs/integration-guide/widgets/`; PRDs: `docs/PRDs/PRD-dashboards-widgets.md`,
+  `docs/PRDs/PRD-dashboard-layout.md`. (WGT-03..11, DSH-01..11, PNL-06..08.)
   **New public API.**
 - **Relation columns.** `Column::make('author.name')` (any depth, e.g.
   `author.company.name`) reads through a to-one relation and works everywhere a

@@ -11,7 +11,7 @@ Tailwind.
 > forms (fields, layout, tabs/wizards, validation, reactivity), actions, query
 > scoping and the full resource lifecycle are implemented and tested. See the
 > **[integration guide](docs/integration-guide/)** to build with it, the
-> [`CHANGELOG`](CHANGELOG.md) for what's landed, and [`docs/PRD.md`](docs/PRD.md)
+> [`CHANGELOG`](CHANGELOG.md) for what's landed, and [`docs/PRDs/PRD.md`](docs/PRDs/PRD.md)
 > for the roadmap.
 
 ## Documentation

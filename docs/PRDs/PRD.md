@@ -243,7 +243,7 @@ Mirrors Filament's per-resource organization, adapted to Symfony's HTTP model.
 > `columnSpan`), conditional visibility (`FRM-08..09`), cross-field reactivity
 > (`FRM-10..11`), validation DX (`FRM-12`), and additional field types (`FLD-*`)
 > are specified in the addendum
-> [`docs/PRD-forms-schema-layout.md`](./PRD-forms-schema-layout.md). Slots in as
+> [`docs/PRDs/PRD-forms-schema-layout.md`](./PRD-forms-schema-layout.md). Slots in as
 > Phase 2.5.
 
 ### 8.4 Actions — `ACT`
@@ -273,7 +273,7 @@ Mirrors Filament's per-resource organization, adapted to Symfony's HTTP model.
 > **Implemented & extended.** The widget and dashboard layer (stat/chart widgets,
 > the generic host, multiple routable dashboards, the `/admin/{slug}` namespace
 > generalisation) is scoped and delivered in
-> [`docs/PRD-dashboards-widgets.md`](./PRD-dashboards-widgets.md) (WGT-03..10,
+> [`docs/PRDs/PRD-dashboards-widgets.md`](./PRD-dashboards-widgets.md) (WGT-03..10,
 > DSH-01..07, PNL-06..08).
 
 ### 8.8 Panel shell — `PNL`
@@ -496,7 +496,7 @@ Packagist package.
 
 ## 14. Working with this spec in Claude Code
 
-- Keep this file in the repo (e.g. `docs/PRD.md`) and reference it per phase.
+- Keep this file in the repo (e.g. `docs/PRDs/PRD.md`) and reference it per phase.
 - Maintain a `CLAUDE.md` at the repo root with conventions (namespaces, the
   downward-dependency rule, "no Doctrine types in core", CS/PHPStan commands).
 - Implement **one phase per working session**; run the Phase-1 gates (tests,

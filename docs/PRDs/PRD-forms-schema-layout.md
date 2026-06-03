@@ -1,6 +1,6 @@
 # Atrium — Forms: Schema Tree, Layout & Field Capabilities (PRD addendum)
 
-> **Status:** Proposed · **Type:** Addendum to [`docs/PRD.md`](./PRD.md)
+> **Status:** Proposed · **Type:** Addendum to [`docs/PRDs/PRD.md`](./PRD.md)
 > **Extends:** §8.3 Forms (`FRM`), §8.11 Layout (`LAY`), §9 DX contract
 > **Supersedes nothing** — all existing `FRM-01..07` behaviour is preserved.
 

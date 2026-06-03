@@ -26,7 +26,7 @@ Other approaches you thought about and why you discarded them.
 ## Scope
 
 - Which package/area does this touch (core, tables, forms, actions, …)?
-- Related requirement ID(s) or phase (see `docs/PRD.md`):
+- Related requirement ID(s) or phase (see `docs/PRDs/PRD.md`):
 
 ## Additional context
 

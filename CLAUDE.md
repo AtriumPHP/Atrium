@@ -1,7 +1,7 @@
 # CLAUDE.md — Working conventions for Atrium
 
 This file primes Claude Code for work in this repository. Read it before making
-changes. The full product/technical spec is in `docs/PRD.md`; this file is the
+changes. The full product/technical spec is in `docs/PRDs/PRD.md`; this file is the
 short, always-applicable rulebook.
 
 ## What this project is
@@ -27,7 +27,7 @@ separate API**.
    Doctrine lives only in the `DoctrineDataProvider` adapter. All data access
    goes through `DataProviderInterface`.
 4. **The Resource API is a stable contract.** The developer-facing signatures in
-   `docs/PRD.md` §9 (`AdminResource`, `Column::make()->…`, future `form()` /
+   `docs/PRDs/PRD.md` §9 (`AdminResource`, `Column::make()->…`, future `form()` /
    `table()` / `pages()`) are public API. Treat changes to them as
    BC-relevant; flag them explicitly in your summary and in `CHANGELOG.md`.
 5. **Pages are controller/descriptor classes, not Live Components.** A Page owns
@@ -106,7 +106,7 @@ phase done.
 
 ## How to work through the build
 
-- The plan is **phased** (`docs/PRD.md` §10). Implement **one phase per session**.
+- The plan is **phased** (`docs/PRDs/PRD.md` §10). Implement **one phase per session**.
 - **Phase 1 (engineering harness) comes before any new feature.** Do not start
   Forms/Actions until tests + PHPStan + CS + CI exist and are green.
 - Every functional requirement has an ID (e.g. `TBL-03`, `FRM-05`). Reference the

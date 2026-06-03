@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing! Atrium is in early development
 (Phase 0 boilerplate); the architecture and roadmap live in
-[`docs/PRD.md`](docs/PRD.md), and the working conventions in
+[`docs/PRDs/PRD.md`](docs/PRDs/PRD.md), and the working conventions in
 [`CLAUDE.md`](CLAUDE.md).
 
 ## Getting started

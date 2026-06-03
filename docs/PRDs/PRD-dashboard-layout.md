@@ -1,7 +1,7 @@
 # Atrium — Dashboard layout (PRD addendum)
 
 > **Status:** Proposed · **Type:** Addendum to
-> [`docs/PRD-dashboards-widgets.md`](./PRD-dashboards-widgets.md)
+> [`docs/PRDs/PRD-dashboards-widgets.md`](./PRD-dashboards-widgets.md)
 > **Extends:** §8.7 Widgets (`WGT`), Dashboards (`DSH`), §8.11 Layout (`LAY`),
 > §9 DX contract
 > **Supersedes:** the just-introduced `Dashboard::getWidgets()` /

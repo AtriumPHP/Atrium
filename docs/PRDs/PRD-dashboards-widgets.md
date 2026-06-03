@@ -1,6 +1,6 @@
 # Atrium — Dashboards & Widgets (PRD addendum)
 
-> **Status:** Proposed · **Type:** Addendum to [`docs/PRD.md`](./PRD.md)
+> **Status:** Proposed · **Type:** Addendum to [`docs/PRDs/PRD.md`](./PRD.md)
 > **Extends:** §8.7 Widgets (`WGT`), §8.8 Panel shell (`PNL`), §9 DX contract,
 > Phase 5
 > **Supersedes nothing** — all existing routing, navigation and resource
@@ -445,7 +445,7 @@ A suggested slice order (each independently shippable, gates green per CLAUDE.md
    `DefaultDashboard`, the generalized `/admin/{slug}` dispatch, slug-collision
    compiler pass, merged navigation. Tests + a second playground dashboard.
 4. **Docs** — the `widgets/` guide module + README/index, `CHANGELOG`, and a note
-   in `docs/PRD.md` §8.7 / Phase 5 pointing here.
+   in `docs/PRDs/PRD.md` §8.7 / Phase 5 pointing here.
 
 ## 13. Acceptance criteria
 

@@ -1,6 +1,6 @@
 # Atrium — Page screens: headings & header actions (PRD addendum)
 
-> **Status:** Proposed · **Type:** Addendum to [`docs/PRD.md`](./PRD.md)
+> **Status:** Proposed · **Type:** Addendum to [`docs/PRDs/PRD.md`](./PRD.md)
 > **Extends:** Pages (`RES-06`, `LAY-03`), Actions (`ACT`), §9 DX contract
 > **Supersedes:** the just-shipped `TableConfiguration::headerActions()` (unreleased
 > default API) — header actions move to the Page / resource. Other table behaviour
@@ -17,7 +17,7 @@ introduces a new **`PAG`** requirement namespace.
 > page-owned**: header actions live only on the Page (`Page::getHeaderActions(): array`;
 > `ListPage` owns the default "New" button), and the resource's inline method was
 > removed. The realignment happened alongside list widgets — see
-> [`docs/PRD-list-widgets.md`](./PRD-list-widgets.md) §4 and the CHANGELOG. The
+> [`docs/PRDs/PRD-list-widgets.md`](./PRD-list-widgets.md) §4 and the CHANGELOG. The
 > rest of this PRD (headings, Form-component hosting, redirect) stands.
 
 ---
