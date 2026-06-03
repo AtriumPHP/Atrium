@@ -27,6 +27,8 @@ use Atrium\Tests\Fixtures\Resource\ScopedTagResource;
 use Atrium\Tests\Fixtures\Resource\TabsTagResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Atrium\Tests\Fixtures\Resource\UnlistedTagResource;
+use Atrium\Tests\Fixtures\Resource\ViewFallbackTagResource;
+use Atrium\Tests\Fixtures\Resource\ViewTagResource;
 use Atrium\Tests\Fixtures\Resource\WizardTagResource;
 use Atrium\Tests\Fixtures\Widget\CounterStatsWidget;
 use Atrium\Tests\Fixtures\Widget\HiddenWidget;
@@ -166,6 +168,14 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(ListWidgetTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(ViewTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(ViewFallbackTagResource::class)
             ->autoconfigure()
             ->autowire();
 

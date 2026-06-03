@@ -1,0 +1,48 @@
+{#
+    Read-only text entry. Receives `component` (the TextEntry) from the generic
+    layout renderer and `record` (the loaded entity) from the surrounding view
+    context. All presentation is resolved in PHP via Entry::toView().
+#}
+{% set v = component.toView(record) %}
+{% if v.visible %}
+    {% set inline = v.inlineLabel and not v.hiddenLabel %}
+    <div class="{{ inline ? 'sm:grid sm:grid-cols-3 sm:items-start sm:gap-4' }}"
+        {%- for key, val in v.extraAttributes %} {{ key }}="{{ val }}"{% endfor %}>
+        {% if not v.hiddenLabel %}
+            <dt class="flex items-center justify-between gap-2 text-sm font-medium text-gray-500 dark:text-gray-400{{ inline ? ' sm:pt-0.5' }}">
+                <span>{{ v.label }}</span>
+                {% if v.hint %}
+                    <span class="inline-flex items-center gap-1 text-xs font-normal text-gray-400 dark:text-gray-500">
+                        {% if v.hintIcon %}{{ atrium_icon(v.hintIcon, { class: 'h-3.5 w-3.5' }) }}{% endif %}{{ v.hint }}
+                    </span>
+                {% endif %}
+            </dt>
+        {% endif %}
+
+        <dd class="{{ inline ? 'sm:col-span-2' : 'mt-1' }} {{ v.alignClass }}"{% if v.tooltip %} title="{{ v.tooltip }}"{% endif %}>
+            {% set body %}
+                {% if v.isEmpty %}
+                    <span class="text-sm text-gray-400 dark:text-gray-600">{{ v.placeholder ?? '—' }}</span>
+                {% elseif v.items is not null %}
+                    <ul class="{{ v.bulleted ? 'list-disc pl-5' }} space-y-0.5 {{ v.typographyClass }} text-gray-900 dark:text-gray-100">
+                        {% for item in v.items %}<li>{% if v.isHtml %}{{ item|raw }}{% else %}{{ item }}{% endif %}</li>{% endfor %}
+                    </ul>
+                {% else %}
+                    <span class="{{ v.isBadge ? v.colorClass : (v.typographyClass ~ ' ' ~ v.colorClass) }}">
+                        {%- if v.icon and v.iconPosition == 'before' %}{{ atrium_icon(v.icon, { class: 'inline h-4 w-4' }) }} {% endif -%}
+                        {% if v.isHtml %}{{ v.value|raw }}{% else %}{{ v.value }}{% endif %}
+                        {%- if v.icon and v.iconPosition == 'after' %} {{ atrium_icon(v.icon, { class: 'inline h-4 w-4' }) }}{% endif -%}
+                    </span>
+                {% endif %}
+            {% endset %}
+
+            {% if v.url and not v.isEmpty %}
+                <a href="{{ v.url }}"{% if v.openInNewTab %} target="_blank" rel="noopener"{% endif %} class="text-primary-600 hover:underline dark:text-primary-400">{{ body }}</a>
+            {% else %}
+                {{ body }}
+            {% endif %}
+
+            {% if v.helperText %}<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ v.helperText }}</p>{% endif %}
+        </dd>
+    </div>
+{% endif %}

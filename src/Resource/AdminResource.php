@@ -7,6 +7,7 @@ namespace Atrium\Resource;
 use Atrium\Action\Action;
 use Atrium\DataProvider\DataQuery;
 use Atrium\DataProvider\DataWriterInterface;
+use Atrium\Form\Field\Field;
 use Atrium\Form\Schema;
 use Atrium\Layout\Component;
 use Atrium\Layout\Wizard;
@@ -17,6 +18,7 @@ use Atrium\Page\ListWidgetsConfiguration;
 use Atrium\Page\Page;
 use Atrium\Page\PageContext;
 use Atrium\Table\TableConfiguration;
+use Atrium\View\TextEntry;
 
 /**
  * Base class for every admin resource.
@@ -60,6 +62,40 @@ abstract class AdminResource
     public function form(Schema $schema): Schema
     {
         return $schema;
+    }
+
+    /**
+     * Configure the read-only record View screen (VIEW-02): a {@see Schema} of
+     * {@see \Atrium\View\Entry} components (with the same layout containers as a
+     * form). Empty by default — a resource with a `'view'` page but no `view()`
+     * falls back to its {@see form()} rendered read-only (see
+     * {@see resolveViewSchema()}).
+     */
+    public function view(Schema $schema): Schema
+    {
+        return $schema;
+    }
+
+    /**
+     * The schema the View screen renders: the resource's {@see view()} when it
+     * declares one, otherwise the {@see form()} fields mapped to read-only text
+     * entries (the free fallback — a flat list; declare `view()` for layout).
+     *
+     * @internal
+     */
+    final public function resolveViewSchema(): Schema
+    {
+        $view = $this->view(new Schema());
+        if ([] !== $view->getComponents()) {
+            return $view;
+        }
+
+        $entries = array_map(
+            static fn (Field $field): TextEntry => TextEntry::make($field->getName())->label($field->getLabel()),
+            $this->form(new Schema())->getFields(),
+        );
+
+        return (new Schema())->components($entries);
     }
 
     // -- Authorization hooks ---------------------------------------------------

@@ -34,6 +34,15 @@ final readonly class PageContext
         return $this->base().'/'.$id.'/edit';
     }
 
+    /**
+     * The read-only View screen for a record — the bare record URL (no action
+     * segment), the counterpart of {@see editUrl()}.
+     */
+    public function viewUrl(string $id): string
+    {
+        return $this->base().'/'.$id;
+    }
+
     private function base(): string
     {
         return rtrim($this->pathPrefix, '/').'/'.$this->resourceSlug;

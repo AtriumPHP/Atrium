@@ -117,6 +117,52 @@ final readonly class AdminController
         ]);
     }
 
+    /**
+     * The read-only View screen for one record (VIEW-01). Opt-in: a resource that
+     * registers no `'view'` page has no View screen, so the bare record URL 404s.
+     */
+    public function view(string $resource, string $id): Response
+    {
+        $resourceObject = $this->requireResource($resource);
+        $this->denyUnless($resourceObject->canAccess());
+
+        $page = $resourceObject->resolvePage('view');
+        if (null === $page) {
+            throw new NotFoundHttpException(\sprintf('The "%s" resource has no view screen.', $resource));
+        }
+
+        $record = null;
+        if (null !== $this->dataProvider) {
+            $record = $this->dataProvider->find(
+                $resourceObject->getEntityClass(),
+                $id,
+                $resourceObject->scopeFilters(),
+            );
+            if (null === $record) {
+                throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
+            }
+            $this->denyUnless($resourceObject->canView($record));
+        }
+
+        $context = $this->pageContext($resourceObject, $resource, $id);
+
+        // M1 renders link header actions only (the Edit link); server-driven header
+        // actions (Delete) need an action host and land with the M4 nav/actions work.
+        $canEdit = null === $record || $resourceObject->canEdit($record);
+        $editUrl = ($canEdit && null !== $resourceObject->resolvePage('edit')) ? $context->editUrl($id) : null;
+
+        return $this->render('@Atrium/admin/view_page.html.twig', [
+            'panel' => $this->panel($resource),
+            'resource' => $resourceObject,
+            'heading' => $page->getHeading($context),
+            'subheading' => $page->getSubheading($context),
+            'editUrl' => $editUrl,
+            'schema' => $resourceObject->resolveViewSchema(),
+            'record' => $record,
+            'entityId' => $id,
+        ]);
+    }
+
     private function resourceList(string $resource): Response
     {
         $resourceObject = $this->requireResource($resource);

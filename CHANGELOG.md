@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Record View (read-only) pages — core (`VIEW-01..04`, `VIEW-11`, `VIEW-13`,
+  `VIEW-15`, `VIEW-18`).** A resource can expose a read-only View screen for one
+  record at the bare URL `/{resource}/{id}`, opt-in by registering a `'view'` page
+  (`Atrium\Page\ViewPage`, with an Edit header link). Content is declared with
+  **`AdminResource::view(Schema)`** — a schema of read-only **entry** components
+  that live in the same layout tree as form fields; if a resource defines no
+  `view()`, the screen falls back to its `form()` fields rendered read-only. Ships
+  the **`Atrium\View\Entry`** base (the full shared configuration surface:
+  labelling, layout/align, record-aware `visible`/`hidden`, `state`/`getStateUsing`/
+  `formatStateUsing`/`default`/`placeholder`, `tooltip`/`helperText`/`hint`, `icon`,
+  `url`, inline actions) and **`Atrium\View\TextEntry`** (badge, colour, money,
+  date/time, numeric, limit/words, prefix/suffix, html, lists, copyable). Reuses the
+  existing `view`/`canView($record)` ability; adds `PageContext::viewUrl()`. The
+  remaining entry types (Icon/Image/Color/KeyValue/Repeatable/Code), view-screen
+  widget bands, `ViewAction` + clickable rows, and docs land in the following
+  milestones. PRD: `docs/PRDs/PRD-record-view.md`.
+
 ### Changed
 
 - **Icons now render through [Symfony UX Icons](https://symfony.com/bundles/ux-icons).**

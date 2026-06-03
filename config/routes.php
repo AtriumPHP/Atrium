@@ -21,6 +21,12 @@ return static function (RoutingConfigurator $routes): void {
         ->controller([AdminController::class, 'edit'])
         ->requirements(['resource' => '[a-z0-9-]+', 'id' => '[^/]+']);
 
+    // Bare record URL: the read-only View screen (VIEW-01). Declared after
+    // `/new` so a literal `new` still routes to create (first match wins).
+    $routes->add('atrium_resource_view', '/admin/{resource}/{id}')
+        ->controller([AdminController::class, 'view'])
+        ->requirements(['resource' => '[a-z0-9-]+', 'id' => '[^/]+']);
+
     // Single-segment catch-all: a dashboard or a resource list (dashboards win).
     $routes->add('atrium_page', '/admin/{slug}')
         ->controller([AdminController::class, 'page'])
