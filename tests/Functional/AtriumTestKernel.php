@@ -32,6 +32,7 @@ use Atrium\Tests\Fixtures\Widget\CounterStatsWidget;
 use Atrium\Tests\Fixtures\Widget\HiddenWidget;
 use Atrium\Tests\Fixtures\Widget\ParamsStatsWidget;
 use Atrium\Tests\Fixtures\Widget\SalesChartWidget;
+use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -94,6 +95,13 @@ final class AtriumTestKernel extends Kernel
         ]);
 
         $services = $container->services();
+
+        // Several functional tests deliberately trigger 403/404 responses to assert
+        // them. Symfony's error handler logs each one, which the bundled fallback
+        // logger writes to stderr as noisy "Uncaught PHP Exception" lines. Swap in a
+        // NullLogger so the test output (and CI logs) stay clean — the assertions on
+        // the responses still hold.
+        $services->set('logger', NullLogger::class);
 
         $services->set(TagResource::class)
             ->autoconfigure()
