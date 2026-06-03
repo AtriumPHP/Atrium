@@ -54,8 +54,10 @@ final class FormHeaderActionsTest extends KernelTestCase
             'pathPrefix' => '/admin',
         ]);
 
-        // A confirmable action opens the prompt and runs nothing yet.
-        $component->call('requestAction', ['name' => 'archive', 'id' => '2']);
+        // A confirmable action opens the prompt and runs nothing yet. The header
+        // action trigger carries no id (it is subject-less); the Form acts on its
+        // loaded entityId.
+        $component->call('requestAction', ['name' => 'archive']);
         self::assertStringContainsString('Are you sure', $component->render()->toString());
 
         // Confirming archives the record (active = false); it is now out of the

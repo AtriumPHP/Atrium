@@ -40,7 +40,7 @@ trait InteractsWithActions
      * reach here.
      */
     #[LiveAction]
-    public function requestAction(#[LiveArg] string $name, #[LiveArg] string $id): ?Response
+    public function requestAction(#[LiveArg] string $name, #[LiveArg] string $id = ''): ?Response
     {
         $action = $this->findAction($name);
         if (null === $action || !$action->isServerAction() || !$this->canExecuteAction($action, $id)) {
