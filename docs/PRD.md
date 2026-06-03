@@ -1,7 +1,7 @@
 # Atrium — Product Requirements & Technical Specification
 
 > **Name / namespace:** **Atrium** — Packagist vendor `atrium`, metapackage
-> `atrium/atrium`, PHP namespace `Atrium\`, bundle class `AtriumBundle`. The
+> `atriumphp/atrium`, PHP namespace `Atrium\`, bundle class `AtriumBundle`. The
 > Packagist `atrium` vendor namespace was unclaimed at time of writing (only an
 > abandoned, unrelated `nateritter/atrium-php` exists); register the vendor early
 > to lock it in, and verify the npm org + a `.dev` domain before launch.
@@ -135,19 +135,19 @@ Develop in one monorepo; split into read-only subtree repos with
 
 | Package | Depends on | Purpose |
 |---|---|---|
-| `atrium/admin-core` | — | Contracts, `Resource`, `DataProviderInterface`, registry, base value objects |
-| `atrium/admin-doctrine` | core | `DoctrineDataProvider` |
-| `atrium/admin-tables` | core | Table builder + `DataTable` Live Component |
-| `atrium/admin-forms` | core | Field schema + `Form` Live Component |
-| `atrium/admin-actions` | core, forms | Row/bulk/page actions + modals |
-| `atrium/admin-infolists` | core | Read-only record views |
-| `atrium/admin-notifications` | core | Toasts / flash / persisted notifications |
-| `atrium/admin-widgets` | core | Dashboard stat cards + charts |
-| `atrium/admin-panel` | all of the above | The shell that composes everything |
-| `atrium/atrium` | panel | Metapackage that requires the full set |
+| `atriumphp/admin-core` | — | Contracts, `Resource`, `DataProviderInterface`, registry, base value objects |
+| `atriumphp/admin-doctrine` | core | `DoctrineDataProvider` |
+| `atriumphp/admin-tables` | core | Table builder + `DataTable` Live Component |
+| `atriumphp/admin-forms` | core | Field schema + `Form` Live Component |
+| `atriumphp/admin-actions` | core, forms | Row/bulk/page actions + modals |
+| `atriumphp/admin-infolists` | core | Read-only record views |
+| `atriumphp/admin-notifications` | core | Toasts / flash / persisted notifications |
+| `atriumphp/admin-widgets` | core | Dashboard stat cards + charts |
+| `atriumphp/admin-panel` | all of the above | The shell that composes everything |
+| `atriumphp/atrium` | panel | Metapackage that requires the full set |
 
 > Until the seams are stable, it is acceptable to develop as the single
-> `atrium/atrium` bundle (Phase 0 state) and extract packages in Phase 7. Design the
+> `atriumphp/atrium` bundle (Phase 0 state) and extract packages in Phase 7. Design the
 > namespaces now so extraction is mechanical.
 
 ## 8. Functional requirements
@@ -403,7 +403,7 @@ Each phase is a milestone Claude Code can complete and verify before moving on.
 level, CS clean, docs/README updated, acceptance criteria met.
 
 ### Phase 0 — Vertical slice *(already built)*
-Single `atrium/atrium` bundle: panel shell, `AdminResource`, `Column`,
+Single `atriumphp/atrium` bundle: panel shell, `AdminResource`, `Column`,
 `DataTable` Live Component (search/sort/paginate), `DataProviderInterface` +
 `DoctrineDataProvider`, autoconfiguration-based discovery.
 *Acceptance:* visiting `/admin` over a sample entity yields a working reactive
@@ -454,7 +454,7 @@ plugin that registers a resource and a widget.
 Extract packages per §7 with `symplify/monorepo-builder`; verify each is
 independently installable; stand up a docs site (static, e.g. MkDocs/VitePress);
 tag `0.1.0`; document the BC promise; set up Packagist + funding metadata.
-*Acceptance:* `composer require atrium/admin-tables` works alone; docs cover
+*Acceptance:* `composer require atriumphp/admin-tables` works alone; docs cover
 install + the Resource API; a clean app can build a panel from the published
 packages.
 
@@ -487,7 +487,7 @@ packages.
 ## 13. Overall acceptance criteria
 
 The framework is "v1-ready" when, from a clean Symfony 7 app, a developer can:
-`composer require atrium/atrium`, run Tailwind, define a `Resource` over a Doctrine
+`composer require atriumphp/atrium`, run Tailwind, define a `Resource` over a Doctrine
 entity in PHP only, and get a panel with a reactive list (search/sort/paginate),
 create/edit forms with validation and a reactive field, row + bulk actions with
 confirmation, voter-based access control, and a dashboard widget — **with no

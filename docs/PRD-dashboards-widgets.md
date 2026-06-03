@@ -430,7 +430,7 @@ primary data path.
 - **`symfony/ux-chartjs`** — new downward UI dependency, required by
   `ChartWidget`. Ships its Stimulus controller through AssetMapper/importmap, so
   consumers still have **no JS build step**. In the single-bundle phase it is a
-  `require`; on the eventual monorepo split it belongs to `atrium/admin-widgets`.
+  `require`; on the eventual monorepo split it belongs to `atriumphp/admin-widgets`.
 
 ## 12. Implementation milestones
 

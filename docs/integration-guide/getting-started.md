@@ -24,7 +24,7 @@ mechanics are pure Symfony (Doctrine, the validator, Twig, UX).
 ## Installation
 
 ```bash
-composer require atrium/atrium
+composer require atriumphp/atrium
 ```
 
 ### 1. Register the bundle

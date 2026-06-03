@@ -1,14 +1,14 @@
 {
-    "name": "atrium/atrium",
+    "name": "atriumphp/atrium",
     "description": "A PHP-configured, modular admin panel framework for Symfony, powered by Live Components.",
     "type": "symfony-bundle",
     "license": "MIT",
     "keywords": ["symfony", "admin", "admin-panel", "live-components", "ux", "crud", "dashboard"],
-    "homepage": "https://github.com/atrium/atrium",
+    "homepage": "https://github.com/AtriumPHP/Atrium",
     "authors": [
         {
             "name": "Atrium Contributors",
-            "homepage": "https://github.com/atrium/atrium/graphs/contributors"
+            "homepage": "https://github.com/AtriumPHP/Atrium/graphs/contributors"
         }
     ],
     "require": {

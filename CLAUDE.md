@@ -42,8 +42,8 @@ separate API**.
 ## Naming & namespaces
 
 - Project / brand: **Atrium**
-- Packagist vendor: **`atrium`**; metapackage `atrium/atrium`; future split
-  packages `atrium/admin-core`, `atrium/admin-tables`, `atrium/admin-forms`, …
+- Packagist vendor: **`atriumphp`**; metapackage `atriumphp/atrium`; future split
+  packages `atriumphp/admin-core`, `atriumphp/admin-tables`, `atriumphp/admin-forms`, …
 - PHP namespace root: **`Atrium\`**
 - Bundle class: **`AtriumBundle`** (Symfony convention: ends in `Bundle`)
 - DI tag for resources: `atrium.resource`
@@ -115,7 +115,7 @@ phase done.
   README/docs touched if the public surface changed.
 - **Dogfood.** Build against a real admin need, not a toy entity. If an API feels
   awkward to use, that is a design bug — surface it, don't paper over it.
-- **Do not split the monorepo early.** Develop as the single `atrium/atrium`
+- **Do not split the monorepo early.** Develop as the single `atriumphp/atrium`
   bundle; extraction into packages is Phase 7, once the seams are proven.
 
 ## Definition of done (per change)

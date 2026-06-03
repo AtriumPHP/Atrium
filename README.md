@@ -32,7 +32,7 @@ then dive into [resources](docs/integration-guide/resources/overview.md),
 ## Installation
 
 ```bash
-composer require atrium/atrium
+composer require atriumphp/atrium
 ```
 
 Register the bundle (Symfony Flex does this automatically; otherwise add it to
