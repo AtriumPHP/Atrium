@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-03
+
+First tagged release: the panel shell, resources, tables, forms, actions, pages,
+dashboards & widgets, and the data layer described below. Pre-1.0 — the public
+API may still change in a 0.x minor.
+
 ### Added
 
 - **Page screens: headings & header actions.** `Atrium\Page\Page` is now a screen
