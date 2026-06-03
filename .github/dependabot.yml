@@ -1,0 +1,40 @@
+# Dependabot configuration — keeps Composer packages and GitHub Actions current.
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates
+version: 2
+updates:
+  # PHP dependencies (composer.json / composer.lock).
+  - package-ecosystem: composer
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - php
+    commit-message:
+      prefix: deps
+    groups:
+      # Roll all minor/patch bumps into a single weekly PR to cut noise; major
+      # bumps (potentially breaking) still get their own PRs.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # GitHub Actions used by the CI workflows.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns:
+          - "*"
