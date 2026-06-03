@@ -27,6 +27,7 @@ use Atrium\Tests\Fixtures\Resource\WizardTagResource;
 use Atrium\Tests\Fixtures\Widget\CounterStatsWidget;
 use Atrium\Tests\Fixtures\Widget\HiddenWidget;
 use Atrium\Tests\Fixtures\Widget\ParamsStatsWidget;
+use Atrium\Tests\Fixtures\Widget\SalesChartWidget;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\TwigBundle\TwigBundle;
@@ -34,6 +35,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
+use Symfony\UX\Chartjs\ChartjsBundle;
 use Symfony\UX\LiveComponent\LiveComponentBundle;
 use Symfony\UX\StimulusBundle\StimulusBundle;
 use Symfony\UX\TwigComponent\TwigComponentBundle;
@@ -58,6 +60,7 @@ final class AtriumTestKernel extends Kernel
             new StimulusBundle(),
             new TwigComponentBundle(),
             new LiveComponentBundle(),
+            new ChartjsBundle(),
             new AtriumBundle(),
         ];
     }
@@ -154,6 +157,10 @@ final class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(ParamsStatsWidget::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(SalesChartWidget::class)
             ->autoconfigure()
             ->autowire();
 

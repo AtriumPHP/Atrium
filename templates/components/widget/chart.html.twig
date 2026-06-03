@@ -1,0 +1,16 @@
+{# Chart widget (WGT-10): an optional heading plus a fixed-height canvas rendered
+   by UX Chart.js. `widget` is the ChartWidget descriptor; `this.chart` is the
+   built Chart (null when UX Chart.js is unavailable). #}
+<div class="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800/80 dark:bg-gray-900">
+    {% if widget.getHeading() %}
+        <h3 class="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">{{ widget.getHeading() }}</h3>
+    {% endif %}
+    {%- set chart = this.chart -%}
+    {% if chart %}
+        <div class="relative h-72">
+            {{ render_chart(chart, { style: 'height:100%;width:100%' }) }}
+        </div>
+    {% else %}
+        <p class="py-8 text-center text-sm text-gray-400 dark:text-gray-500">Chart unavailable.</p>
+    {% endif %}
+</div>

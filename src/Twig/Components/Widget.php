@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Atrium\Twig\Components;
 
+use Atrium\Widget\ChartWidget;
 use Atrium\Widget\Widget as WidgetDefinition;
 use Atrium\Widget\WidgetRegistry;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
@@ -47,8 +50,10 @@ final class Widget
     private bool $resolved = false;
     private ?WidgetDefinition $definition = null;
 
-    public function __construct(private readonly WidgetRegistry $registry)
-    {
+    public function __construct(
+        private readonly WidgetRegistry $registry,
+        private readonly ?ChartBuilderInterface $chartBuilder = null,
+    ) {
     }
 
     /**
@@ -71,6 +76,21 @@ final class Widget
         $definition = $definition->withParams($this->params);
 
         return $this->definition = $definition->canView() ? $definition : null;
+    }
+
+    /**
+     * The built Chart.js chart when the resolved widget is a {@see ChartWidget}
+     * (and UX Chart.js is installed); null otherwise. Bound to the embed context,
+     * since it is built from the resolved, params-bound descriptor.
+     */
+    public function getChart(): ?Chart
+    {
+        $definition = $this->getDefinition();
+        if (!$definition instanceof ChartWidget || null === $this->chartBuilder) {
+            return null;
+        }
+
+        return $definition->buildChart($this->chartBuilder);
     }
 
     /**
