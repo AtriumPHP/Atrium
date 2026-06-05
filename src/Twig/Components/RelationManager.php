@@ -56,6 +56,10 @@ final class RelationManager extends AbstractRecordTable
     #[LiveProp]
     public ?string $modalRecordId = null;
 
+    /** The picked record id in the Associate modal. */
+    #[LiveProp(writable: true)]
+    public string $associateId = '';
+
     private ?Relation $relation = null;
     private ?RelationDescriptor $descriptor = null;
     private ?AdminResource $targetResource = null;
@@ -257,6 +261,81 @@ final class RelationManager extends AbstractRecordTable
     {
         $this->modalMode = null;
         $this->modalRecordId = null;
+        $this->associateId = '';
+    }
+
+    // -- Associate an existing record (REL-07) ----------------------------
+
+    #[LiveAction]
+    public function openAssociate(): void
+    {
+        if ($this->isReadOnly()) {
+            return;
+        }
+
+        $this->modalMode = 'associate';
+        $this->associateId = '';
+    }
+
+    #[LiveAction]
+    public function submitAssociate(): void
+    {
+        if ($this->isReadOnly() || '' === $this->associateId) {
+            return;
+        }
+
+        // Re-resolve from listLinkable so a forged id (already-linked or out of the
+        // target's scope) is refused; then re-check authorization at execution.
+        $child = $this->findLinkable($this->associateId);
+        if (null === $child || !$this->parentResource()->canAssociate($this->parent(), $child)) {
+            return;
+        }
+
+        $this->writer->transactional(function () use ($child): void {
+            $this->relationProvider->associate($this->descriptor(), $this->parent(), $child);
+        });
+
+        $this->closeModal();
+        $this->refreshRecords();
+    }
+
+    public function canAssociateRelated(): bool
+    {
+        return !$this->isReadOnly();
+    }
+
+    /**
+     * Options for the Associate picker: linkable records (not already linked,
+     * within the target's scope) titled by the relation's recordTitle, keyed by id.
+     *
+     * @return array<string, string>
+     */
+    public function getLinkableOptions(): array
+    {
+        $options = [];
+        foreach ($this->relationProvider->listLinkable($this->descriptor(), $this->parent(), new DataQuery(offset: 0, limit: 100)) as $record) {
+            $id = $this->recordId($record);
+            if (null === $id) {
+                continue;
+            }
+            $title = $this->accessor->getValue($record, $this->descriptor()->recordTitleAttribute);
+            $options[$id] = \is_scalar($title) ? (string) $title : $id;
+        }
+
+        return $options;
+    }
+
+    private function findLinkable(string $id): ?object
+    {
+        // O(N) verify-then-associate: a direct findLinkable(id) lands in a later
+        // milestone. The cap bounds the work for very large candidate sets.
+        foreach ($this->relationProvider->listLinkable($this->descriptor(), $this->parent(), new DataQuery(offset: 0, limit: 1000)) as $record) {
+            if ($this->recordId($record) === $id) {
+                return $record;
+            }
+        }
+
+        return null;
     }
 
     #[LiveListener('relation:saved')]

@@ -99,6 +99,31 @@ final class RelationManagerActionsTest extends KernelTestCase
         self::assertNull($this->state($component)->modalMode);
     }
 
+    public function testAssociateLinksAnExistingFreeRecord(): void
+    {
+        $component = $this->manager('1');
+        $component->call('openAssociate');
+        self::assertSame('associate', $this->state($component)->modalMode);
+
+        // Comment 100 has no parent yet; attach it to post 1.
+        $component->set('associateId', '100');
+        $component->call('submitAssociate');
+
+        self::assertNull($this->state($component)->modalMode);   // closed on success
+        $html = $component->render()->toString();
+        self::assertStringContainsString('Unassigned A', $html); // now listed under post 1
+    }
+
+    public function testSubmitAssociateIsANoOpWithoutASelection(): void
+    {
+        $component = $this->manager('1');
+        $component->call('openAssociate');
+        $component->call('submitAssociate');
+
+        // Still open (nothing picked); no exception.
+        self::assertSame('associate', $this->state($component)->modalMode);
+    }
+
     private function state(TestLiveComponent $component): RelationManager
     {
         $manager = $component->component();

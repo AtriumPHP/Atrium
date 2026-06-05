@@ -1,10 +1,18 @@
 <div {{ attributes }} class="atrium-relation-manager space-y-3">
-    {% if this.canCreateRelated %}
-        <div class="flex justify-end">
-            <button type="button" data-action="live#action" data-live-action-param="openCreate"
-                    class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950">
-                {{ atrium_icon('plus', { class: 'h-4 w-4' }) }} New {{ this.singularLabel }}
-            </button>
+    {% if this.canCreateRelated or this.canAssociateRelated %}
+        <div class="flex justify-end gap-2">
+            {% if this.canAssociateRelated %}
+                <button type="button" data-action="live#action" data-live-action-param="openAssociate"
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+                    {{ atrium_icon('link', { class: 'h-4 w-4' }) }} Attach existing
+                </button>
+            {% endif %}
+            {% if this.canCreateRelated %}
+                <button type="button" data-action="live#action" data-live-action-param="openCreate"
+                        class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950">
+                    {{ atrium_icon('plus', { class: 'h-4 w-4' }) }} New {{ this.singularLabel }}
+                </button>
+            {% endif %}
         </div>
     {% endif %}
 
@@ -20,6 +28,34 @@
                     {{ this.modalMode == 'create' ? 'New ' : 'Edit ' }}{{ this.singularLabel }}
                 </h2>
                 {{ component('Atrium:Form', this.getModalFormProps) }}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if this.isModalOpen and this.modalMode == 'associate' %}
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <button type="button" data-action="live#action" data-live-action-param="closeModal"
+                    aria-label="Close" class="absolute inset-0 bg-black/40"></button>
+            <div role="dialog" aria-modal="true"
+                 class="relative z-10 w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
+                <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Attach existing {{ this.singularLabel }}</h2>
+                <select data-model="associateId"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
+                    <option value="">—</option>
+                    {% for value, label in this.getLinkableOptions %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <div class="mt-4 flex justify-end gap-2">
+                    <button type="button" data-action="live#action" data-live-action-param="closeModal"
+                            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+                        Cancel
+                    </button>
+                    <button type="button" data-action="live#action" data-live-action-param="submitAssociate"
+                            class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950">
+                        Attach
+                    </button>
+                </div>
             </div>
         </div>
     {% endif %}
