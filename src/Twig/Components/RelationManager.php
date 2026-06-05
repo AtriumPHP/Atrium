@@ -15,6 +15,8 @@ use Atrium\Relation\RelationDescriptor;
 use Atrium\Relation\RelationResolver;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
+use Atrium\Table\Action\BulkDeleteAction;
+use Atrium\Table\Action\DeleteAction;
 use Atrium\Table\TableConfiguration;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -101,12 +103,16 @@ final class RelationManager extends AbstractRecordTable
 
     protected function findRecord(string $id): ?object
     {
-        // Scoped find through the standard provider; parent-scope enforcement for
-        // mutating actions arrives with those actions in M2/M3.
+        // Parent-scoped: a child of another parent (a forged id) must resolve to
+        // null, so a mutating row action can never reach across parents.
+        $filters = $this->target()->scopeFilters();
+        $parentId = $this->accessor->getValue($this->parent(), $this->descriptor()->parentIdField);
+        $filters[(string) $this->descriptor()->foreignKey] = \is_scalar($parentId) ? $parentId : null;
+
         return $this->dataProvider->find(
             $this->entityClass(),
             $id,
-            $this->target()->scopeFilters(),
+            $filters,
             $this->descriptor()->childIdField,
         );
     }
@@ -114,12 +120,39 @@ final class RelationManager extends AbstractRecordTable
     /** @return list<Action> */
     public function getHeaderActions(): array
     {
-        return [];   // link/create actions arrive in M2/M3
+        return [];   // the New / Attach affordances are template triggers (M2)
     }
 
     public function getRecordActions(): array
     {
-        return [];   // read-only in M1
+        if ($this->isReadOnly()) {
+            return [];
+        }
+
+        return [
+            DeleteAction::make(),
+        ];
+    }
+
+    public function getBulkActions(): array
+    {
+        if ($this->isReadOnly()) {
+            return [];
+        }
+
+        return [
+            BulkDeleteAction::make(),
+        ];
+    }
+
+    /**
+     * A relation manager is read-only on the View screen when the relation opts in
+     * (readOnlyOnView, default true): every mutator is hidden, leaving the list,
+     * pagination and search.
+     */
+    private function isReadOnly(): bool
+    {
+        return 'view' === $this->screen && $this->relation()->isReadOnlyOnView();
     }
 
     protected function actionContext(?string $id): ActionContext

@@ -45,6 +45,9 @@ use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+
+use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
+
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
@@ -229,16 +232,20 @@ class AtriumTestKernel extends Kernel
             ->autoconfigure()
             ->autowire();
 
-        // Bind the backend-agnostic read/write layer to in-memory adapters.
+        // Bind the backend-agnostic read/write layer to in-memory adapters. One
+        // SampleData instance per boot backs both providers, so reads and relation
+        // queries share the same fixture objects (a single in-memory backend).
+        $services->set(SampleData::class);
+
         $services->set(ArrayDataProvider::class)
-            ->factory([SampleData::class, 'provider']);
+            ->factory([service(SampleData::class), 'provider']);
         $services->alias(DataProviderInterface::class, ArrayDataProvider::class);
 
         $services->set(ArrayDataWriter::class)->public();
         $services->alias(DataWriterInterface::class, ArrayDataWriter::class);
 
         $services->set(ArrayRelationProvider::class)
-            ->factory([SampleData::class, 'relationProvider'])
+            ->factory([service(SampleData::class), 'relationProvider'])
             ->public();
         $services->alias(RelationDataProvider::class, ArrayRelationProvider::class);
     }

@@ -359,7 +359,7 @@ abstract class AbstractRecordTable
      * Whether the action is allowed for the subject: an action with an ability is
      * gated by the resource's {@see AdminResource::can()}; one without is allowed.
      */
-    private function actionAuthorized(Action $action, ?object $record): bool
+    protected function actionAuthorized(Action $action, ?object $record): bool
     {
         $ability = $action->getAbility();
 
