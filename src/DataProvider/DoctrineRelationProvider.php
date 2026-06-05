@@ -50,12 +50,21 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
     public function listLinkable(RelationDescriptor $relation, object $parent, DataQuery $query): iterable
     {
-        throw new \LogicException('listLinkable() is implemented in REL-M2/M3.');
+        $qb = $this->linkableQuery($relation, $query)
+            ->setFirstResult(max(0, $query->offset))
+            ->setMaxResults(max(1, $query->limit));
+
+        return array_values(array_filter(
+            (array) $qb->getQuery()->getResult(),
+            static fn (mixed $row): bool => \is_object($row),
+        ));
     }
 
     public function countLinkable(RelationDescriptor $relation, object $parent, DataQuery $query): int
     {
-        throw new \LogicException('countLinkable() is implemented in REL-M2/M3.');
+        $qb = $this->linkableQuery($relation, $query)->select(\sprintf('COUNT(%s)', self::ALIAS));
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
     public function associate(RelationDescriptor $relation, object $parent, object $child): void
@@ -107,6 +116,23 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
         // The query carries the target resource's scopeQuery() conditions, so a
         // relation can never surface a row the resource itself would hide (REL-09).
+        $this->applyFilters($qb, $query->filters);
+
+        return $qb;
+    }
+
+    /**
+     * Candidates for an Associate picker: one-to-many children with no parent yet
+     * (FK IS NULL), narrowed by the target resource's scopeQuery (query filters).
+     */
+    private function linkableQuery(RelationDescriptor $relation, DataQuery $query): QueryBuilder
+    {
+        if (RelationKind::OneToMany !== $relation->kind) {
+            throw new \LogicException('Many-to-many linkable is implemented in REL-M3.');
+        }
+
+        $qb = $this->entityManager->getRepository($relation->childEntityClass)->createQueryBuilder(self::ALIAS);
+        $qb->where($qb->expr()->isNull(self::ALIAS.'.'.$relation->foreignKey));
         $this->applyFilters($qb, $query->filters);
 
         return $qb;

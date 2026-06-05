@@ -94,4 +94,22 @@ final class ArrayRelationProviderTest extends TestCase
         $provider->dissociate($this->descriptor(), $parent, $orphan);
         self::assertNull($orphan->postId);
     }
+
+    public function testListLinkableReturnsOnlyUnlinkedChildren(): void
+    {
+        $parent = new Post(1, 'First post');
+        $provider = new ArrayRelationProvider([
+            Comment::class => [
+                new Comment(1, 'linked', postId: 1),
+                new Comment(2, 'free a', postId: null),
+                new Comment(3, 'free b', postId: null),
+            ],
+        ]);
+
+        $rows = [...$provider->listLinkable($this->descriptor(), $parent, new DataQuery())];
+
+        self::assertCount(2, $rows);
+        self::assertContainsOnlyInstancesOf(Comment::class, $rows);
+        self::assertSame(2, $provider->countLinkable($this->descriptor(), $parent, new DataQuery()));
+    }
 }

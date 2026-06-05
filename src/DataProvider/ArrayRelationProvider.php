@@ -40,12 +40,14 @@ final class ArrayRelationProvider implements RelationDataProvider
 
     public function listLinkable(RelationDescriptor $relation, object $parent, DataQuery $query): iterable
     {
-        throw new \LogicException('listLinkable() is implemented in REL-M2/M3.');
+        $matched = $this->linkableChildren($relation, $query);
+
+        return \array_slice($matched, max(0, $query->offset), max(1, $query->limit));
     }
 
     public function countLinkable(RelationDescriptor $relation, object $parent, DataQuery $query): int
     {
-        throw new \LogicException('countLinkable() is implemented in REL-M2/M3.');
+        return \count($this->linkableChildren($relation, $query));
     }
 
     public function associate(RelationDescriptor $relation, object $parent, object $child): void
@@ -89,6 +91,34 @@ final class ArrayRelationProvider implements RelationDataProvider
             $this->records[$relation->childEntityClass] ?? [],
             fn (object $child): bool => $this->accessor->isReadable($child, $foreignKey)
                 && $this->accessor->getValue($child, $foreignKey) === $parentId,
+        ));
+
+        foreach ($query->filters as $field => $value) {
+            $children = array_values(array_filter(
+                $children,
+                fn (object $child): bool => $this->matchesFilter($child, (string) $field, $value),
+            ));
+        }
+
+        return $children;
+    }
+
+    /**
+     * Children with no parent yet (FK is null), narrowed by the query filters
+     * (which carry the target resource's scopeQuery — a relation never offers a
+     * row the resource itself would hide).
+     *
+     * @return list<object>
+     */
+    private function linkableChildren(RelationDescriptor $relation, DataQuery $query): array
+    {
+        $this->assertOneToMany($relation);
+        $foreignKey = (string) $relation->foreignKey;
+
+        $children = array_values(array_filter(
+            $this->records[$relation->childEntityClass] ?? [],
+            fn (object $child): bool => $this->accessor->isReadable($child, $foreignKey)
+                && null === $this->accessor->getValue($child, $foreignKey),
         ));
 
         foreach ($query->filters as $field => $value) {

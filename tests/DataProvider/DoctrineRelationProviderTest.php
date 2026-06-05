@@ -115,4 +115,25 @@ final class DoctrineRelationProviderTest extends TestCase
         $this->entityManager->clear();
         self::assertNull($this->entityManager->find(Note::class, $noteId)?->articleId);
     }
+
+    public function testListLinkableReturnsOnlyUnlinkedChildren(): void
+    {
+        $article = new Article('First');
+        $this->entityManager->persist($article);
+        $this->entityManager->flush();
+
+        $this->entityManager->persist(new Note('linked', $article->id));
+        $this->entityManager->persist(new Note('free', null));
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $parent = $this->entityManager->find(Article::class, $article->id);
+        self::assertNotNull($parent);
+
+        $rows = [...$this->provider->listLinkable($this->descriptor(), $parent, new DataQuery())];
+        self::assertCount(1, $rows);
+        self::assertInstanceOf(Note::class, $rows[0]);
+        self::assertSame('free', $rows[0]->body);
+        self::assertSame(1, $this->provider->countLinkable($this->descriptor(), $parent, new DataQuery()));
+    }
 }
