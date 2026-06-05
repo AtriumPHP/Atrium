@@ -19,6 +19,7 @@ use Atrium\Tests\Fixtures\Resource\BadgedTagResource;
 use Atrium\Tests\Fixtures\Resource\CommentRelResource;
 use Atrium\Tests\Fixtures\Resource\ConfirmTagResource;
 use Atrium\Tests\Fixtures\Resource\DehydrateTagResource;
+use Atrium\Tests\Fixtures\Resource\DenyDissociatePostResource;
 use Atrium\Tests\Fixtures\Resource\FilteredTagResource;
 use Atrium\Tests\Fixtures\Resource\ForbiddenTagResource;
 use Atrium\Tests\Fixtures\Resource\HeaderActionTagResource;
@@ -203,6 +204,10 @@ class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(CommentRelResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(DenyDissociatePostResource::class)
             ->autoconfigure()
             ->autowire();
 

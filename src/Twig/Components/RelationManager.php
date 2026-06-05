@@ -130,8 +130,44 @@ final class RelationManager extends AbstractRecordTable
         }
 
         return [
+            $this->dissociateAction(),
             DeleteAction::make(),
         ];
+    }
+
+    /**
+     * Unlink (clear the FK) the row's record from this parent through the relation
+     * provider; the record itself persists. Gated by the parent resource's
+     * canDissociate (see {@see actionAuthorized()}).
+     */
+    private function dissociateAction(): Action
+    {
+        $descriptor = $this->descriptor();
+        $parent = $this->parent();
+
+        return Action::make('dissociate')
+            ->label('Detach')
+            ->icon('unlink')
+            ->color('gray')
+            ->authorize('dissociate')
+            ->confirmationMessage('Detach this record? It will be unlinked but not deleted.')
+            ->action(function (object $child) use ($descriptor, $parent): void {
+                $this->relationProvider->dissociate($descriptor, $parent, $child);
+            });
+    }
+
+    /**
+     * Owned abilities (create/edit/delete/view) gate on the target resource via the
+     * base; relation link/unlink gate on the *parent* resource's canAssociate/
+     * canDissociate, which take both the parent record and the child (REL-12).
+     */
+    protected function actionAuthorized(Action $action, ?object $record): bool
+    {
+        return match ($action->getAbility()) {
+            'associate' => null !== $record && $this->parentResource()->canAssociate($this->parent(), $record),
+            'dissociate' => null !== $record && $this->parentResource()->canDissociate($this->parent(), $record),
+            default => parent::actionAuthorized($action, $record),
+        };
     }
 
     public function getBulkActions(): array

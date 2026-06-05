@@ -20,10 +20,10 @@ final class RelationManagerActionsTest extends KernelTestCase
         restore_exception_handler();
     }
 
-    private function manager(string $parentId = '1', string $screen = 'edit'): TestLiveComponent
+    private function manager(string $parentId = '1', string $screen = 'edit', string $resource = 'post'): TestLiveComponent
     {
         return $this->createLiveComponent('Atrium:RelationManager', [
-            'resource' => 'post',
+            'resource' => $resource,
             'parentId' => $parentId,
             'relation' => 'comments',
             'pathPrefix' => '/admin',
@@ -49,6 +49,33 @@ final class RelationManagerActionsTest extends KernelTestCase
 
         $component->call('confirmAction');
         self::assertCount(1, $this->writer()->deleted);
+    }
+
+    public function testDissociateUnlinksTheChildFromThisParent(): void
+    {
+        $component = $this->manager('1');
+        self::assertStringContainsString('Great post', $component->render()->toString());
+
+        $component->call('requestAction', ['name' => 'dissociate', 'id' => '1']);
+        self::assertSame('dissociate', $this->state($component)->confirmingAction);
+
+        $component->call('confirmAction');
+
+        // Comment 1's postId is now null, so it no longer belongs to post 1…
+        $html = $component->render()->toString();
+        self::assertStringNotContainsString('Great post', $html);
+        // …while its sibling (comment 2) is untouched. The record was not deleted.
+        self::assertStringContainsString('Thanks for sharing', $html);
+        self::assertCount(0, $this->writer()->deleted);
+    }
+
+    public function testDissociateHiddenAndRefusedWhenParentDenies(): void
+    {
+        $component = $this->manager('1', 'edit', 'post-deny');
+        self::assertStringNotContainsString('Detach', $component->render()->toString());
+
+        $component->call('requestAction', ['name' => 'dissociate', 'id' => '1']);
+        self::assertNull($this->state($component)->confirmingAction);
     }
 
     private function state(TestLiveComponent $component): RelationManager
