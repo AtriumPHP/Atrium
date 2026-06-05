@@ -12,6 +12,21 @@
 
 ---
 
+## Review corrections (applied after plan review — read first)
+
+A plan review against the live codebase found these; they are folded into the tasks below:
+
+1. **Slugs are entity-derived.** `AdminResource::getSlug()` kebab-cases the *entity* short name, so `PostRelResource` (entity `Post`) is **`post`** and `CommentRelResource` (entity `Comment`) is **`comment`** — NOT `post-rel`/`comment-rel`. REL-M1's passing test already mounts `'resource' => 'post'`. Every test mount and `getModalFormProps`/Form-resource reference uses `post` / `comment`. (The manager resolves the target slug dynamically via `$this->target()->getSlug()`, so no hardcoding in production code.)
+2. **`ArrayDataWriter` has no `$created`.** It exposes `public array $deleted` only. Task 7 **must** add `public array $created = [];` populated in `create()` (mandatory, not optional) for its assertion to work.
+3. **`KernelBootTest:55` asserts `assertCount(22, $registry->all())`.** Any task adding a fixture resource (Task 6's `DenyDissociatePostResource`; any visible() fixture in Task 11) must bump this count to match.
+4. **`Note.articleId` is already nullable** (`#[ORM\Column(name: 'article_id', nullable: true)]`) — Task 1's Doctrine dissociate test needs no fixture change.
+5. **Tasks 4+5 share one green commit.** Task 4 has NO standalone commit — its parent-scope test only goes green once Task 5 adds the Delete action. Write Task 4's test, implement Task 4's `findRecord` scope and Task 5's actions, then commit once (the suite must never be committed red).
+6. **Form Cancel uses a PHP-side action, not the `live#emitUp` client idiom.** Add `#[LiveAction] public function cancelForm(): void { $this->emitUp('relation:cancel'); }` to `Form` and trigger it with the repo-standard `data-action="live#action" data-live-action-param="cancelForm"` (Task 8). The `live#emitUp` data-attribute idiom is used nowhere else in the repo.
+7. **Owned row View is deferred to REL-M4.** The PRD lists `View` in M2's owned-action family, but M2 uses **row-click to open the Edit modal** (Task 9's `getRowAction`), which would conflict with a competing row View affordance. Owned row navigation to a child's view/edit page is exactly REL-M4's "relation-manager row links → child nested pages". So M2 ships Create/Edit (modal) + Delete + Associate/Dissociate; owned **View** lands with nesting in M4. Documented in CHANGELOG/docs as a deliberate scope choice.
+8. **PHPStan max:** annotate `getModalFormProps(): array` with `@return array<string, mixed>`; `getLinkableOptions()` with `@return array<string, string>` and guard `mixed` titles with `\is_scalar(...) ? (string) ... : $id` (already in the block).
+
+---
+
 ## File Structure
 
 **Data layer (no Doctrine in core — adapters only):**
@@ -451,7 +466,7 @@ final class RelationManagerActionsTest extends KernelTestCase
     private function manager(string $parentId = '1'): \Symfony\UX\LiveComponent\Test\TestLiveComponent
     {
         return $this->createLiveComponent('Atrium:RelationManager', [
-            'resource' => 'post-rel',
+            'resource' => 'post',
             'parentId' => $parentId,
             'relation' => 'comments',
             'pathPrefix' => '/admin',
@@ -481,7 +496,7 @@ final class RelationManagerActionsTest extends KernelTestCase
 }
 ```
 
-> The slug for `PostRelResource` is `post-rel` (kebab of `PostRel`). Confirm via `(new PostRelResource())->getSlug()` if unsure; adjust the mount string to match. The relation manager's row actions (delete) land in Task 5 — this test will currently fail because `requestAction('delete')` finds no `delete` action (returns without confirming) AND because findRecord is not yet scoped. It passes once Task 5 adds the Delete action and this task scopes findRecord. To keep TDD honest, write this test now but expect it to pass only after Step 4 + Task 5; mark it skipped-until or run it at the end of Task 5.
+> The slug for `PostRelResource` is **`post`** (kebab of the entity `Post`), and `CommentRelResource` is `comment`. The relation manager's row actions (delete) land in Task 5 — this test currently fails because `requestAction('delete')` finds no `delete` action AND because findRecord is not yet scoped. It passes once Task 5 adds the Delete action and this task scopes findRecord. Per "Review corrections" #5, Tasks 4+5 share one green commit — do NOT commit a red suite after Task 4.
 
 - [ ] **Step 4: Scope `RelationManager::findRecord` by the parent FK**
 
@@ -737,7 +752,7 @@ git commit -m "Dissociate row action with parent-resource authorization (REL-06,
 public function testEmbeddedCreateAppliesPresetForeignKeyAndEmits(): void
 {
     $component = $this->createLiveComponent('Atrium:Form', [
-        'resource' => 'comment-rel',
+        'resource' => 'comment',
         'embedded' => true,
         'presetValues' => ['postId' => '1'],
         'notifyEvent' => 'relation:saved',
@@ -1380,7 +1395,7 @@ Render `Atrium:RelationManagers` on the View page with `screen: 'view'`; with `r
 public function testViewScreenManagerIsReadOnly(): void
 {
     $component = $this->createLiveComponent('Atrium:RelationManager', [
-        'resource' => 'post-rel', 'parentId' => '1', 'relation' => 'comments',
+        'resource' => 'post', 'parentId' => '1', 'relation' => 'comments',
         'pathPrefix' => '/admin', 'screen' => 'view',
     ]);
 
