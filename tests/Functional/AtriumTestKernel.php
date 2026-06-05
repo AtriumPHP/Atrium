@@ -16,6 +16,7 @@ use Atrium\Tests\Fixtures\Dashboard\InsightsDashboard;
 use Atrium\Tests\Fixtures\Data\SampleData;
 use Atrium\Tests\Fixtures\Resource\ActionsTagResource;
 use Atrium\Tests\Fixtures\Resource\BadgedTagResource;
+use Atrium\Tests\Fixtures\Resource\CommentRelResource;
 use Atrium\Tests\Fixtures\Resource\ConfirmTagResource;
 use Atrium\Tests\Fixtures\Resource\DehydrateTagResource;
 use Atrium\Tests\Fixtures\Resource\FilteredTagResource;
@@ -25,6 +26,7 @@ use Atrium\Tests\Fixtures\Resource\HookedTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
 use Atrium\Tests\Fixtures\Resource\ListWidgetTagResource;
 use Atrium\Tests\Fixtures\Resource\PaginatedTagResource;
+use Atrium\Tests\Fixtures\Resource\PostRelResource;
 use Atrium\Tests\Fixtures\Resource\RowUrlTagResource;
 use Atrium\Tests\Fixtures\Resource\ScopedTagResource;
 use Atrium\Tests\Fixtures\Resource\TabsTagResource;
@@ -188,6 +190,16 @@ class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(RowUrlTagResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        // Relation fixtures: a parent (Post) with a one-to-many `comments`
+        // relation to the child resource (Comment).
+        $services->set(PostRelResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(CommentRelResource::class)
             ->autoconfigure()
             ->autowire();
 
