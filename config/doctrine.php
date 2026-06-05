@@ -6,6 +6,8 @@ use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\DataProvider\DoctrineDataProvider;
 use Atrium\DataProvider\DoctrineDataWriter;
+use Atrium\DataProvider\DoctrineRelationProvider;
+use Atrium\DataProvider\RelationDataProvider;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 /*
@@ -25,4 +27,9 @@ return static function (ContainerConfigurator $container): void {
         ->autowire();
 
     $services->alias(DataWriterInterface::class, DoctrineDataWriter::class);
+
+    $services->set(DoctrineRelationProvider::class)
+        ->autowire();
+
+    $services->alias(RelationDataProvider::class, DoctrineRelationProvider::class);
 };
