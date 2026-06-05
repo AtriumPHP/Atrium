@@ -93,6 +93,13 @@ Every hook below is an override point on `AdminResource` with a safe default
 | `canViewAny()` / `canCreate()` / `canView($r)` / `canEdit($r)` / `canDelete($r)` | Gate the list, create, and per-record view/edit/delete. |
 | `can($ability, $record = null)` | Dispatch a named ability (used to gate `Action`s). |
 
+### [Relations](relations.md) — manage related records on the parent
+
+| Hook | Purpose |
+| --- | --- |
+| `relations()` | Declare one-to-many relation managers (`Relation::make(...)->oneToMany(...)`). |
+| `canAssociate($parent, $child)` / `canDissociate($parent, $child)` | Gate link/unlink of related records. |
+
 ### [Record lifecycle hooks](lifecycle-hooks.md) — shape data & react to writes
 
 | Hook | When |
