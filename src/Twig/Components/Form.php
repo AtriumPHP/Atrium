@@ -31,6 +31,7 @@ use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\PreReRender;
+use Symfony\UX\LiveComponent\ComponentToolsTrait;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 /**
@@ -50,11 +51,34 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 #[AsLiveComponent(name: 'Atrium:Form', template: '@Atrium/components/form.html.twig')]
 class Form
 {
+    use ComponentToolsTrait;
     use DefaultActionTrait;
     use InteractsWithActions;
 
     #[LiveProp]
     public string $resource = '';
+
+    /**
+     * Embedded mode: the form is hosted inside another component's modal (e.g. a
+     * relation manager). It renders without page chrome, never navigates, and on a
+     * successful save emits {@see $notifyEvent} so the host can close + refresh.
+     */
+    #[LiveProp]
+    public bool $embedded = false;
+
+    /**
+     * Values force-applied to the entity on save, after the form fields are
+     * written — e.g. a relation's parent foreign key, so a created child is linked
+     * to its parent in the same transaction.
+     *
+     * @var array<string, scalar|null>
+     */
+    #[LiveProp]
+    public array $presetValues = [];
+
+    /** Event emitted to the host after a successful embedded save. */
+    #[LiveProp]
+    public ?string $notifyEvent = null;
 
     #[LiveProp]
     public ?string $entityId = null;
@@ -109,12 +133,18 @@ class Form
     ) {
     }
 
-    public function mount(string $resource, ?string $entityId = null, ?string $redirectAfterSave = null, string $pathPrefix = ''): void
+    /**
+     * @param array<string, scalar|null> $presetValues
+     */
+    public function mount(string $resource, ?string $entityId = null, ?string $redirectAfterSave = null, string $pathPrefix = '', bool $embedded = false, array $presetValues = [], ?string $notifyEvent = null): void
     {
         $this->resource = $resource;
         $this->entityId = $entityId;
         $this->redirectAfterSave = $redirectAfterSave;
         $this->pathPrefix = $pathPrefix;
+        $this->embedded = $embedded;
+        $this->presetValues = $presetValues;
+        $this->notifyEvent = $notifyEvent;
         $this->formData = $this->initialFormData();
         $this->previousFormData = $this->formData;
     }
@@ -171,6 +201,15 @@ class Form
             }
         }
 
+        // Force-apply preset values last (after the form fields), so a host-supplied
+        // value such as a relation's parent FK cannot be overridden by the form and
+        // is set before the create — linking the child in the same transaction.
+        foreach ($this->presetValues as $name => $value) {
+            if ($this->accessor->isWritable($entity, $name)) {
+                $this->accessor->setValue($entity, $name, $value);
+            }
+        }
+
         // Persist atomically: beforeSave → handle* → afterSave run in one
         // transaction, so a failing afterSave rolls the write back rather than
         // leaving a half-saved record. The resource's handle* hooks own the
@@ -190,6 +229,15 @@ class Form
         });
 
         $this->saved = true;
+
+        if ($this->embedded) {
+            // Hosted in a modal: never navigate; tell the host to close + refresh.
+            if (null !== $this->notifyEvent) {
+                $this->emitUp($this->notifyEvent, ['id' => $this->entityId]);
+            }
+
+            return null;
+        }
 
         if (null !== $this->redirectAfterSave) {
             return new RedirectResponse($this->redirectAfterSave);

@@ -10,6 +10,9 @@ namespace Atrium\DataProvider;
  */
 final class ArrayDataWriter implements DataWriterInterface
 {
+    /** @var list<object> entities passed to create(), in order — for assertions */
+    public array $created = [];
+
     /** @var list<object> entities passed to delete(), in order — for assertions */
     public array $deleted = [];
 
@@ -23,6 +26,7 @@ final class ArrayDataWriter implements DataWriterInterface
 
     public function create(object $entity): void
     {
+        $this->created[] = $entity;
         $this->records[$entity::class][] = $entity;
     }
 
