@@ -649,9 +649,11 @@ abstract class AbstractRecordTable
 
     /**
      * The current query without pagination, to enumerate every matching record
-     * for a select-all bulk action.
+     * for a select-all bulk action. Like {@see query()}, it is built from
+     * {@see resource()}'s scope; a subclass that overrides {@see fetchRecords()}
+     * must keep it a query that data source can safely apply.
      */
-    private function allMatchingQuery(): DataQuery
+    protected function allMatchingQuery(): DataQuery
     {
         return $this->resource()->scopeQuery(new DataQuery(
             search: $this->search,

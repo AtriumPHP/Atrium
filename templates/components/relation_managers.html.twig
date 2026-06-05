@@ -6,6 +6,10 @@
                     {% if relation.icon %}{{ atrium_icon(relation.icon, { class: 'h-4 w-4' }) }}{% endif %}
                     {{ relation.label }}
                 </h2>
+                {# REL-M3: when this host renders multiple managers as a tab strip,
+                   give each a stable key ("{parentSlug}:{parentId}:{relation}") so
+                   they keep page/search/sort state across tab switches. With a
+                   single section (M1) positional keying is sufficient. #}
                 {{ component('Atrium:RelationManager', {
                     resource: resource,
                     parentId: parentId,

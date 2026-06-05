@@ -31,7 +31,7 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
     public function listRelated(RelationDescriptor $relation, object $parent, DataQuery $query): iterable
     {
-        $qb = $this->relatedQuery($relation, $parent)
+        $qb = $this->relatedQuery($relation, $parent, $query)
             ->setFirstResult(max(0, $query->offset))
             ->setMaxResults(max(1, $query->limit));
 
@@ -43,7 +43,7 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
     public function countRelated(RelationDescriptor $relation, object $parent, DataQuery $query): int
     {
-        $qb = $this->relatedQuery($relation, $parent)->select(\sprintf('COUNT(%s)', self::ALIAS));
+        $qb = $this->relatedQuery($relation, $parent, $query)->select(\sprintf('COUNT(%s)', self::ALIAS));
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
@@ -78,7 +78,7 @@ final class DoctrineRelationProvider implements RelationDataProvider
         throw new \LogicException('detach() is implemented in REL-M3.');
     }
 
-    private function relatedQuery(RelationDescriptor $relation, object $parent): QueryBuilder
+    private function relatedQuery(RelationDescriptor $relation, object $parent, DataQuery $query): QueryBuilder
     {
         if (RelationKind::OneToMany !== $relation->kind) {
             throw new \LogicException('Many-to-many listing is implemented in REL-M3.');
@@ -89,6 +89,33 @@ final class DoctrineRelationProvider implements RelationDataProvider
         $qb->where($qb->expr()->eq(self::ALIAS.'.'.$relation->foreignKey, ':atrium_parent_id'))
             ->setParameter('atrium_parent_id', $parentId);
 
+        // The query carries the target resource's scopeQuery() conditions, so a
+        // relation can never surface a row the resource itself would hide (REL-09).
+        $this->applyFilters($qb, $query->filters);
+
         return $qb;
+    }
+
+    /**
+     * Apply equality (and IS NULL) conditions, binding every value as a parameter.
+     * Field names come from trusted developer configuration (the resource scope).
+     *
+     * @param array<string, scalar|bool|null> $filters
+     */
+    private function applyFilters(QueryBuilder $qb, array $filters): void
+    {
+        $index = 0;
+        foreach ($filters as $field => $value) {
+            $column = self::ALIAS.'.'.$field;
+            if (null === $value) {
+                $qb->andWhere($qb->expr()->isNull($column));
+
+                continue;
+            }
+
+            $parameter = 'atrium_rel_filter_'.$index++;
+            $qb->andWhere($qb->expr()->eq($column, ':'.$parameter));
+            $qb->setParameter($parameter, $value);
+        }
     }
 }

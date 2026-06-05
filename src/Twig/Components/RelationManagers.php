@@ -45,7 +45,9 @@ final class RelationManagers
 
     public function hasRelations(): bool
     {
-        return [] !== $this->resourceObject()->relations();
+        // Derived from getRelations() so the two stay consistent when M2 adds the
+        // per-record ->visible($parent) filter (no empty wrapper when all hidden).
+        return [] !== $this->getRelations();
     }
 
     private function resourceObject(): AdminResource

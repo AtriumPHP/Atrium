@@ -65,4 +65,29 @@ final class DoctrineRelationProviderTest extends TestCase
         self::assertContainsOnlyInstancesOf(Note::class, $rows);
         self::assertSame(2, $this->provider->countRelated($this->descriptor(), $parent, new DataQuery()));
     }
+
+    public function testListRelatedAppliesScopeFilters(): void
+    {
+        $article = new Article('First');
+        $this->entityManager->persist($article);
+        $this->entityManager->flush();
+
+        $this->entityManager->persist(new Note('keep', $article->id));
+        $this->entityManager->persist(new Note('hide', $article->id));
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $parent = $this->entityManager->find(Article::class, $article->id);
+        self::assertNotNull($parent);
+
+        // The DataQuery carries the target resource's scopeQuery conditions; a
+        // child matching the FK but failing the scope must not surface (REL-09).
+        $query = new DataQuery(filters: ['body' => 'keep']);
+        $rows = [...$this->provider->listRelated($this->descriptor(), $parent, $query)];
+
+        self::assertCount(1, $rows);
+        self::assertInstanceOf(Note::class, $rows[0]);
+        self::assertSame('keep', $rows[0]->body);
+        self::assertSame(1, $this->provider->countRelated($this->descriptor(), $parent, $query));
+    }
 }

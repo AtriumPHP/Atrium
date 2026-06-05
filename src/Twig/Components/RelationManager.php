@@ -43,6 +43,7 @@ final class RelationManager extends AbstractRecordTable
     #[LiveProp]
     public string $screen = 'edit';
 
+    private ?Relation $relation = null;
     private ?RelationDescriptor $descriptor = null;
     private ?AdminResource $targetResource = null;
     private ?object $parentRecord = null;
@@ -136,6 +137,16 @@ final class RelationManager extends AbstractRecordTable
         return $this->relation()->getEmptyHeading() ?? 'No '.strtolower($this->relation()->getLabel());
     }
 
+    public function getEmptyDescription(): ?string
+    {
+        return $this->relation()->getEmptyDescription() ?? parent::getEmptyDescription();
+    }
+
+    public function getEmptyIcon(): ?string
+    {
+        return $this->relation()->getEmptyIcon() ?? parent::getEmptyIcon();
+    }
+
     // -- Resolution helpers -----------------------------------------------
 
     private function parentResource(): AdminResource
@@ -150,9 +161,13 @@ final class RelationManager extends AbstractRecordTable
 
     private function relation(): Relation
     {
+        if (null !== $this->relation) {
+            return $this->relation;
+        }
+
         foreach ($this->parentResource()->relations() as $relation) {
             if ($relation->getName() === $this->relationName) {
-                return $relation;
+                return $this->relation = $relation;
             }
         }
 

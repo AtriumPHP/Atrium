@@ -28,14 +28,14 @@ final class ArrayRelationProvider implements RelationDataProvider
 
     public function listRelated(RelationDescriptor $relation, object $parent, DataQuery $query): iterable
     {
-        $matched = $this->matchingChildren($relation, $parent);
+        $matched = $this->matchingChildren($relation, $parent, $query);
 
         return \array_slice($matched, max(0, $query->offset), max(1, $query->limit));
     }
 
     public function countRelated(RelationDescriptor $relation, object $parent, DataQuery $query): int
     {
-        return \count($this->matchingChildren($relation, $parent));
+        return \count($this->matchingChildren($relation, $parent, $query));
     }
 
     public function listLinkable(RelationDescriptor $relation, object $parent, DataQuery $query): iterable
@@ -70,11 +70,13 @@ final class ArrayRelationProvider implements RelationDataProvider
 
     /**
      * Children of $parent for a one-to-many relation: child.<foreignKey> equals
-     * the parent's identifier value.
+     * the parent's identifier value, also satisfying every equality condition in
+     * the query's filters (which carry the target resource's `scopeQuery()`, so a
+     * relation can never surface a row the resource itself would hide — REL-09).
      *
      * @return list<object>
      */
-    private function matchingChildren(RelationDescriptor $relation, object $parent): array
+    private function matchingChildren(RelationDescriptor $relation, object $parent, DataQuery $query): array
     {
         if (RelationKind::OneToMany !== $relation->kind) {
             throw new \LogicException('Many-to-many listing is implemented in REL-M3.');
@@ -83,10 +85,39 @@ final class ArrayRelationProvider implements RelationDataProvider
         $parentId = $this->accessor->getValue($parent, $relation->parentIdField);
         $foreignKey = (string) $relation->foreignKey;
 
-        return array_values(array_filter(
+        $children = array_values(array_filter(
             $this->records[$relation->childEntityClass] ?? [],
             fn (object $child): bool => $this->accessor->isReadable($child, $foreignKey)
                 && $this->accessor->getValue($child, $foreignKey) === $parentId,
         ));
+
+        foreach ($query->filters as $field => $value) {
+            $children = array_values(array_filter(
+                $children,
+                fn (object $child): bool => $this->matchesFilter($child, (string) $field, $value),
+            ));
+        }
+
+        return $children;
+    }
+
+    private function matchesFilter(object $child, string $field, string|int|float|bool|null $value): bool
+    {
+        if (!$this->accessor->isReadable($child, $field)) {
+            return null === $value;
+        }
+
+        $actual = $this->accessor->getValue($child, $field);
+
+        if (\is_bool($value)) {
+            return (bool) $actual === $value;
+        }
+        if (null === $value) {
+            return null === $actual;
+        }
+
+        $actual = $actual instanceof \BackedEnum ? $actual->value : $actual;
+
+        return \is_scalar($actual) && (string) $actual === (string) $value;
     }
 }

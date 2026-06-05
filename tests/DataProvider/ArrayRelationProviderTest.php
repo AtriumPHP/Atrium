@@ -63,6 +63,25 @@ final class ArrayRelationProviderTest extends TestCase
         self::assertSame([3, 4], array_map(static fn (Comment $c): int => $c->id, $rows));
     }
 
+    public function testListRelatedAppliesScopeFilters(): void
+    {
+        // A DataQuery filter (carrying the target resource's scopeQuery) must
+        // exclude children that match the parent FK but fail the scope condition.
+        $post = new Post(1, 'First');
+        $provider = new ArrayRelationProvider([Comment::class => [
+            new Comment(1, 'keep', postId: 1),
+            new Comment(2, 'hide', postId: 1),
+        ]]);
+        $query = new DataQuery(filters: ['body' => 'keep']);
+
+        $rows = [...$provider->listRelated($this->descriptor(), $post, $query)];
+
+        self::assertCount(1, $rows);
+        self::assertContainsOnlyInstancesOf(Comment::class, $rows);
+        self::assertSame(1, $rows[0]->id);
+        self::assertSame(1, $provider->countRelated($this->descriptor(), $post, $query));
+    }
+
     public function testAssociateIsNotYetImplemented(): void
     {
         $this->expectException(\LogicException::class);
