@@ -78,6 +78,27 @@ final class RelationManagerActionsTest extends KernelTestCase
         self::assertNull($this->state($component)->confirmingAction);
     }
 
+    public function testOpenCreateShowsAModalFormAndSavedClosesIt(): void
+    {
+        $component = $this->manager('1');
+
+        $component->call('openCreate');
+        self::assertSame('create', $this->state($component)->modalMode);
+        self::assertStringContainsString('Atrium:Form', $component->render()->toString());
+
+        // The nested Form emits relation:saved on save; the manager closes the modal.
+        $component->emit('relation:saved');
+        self::assertNull($this->state($component)->modalMode);
+    }
+
+    public function testOpenCreateIsRefusedOnAReadOnlyViewScreen(): void
+    {
+        $component = $this->manager('1', 'view');
+        $component->call('openCreate');
+
+        self::assertNull($this->state($component)->modalMode);
+    }
+
     private function state(TestLiveComponent $component): RelationManager
     {
         $manager = $component->component();

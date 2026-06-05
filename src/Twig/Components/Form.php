@@ -247,6 +247,18 @@ class Form
     }
 
     /**
+     * Dismiss an embedded form: tell the host (e.g. a relation manager) to close
+     * its modal. A no-op when not embedded.
+     */
+    #[LiveAction]
+    public function cancelForm(): void
+    {
+        if ($this->embedded) {
+            $this->emitUp('relation:cancel');
+        }
+    }
+
+    /**
      * The schema tree for rendering, with fields hidden by `visible()`/
      * `hiddenOn()` filtered out (and containers left empty by them dropped).
      *

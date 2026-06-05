@@ -126,11 +126,14 @@
         <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
             {% for row in this.rows %}
                 {# A `row.url` makes the whole row a link via a stretched overlay
-                   anchor (no JS); the checkbox and action cells are raised above
-                   it (relative z-10) so they stay independently clickable. #}
-                <tr class="transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/40 {{ row.selected ? 'bg-primary-50/40 dark:bg-primary-950/20' : '' }} {{ row.url ? 'relative cursor-pointer' }}">
+                   anchor (no JS); a `this.getRowAction` instead makes the row a
+                   stretched Live-action button (e.g. open an edit modal). Either
+                   way the checkbox and action cells are raised above the overlay
+                   (relative z-10) so they stay independently clickable. #}
+                {% set rowInteractive = row.url or (this.getRowAction and row.id is not null) %}
+                <tr class="transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/40 {{ row.selected ? 'bg-primary-50/40 dark:bg-primary-950/20' : '' }} {{ rowInteractive ? 'relative cursor-pointer' }}">
                     {% if this.hasBulkActions %}
-                        <td class="px-4 py-3 {{ row.url ? 'relative z-10' }}">
+                        <td class="px-4 py-3 {{ rowInteractive ? 'relative z-10' }}">
                             <input
                                 type="checkbox"
                                 aria-label="Select row"
@@ -148,6 +151,12 @@
                                 <a href="{{ row.url }}" class="absolute inset-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500">
                                     <span class="sr-only">{{ cell.value|default('View') }}</span>
                                 </a>
+                            {% elseif loop.first and this.getRowAction and row.id is not null %}
+                                <button type="button" data-action="live#action"
+                                        data-live-action-param="{{ this.getRowAction }}" data-live-id-param="{{ row.id }}"
+                                        class="absolute inset-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500">
+                                    <span class="sr-only">{{ cell.value|default('Edit') }}</span>
+                                </button>
                             {% endif %}
                             {% if cell.boolean %}
                                 {% if cell.state %}
@@ -164,7 +173,7 @@
                         </td>
                     {% endfor %}
                     {% if this.hasRecordActions %}
-                        <td class="whitespace-nowrap px-4 py-3 text-right {{ row.url ? 'relative z-10' }}">
+                        <td class="whitespace-nowrap px-4 py-3 text-right {{ rowInteractive ? 'relative z-10' }}">
                             {{ include('@Atrium/components/actions.html.twig', { actions: row.actions }) }}
                         </td>
                     {% endif %}

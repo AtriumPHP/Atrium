@@ -20,6 +20,9 @@ use Atrium\Table\Action\DeleteAction;
 use Atrium\Table\TableConfiguration;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
+use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
+use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 
 /**
@@ -44,6 +47,14 @@ final class RelationManager extends AbstractRecordTable
     /** The host screen — 'edit' (full) or 'view' (read-only); drives M2+ actions. */
     #[LiveProp]
     public string $screen = 'edit';
+
+    /** Open modal: 'create' | 'edit' | 'associate' | null (closed). */
+    #[LiveProp]
+    public ?string $modalMode = null;
+
+    /** The id being edited in the modal (null for create). */
+    #[LiveProp]
+    public ?string $modalRecordId = null;
 
     private ?Relation $relation = null;
     private ?RelationDescriptor $descriptor = null;
@@ -214,6 +225,101 @@ final class RelationManager extends AbstractRecordTable
     public function getEmptyIcon(): ?string
     {
         return $this->relation()->getEmptyIcon() ?? parent::getEmptyIcon();
+    }
+
+    // -- Modal create / edit (REL-05) -------------------------------------
+
+    #[LiveAction]
+    public function openCreate(): void
+    {
+        if ($this->isReadOnly() || !$this->target()->canCreate()) {
+            return;
+        }
+
+        $this->modalMode = 'create';
+        $this->modalRecordId = null;
+    }
+
+    #[LiveAction]
+    public function openEdit(#[LiveArg] string $id): void
+    {
+        $record = $this->findRecord($id);   // parent-scoped
+        if ($this->isReadOnly() || null === $record || !$this->target()->canEdit($record)) {
+            return;
+        }
+
+        $this->modalMode = 'edit';
+        $this->modalRecordId = $id;
+    }
+
+    #[LiveAction]
+    public function closeModal(): void
+    {
+        $this->modalMode = null;
+        $this->modalRecordId = null;
+    }
+
+    #[LiveListener('relation:saved')]
+    public function onRelationSaved(): void
+    {
+        $this->closeModal();
+        $this->refreshRecords();
+    }
+
+    #[LiveListener('relation:cancel')]
+    public function onRelationCancel(): void
+    {
+        $this->closeModal();
+    }
+
+    public function isModalOpen(): bool
+    {
+        return null !== $this->modalMode;
+    }
+
+    /**
+     * Props for the nested {@see Form} hosted in the create/edit modal. On create
+     * the parent foreign key is preset so the child is linked in one transaction.
+     *
+     * @return array<string, mixed>
+     */
+    public function getModalFormProps(): array
+    {
+        $preset = 'create' === $this->modalMode
+            ? [(string) $this->descriptor()->foreignKey => $this->parentIdValue()]
+            : [];
+
+        return [
+            'resource' => $this->target()->getSlug(),
+            'entityId' => $this->modalRecordId,
+            'embedded' => true,
+            'presetValues' => $preset,
+            'notifyEvent' => 'relation:saved',
+            'pathPrefix' => $this->pathPrefix,
+        ];
+    }
+
+    public function canCreateRelated(): bool
+    {
+        return !$this->isReadOnly() && $this->target()->canCreate();
+    }
+
+    public function getSingularLabel(): string
+    {
+        return $this->target()->getSingularLabel();
+    }
+
+    /** Row clicks open the edit modal (unless read-only). */
+    public function getRowAction(): ?string
+    {
+        return $this->isReadOnly() ? null : 'openEdit';
+    }
+
+    private function parentIdValue(): string
+    {
+        $value = $this->accessor->getValue($this->parent(), $this->descriptor()->parentIdField);
+
+        return \is_scalar($value) ? (string) $value : '';
     }
 
     // -- Resolution helpers -----------------------------------------------

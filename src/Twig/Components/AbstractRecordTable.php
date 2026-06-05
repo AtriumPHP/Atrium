@@ -347,11 +347,31 @@ abstract class AbstractRecordTable
 
         // The row set may have shrunk (e.g. a delete) — refresh the count and
         // keep the page in range.
+        $this->refreshRecords();
+
+        return null;
+    }
+
+    /**
+     * Drop the per-request record/count caches so the next render re-reads the
+     * data source, and keep the page within the (possibly smaller) range. Called
+     * after a mutating action or when the host signals the data changed.
+     */
+    protected function refreshRecords(): void
+    {
         $this->totalCount = null;
         $this->pageIds = null;
         $this->pageRecords = null;
         $this->page = min($this->page, $this->getPageCount());
+    }
 
+    /**
+     * The Live action a row click triggers (with the record id), or null to use
+     * {@see rowUrl()} navigation instead. The base table navigates; a subclass
+     * can return an action name (e.g. open an edit modal) to handle clicks itself.
+     */
+    public function getRowAction(): ?string
+    {
         return null;
     }
 
@@ -438,11 +458,8 @@ abstract class AbstractRecordTable
         });
 
         // The selection has been consumed and the row set may have shrunk.
-        $this->totalCount = null;
-        $this->pageIds = null;
-        $this->pageRecords = null;
         $this->clearSelection();
-        $this->page = min($this->page, $this->getPageCount());
+        $this->refreshRecords();
     }
 
     protected function currentPageIds(): array
