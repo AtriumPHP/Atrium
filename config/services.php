@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Atrium\Controller\AdminController;
 use Atrium\Dashboard\DashboardRegistry;
 use Atrium\DataProvider\DataProviderInterface;
+use Atrium\Relation\RelationResolver;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Twig\IconExtension;
 use Atrium\Twig\PanelAssetsExtension;
@@ -47,6 +48,9 @@ return static function (ContainerConfigurator $container): void {
             service(DataProviderInterface::class)->ignoreOnInvalid(),
         ])
         ->tag('controller.service_arguments');
+
+    $services->set(RelationResolver::class)
+        ->args([service(ResourceRegistry::class)]);
 
     $services->load('Atrium\\Twig\\Components\\', \dirname(__DIR__).'/src/Twig/Components/')
         ->autowire()

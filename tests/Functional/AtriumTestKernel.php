@@ -7,8 +7,10 @@ namespace Atrium\Tests\Functional;
 use Atrium\AtriumBundle;
 use Atrium\DataProvider\ArrayDataProvider;
 use Atrium\DataProvider\ArrayDataWriter;
+use Atrium\DataProvider\ArrayRelationProvider;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
+use Atrium\DataProvider\RelationDataProvider;
 use Atrium\Tests\Fixtures\Dashboard\ForbiddenDashboard;
 use Atrium\Tests\Fixtures\Dashboard\InsightsDashboard;
 use Atrium\Tests\Fixtures\Data\SampleData;
@@ -222,6 +224,11 @@ class AtriumTestKernel extends Kernel
 
         $services->set(ArrayDataWriter::class)->public();
         $services->alias(DataWriterInterface::class, ArrayDataWriter::class);
+
+        $services->set(ArrayRelationProvider::class)
+            ->factory([SampleData::class, 'relationProvider'])
+            ->public();
+        $services->alias(RelationDataProvider::class, ArrayRelationProvider::class);
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void
