@@ -94,6 +94,27 @@ final class ResourceHooksTest extends TestCase
         self::assertSame([], $this->resource()->scopeQuery(new DataQuery())->filters);
     }
 
+    public function testRelationLinkAbilitiesDefaultAllowAndAreOverridable(): void
+    {
+        $resource = new class extends AdminResource {
+            public function getEntityClass(): string
+            {
+                return Tag::class;
+            }
+
+            public function canDissociate(object $parent, object $child): bool
+            {
+                return false;
+            }
+        };
+
+        $parent = new \stdClass();
+        $child = new \stdClass();
+
+        self::assertTrue($resource->canAssociate($parent, $child));
+        self::assertFalse($resource->canDissociate($parent, $child));
+    }
+
     private function resource(): AdminResource
     {
         return new class extends AdminResource {

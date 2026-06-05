@@ -111,7 +111,9 @@ final class DoctrineRelationProviderTest extends TestCase
 
         $reloaded = $this->entityManager->find(Note::class, $noteId);
         self::assertNotNull($reloaded);
-        $this->provider->dissociate($this->descriptor(), $this->entityManager->find(Article::class, $article->id), $reloaded);
+        $reloadedArticle = $this->entityManager->find(Article::class, $article->id);
+        self::assertNotNull($reloadedArticle);
+        $this->provider->dissociate($this->descriptor(), $reloadedArticle, $reloaded);
         $this->entityManager->clear();
         self::assertNull($this->entityManager->find(Note::class, $noteId)?->articleId);
     }

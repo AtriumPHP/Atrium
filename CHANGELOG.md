@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Relation managers — one-to-many actions (`REL-05`, `REL-06`, `REL-07`,
+  `REL-09`, `REL-12`).** A one-to-many `RelationManager` now offers a full lifecycle
+  scoped to the parent: owned **Create/Edit** (an inline modal hosting the target
+  resource's form — create sets the foreign key in one transaction), **Delete** +
+  **bulk delete**, and **Associate/Dissociate** (link/unlink an existing record via a
+  `listLinkable`-backed picker). Managers are **read-only on the View screen**
+  (`Relation::readOnlyOnView()`, default true) and can be hidden per parent with
+  `Relation::visible(fn ($parent) => …)`. **(API)** new default-allow authorization
+  hooks **`AdminResource::canAssociate(object $parent, object $child): bool`** and
+  **`canDissociate(...)`** (override to restrict link/unlink); owned create/edit/delete
+  continue to gate on the target resource's `can(...)`. `Atrium:Form` gains optional
+  `embedded` / `presetValues` / `notifyEvent` mount arguments (additive; defaults
+  preserve behaviour) so it can be hosted inside a relation manager's modal. Owned
+  row **View** navigation lands with nested resources (REL-M4).
 - **Relations foundation (`REL-01..04`, `REL-10`, `REL-11`, `REL-20`).** A resource
   declares managed relationships with `relations()` returning `Relation::make(...)`
   descriptors (one-to-many / many-to-many, explicit keys — no Doctrine in core). New

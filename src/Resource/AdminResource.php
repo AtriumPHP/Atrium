@@ -170,10 +170,32 @@ abstract class AdminResource
     }
 
     /**
+     * Whether $child may be linked to $parent through a one-to-many relation
+     * (set its foreign key). Default-allow; override to restrict. Re-checked at
+     * execution by the relation manager. Public API (REL-12).
+     */
+    public function canAssociate(object $parent, object $child): bool
+    {
+        return true;
+    }
+
+    /**
+     * Whether $child may be unlinked from $parent (clear its foreign key; the
+     * record persists). Default-allow; override to restrict. Public API (REL-12).
+     */
+    public function canDissociate(object $parent, object $child): bool
+    {
+        return true;
+    }
+
+    /**
      * Dispatch a named ability check to the matching hook above. Used to gate an
      * {@see Action} by its {@see Action::getAbility()}.
      * Record-scoped abilities are denied when no record is supplied; an unknown
-     * ability is allowed (it is not an Atrium-managed permission).
+     * ability is allowed (it is not an Atrium-managed permission). Relation
+     * link/unlink use {@see canAssociate()}/{@see canDissociate()}, which take
+     * both the parent and child, so they are checked directly by the relation
+     * manager rather than through this single-subject dispatch.
      */
     public function can(string $ability, ?object $record = null): bool
     {
