@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Atrium\Twig\Components;
 
+use Atrium\DataProvider\DataProviderInterface;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
@@ -22,8 +23,10 @@ final class RelationManagers
     public string $pathPrefix = '';
     public string $screen = 'edit';
 
-    public function __construct(private readonly ResourceRegistry $registry)
-    {
+    public function __construct(
+        private readonly ResourceRegistry $registry,
+        private readonly DataProviderInterface $dataProvider,
+    ) {
     }
 
     /**
@@ -31,8 +34,16 @@ final class RelationManagers
      */
     public function getRelations(): array
     {
+        $parent = $this->loadParent();
+
         $views = [];
         foreach ($this->resourceObject()->relations() as $relation) {
+            // Drop relations a per-parent `visible($parent)` predicate hides. When
+            // the parent can't be loaded (e.g. out of scope) nothing is shown.
+            if (null === $parent || !$relation->isVisibleFor($parent)) {
+                continue;
+            }
+
             $views[] = [
                 'name' => $relation->getName(),
                 'label' => $relation->getLabel(),
@@ -41,6 +52,18 @@ final class RelationManagers
         }
 
         return $views;
+    }
+
+    private function loadParent(): ?object
+    {
+        $resource = $this->resourceObject();
+
+        return $this->dataProvider->find(
+            $resource->getEntityClass(),
+            $this->parentId,
+            $resource->scopeFilters(),
+            $resource->getIdentifierField(),
+        );
     }
 
     public function hasRelations(): bool
