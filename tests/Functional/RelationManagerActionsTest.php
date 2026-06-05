@@ -124,6 +124,19 @@ final class RelationManagerActionsTest extends KernelTestCase
         self::assertSame('associate', $this->state($component)->modalMode);
     }
 
+    public function testViewScreenManagerIsReadOnly(): void
+    {
+        $html = $this->manager('1', 'view')->render()->toString();
+
+        // No mutating affordances on a read-only view manager…
+        self::assertStringNotContainsString('Detach', $html);
+        self::assertStringNotContainsString('Delete', $html);
+        self::assertStringNotContainsString('New Comment', $html);
+        self::assertStringNotContainsString('Attach existing', $html);
+        // …but the related rows still render.
+        self::assertStringContainsString('Great post', $html);
+    }
+
     private function state(TestLiveComponent $component): RelationManager
     {
         $manager = $component->component();

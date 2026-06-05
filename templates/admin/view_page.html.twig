@@ -49,6 +49,17 @@
                     gridClass: 'grid-cols-1',
                 }) }}
             {% endif %}
+
+            {% if entityId %}
+                {# Relation managers, read-only on the View screen (a relation opts
+                   out via readOnlyOnView(false)). #}
+                {{ component('Atrium:RelationManagers', {
+                    resource: resource.slug,
+                    parentId: entityId,
+                    pathPrefix: panel.pathPrefix,
+                    screen: 'view',
+                }) }}
+            {% endif %}
         {% endif %}
     </div>
 {% endblock %}
