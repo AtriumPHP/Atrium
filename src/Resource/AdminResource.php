@@ -103,6 +103,18 @@ abstract class AdminResource
     }
 
     /**
+     * Declare this resource's managed relationships (REL-01). Each
+     * {@see \Atrium\Relation\Relation} renders as a relation manager on the
+     * resource's Edit/View screens. Returns none by default.
+     *
+     * @return list<\Atrium\Relation\Relation>
+     */
+    public function relations(): array
+    {
+        return [];
+    }
+
+    /**
      * The schema the View screen renders: the resource's {@see view()} when it
      * declares one, otherwise the {@see form()} fields mapped to read-only text
      * entries (the free fallback — a flat list; declare `view()` for layout).
