@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Relations foundation (`REL-01..04`, `REL-10`, `REL-11`, `REL-20`).** A resource
+  declares managed relationships with `relations()` returning `Relation::make(...)`
+  descriptors (one-to-many / many-to-many, explicit keys — no Doctrine in core). New
+  storage-agnostic `RelationDataProvider` seam (Doctrine + array adapters; one-to-many
+  read side) and an `AbstractRecordTable` core extracted from `DataTable` (no
+  behaviour change). A read-only `RelationManager` Live Component renders a
+  parent-scoped related table, embedded on the Edit page via a `RelationManagers`
+  host. Link/unlink actions, many-to-many, and nested resources land in subsequent
+  milestones. PRD: `docs/PRDs/PRD-relations-nesting.md`.
 - **Configurable record identifier field.** A resource can now address its
   records by a property other than `id` — a primary key named something else, or
   a natural key such as a slug for human-readable URLs — by overriding the new
