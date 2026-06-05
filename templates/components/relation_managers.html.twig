@@ -1,0 +1,19 @@
+{% if this.hasRelations %}
+    <div {{ attributes.defaults({ class: 'mt-8 space-y-8' }) }}>
+        {% for relation in this.getRelations %}
+            <section class="space-y-3">
+                <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    {% if relation.icon %}{{ atrium_icon(relation.icon, { class: 'h-4 w-4' }) }}{% endif %}
+                    {{ relation.label }}
+                </h2>
+                {{ component('Atrium:RelationManager', {
+                    resource: resource,
+                    parentId: parentId,
+                    relation: relation.name,
+                    pathPrefix: pathPrefix,
+                    screen: screen,
+                }) }}
+            </section>
+        {% endfor %}
+    </div>
+{% endif %}

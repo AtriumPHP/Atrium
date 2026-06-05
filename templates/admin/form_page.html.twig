@@ -22,5 +22,16 @@
             redirectAfterSave: redirectUrl,
             pathPrefix: panel.pathPrefix,
         }) }}
+
+        {# Relation managers (REL-08): a band of related-records tables below the
+           form, only for an existing record (a create has no parent id yet). #}
+        {% if entityId %}
+            {{ component('Atrium:RelationManagers', {
+                resource: resource.slug,
+                parentId: entityId,
+                pathPrefix: panel.pathPrefix,
+                screen: 'edit',
+            }) }}
+        {% endif %}
     </div>
 {% endblock %}
