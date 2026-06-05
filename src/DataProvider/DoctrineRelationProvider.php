@@ -60,12 +60,28 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
     public function associate(RelationDescriptor $relation, object $parent, object $child): void
     {
-        throw new \LogicException('associate() is implemented in REL-M2.');
+        $this->setForeignKey($relation, $child, $this->accessor->getValue($parent, $relation->parentIdField));
     }
 
     public function dissociate(RelationDescriptor $relation, object $parent, object $child): void
     {
-        throw new \LogicException('dissociate() is implemented in REL-M2.');
+        $this->setForeignKey($relation, $child, null);
+    }
+
+    /**
+     * Set (or clear) the child's foreign key and persist. The flush enlists in the
+     * ambient transaction opened by the relation manager (so a create+associate
+     * commits or rolls back together).
+     */
+    private function setForeignKey(RelationDescriptor $relation, object $child, mixed $value): void
+    {
+        if (RelationKind::OneToMany !== $relation->kind) {
+            throw new \LogicException('Many-to-many link/unlink is implemented in REL-M3.');
+        }
+
+        $this->accessor->setValue($child, (string) $relation->foreignKey, $value);
+        $this->entityManager->persist($child);
+        $this->entityManager->flush();
     }
 
     public function attach(RelationDescriptor $relation, object $parent, object $child, array $pivot = []): void

@@ -82,9 +82,16 @@ final class ArrayRelationProviderTest extends TestCase
         self::assertSame(1, $provider->countRelated($this->descriptor(), $post, $query));
     }
 
-    public function testAssociateIsNotYetImplemented(): void
+    public function testAssociateSetsForeignKeyAndDissociateClearsIt(): void
     {
-        $this->expectException(\LogicException::class);
-        (new ArrayRelationProvider())->associate($this->descriptor(), new Post(1, 'x'), new Comment(1, 'y', postId: null));
+        $parent = new Post(1, 'First post');
+        $orphan = new Comment(9, 'Orphan', postId: null);
+        $provider = new ArrayRelationProvider([Comment::class => [$orphan]]);
+
+        $provider->associate($this->descriptor(), $parent, $orphan);
+        self::assertSame(1, $orphan->postId);
+
+        $provider->dissociate($this->descriptor(), $parent, $orphan);
+        self::assertNull($orphan->postId);
     }
 }

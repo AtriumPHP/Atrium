@@ -90,4 +90,29 @@ final class DoctrineRelationProviderTest extends TestCase
         self::assertSame('keep', $rows[0]->body);
         self::assertSame(1, $this->provider->countRelated($this->descriptor(), $parent, $query));
     }
+
+    public function testAssociateSetsForeignKeyAndDissociateClearsIt(): void
+    {
+        $article = new Article('First');
+        $this->entityManager->persist($article);
+        $this->entityManager->flush();
+
+        $note = new Note('floating', null);
+        $this->entityManager->persist($note);
+        $this->entityManager->flush();
+        $noteId = $note->id;
+
+        $parent = $this->entityManager->find(Article::class, $article->id);
+        self::assertNotNull($parent);
+
+        $this->provider->associate($this->descriptor(), $parent, $note);
+        $this->entityManager->clear();
+        self::assertSame($article->id, $this->entityManager->find(Note::class, $noteId)?->articleId);
+
+        $reloaded = $this->entityManager->find(Note::class, $noteId);
+        self::assertNotNull($reloaded);
+        $this->provider->dissociate($this->descriptor(), $this->entityManager->find(Article::class, $article->id), $reloaded);
+        $this->entityManager->clear();
+        self::assertNull($this->entityManager->find(Note::class, $noteId)?->articleId);
+    }
 }

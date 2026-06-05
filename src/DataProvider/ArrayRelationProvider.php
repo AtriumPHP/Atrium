@@ -50,12 +50,14 @@ final class ArrayRelationProvider implements RelationDataProvider
 
     public function associate(RelationDescriptor $relation, object $parent, object $child): void
     {
-        throw new \LogicException('associate() is implemented in REL-M2.');
+        $this->assertOneToMany($relation);
+        $this->accessor->setValue($child, (string) $relation->foreignKey, $this->parentId($relation, $parent));
     }
 
     public function dissociate(RelationDescriptor $relation, object $parent, object $child): void
     {
-        throw new \LogicException('dissociate() is implemented in REL-M2.');
+        $this->assertOneToMany($relation);
+        $this->accessor->setValue($child, (string) $relation->foreignKey, null);
     }
 
     public function attach(RelationDescriptor $relation, object $parent, object $child, array $pivot = []): void
@@ -78,11 +80,9 @@ final class ArrayRelationProvider implements RelationDataProvider
      */
     private function matchingChildren(RelationDescriptor $relation, object $parent, DataQuery $query): array
     {
-        if (RelationKind::OneToMany !== $relation->kind) {
-            throw new \LogicException('Many-to-many listing is implemented in REL-M3.');
-        }
+        $this->assertOneToMany($relation);
 
-        $parentId = $this->accessor->getValue($parent, $relation->parentIdField);
+        $parentId = $this->parentId($relation, $parent);
         $foreignKey = (string) $relation->foreignKey;
 
         $children = array_values(array_filter(
@@ -99,6 +99,18 @@ final class ArrayRelationProvider implements RelationDataProvider
         }
 
         return $children;
+    }
+
+    private function assertOneToMany(RelationDescriptor $relation): void
+    {
+        if (RelationKind::OneToMany !== $relation->kind) {
+            throw new \LogicException('Many-to-many relations are implemented in REL-M3.');
+        }
+    }
+
+    private function parentId(RelationDescriptor $relation, object $parent): mixed
+    {
+        return $this->accessor->getValue($parent, $relation->parentIdField);
     }
 
     private function matchesFilter(object $child, string $field, string|int|float|bool|null $value): bool
