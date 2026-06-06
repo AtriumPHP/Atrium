@@ -28,6 +28,7 @@ use Atrium\Tests\Fixtures\Resource\HookedTagResource;
 use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
 use Atrium\Tests\Fixtures\Resource\ListWidgetTagResource;
 use Atrium\Tests\Fixtures\Resource\PaginatedTagResource;
+use Atrium\Tests\Fixtures\Resource\PostMultiRelResource;
 use Atrium\Tests\Fixtures\Resource\PostRelResource;
 use Atrium\Tests\Fixtures\Resource\PostTagsResource;
 use Atrium\Tests\Fixtures\Resource\RestrictedPostTagsResource;
@@ -230,6 +231,10 @@ class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(RestrictedPostTagsResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(PostMultiRelResource::class)
             ->autoconfigure()
             ->autowire();
 

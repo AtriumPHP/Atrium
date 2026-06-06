@@ -1,21 +1,39 @@
 {% if this.hasRelations %}
-    <div {{ attributes.defaults({ class: 'mt-8 space-y-8' }) }}>
-        {% for relation in this.getRelations %}
+    {% set relations = this.getRelations %}
+    {% set active = this.getActiveRelation %}
+    <div {{ attributes.defaults({ class: 'mt-8' }) }}>
+        {% if relations|length > 1 %}
+            <div class="mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
+                {% for relation in relations %}
+                    <button type="button" role="tab"
+                            data-action="live#action" data-live-action-param="selectTab"
+                            data-live-relation-param="{{ relation.name }}"
+                            class="-mb-px inline-flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium transition-colors {{ relation.name == active ? 'border-primary-600 text-primary-700 dark:border-primary-400 dark:text-primary-300' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}">
+                        {% if relation.icon %}{{ atrium_icon(relation.icon, { class: 'h-4 w-4' }) }}{% endif %}
+                        {{ relation.label }}
+                    </button>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% for relation in relations|filter(r => r.name == active) %}
             <section class="space-y-3">
-                <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    {% if relation.icon %}{{ atrium_icon(relation.icon, { class: 'h-4 w-4' }) }}{% endif %}
-                    {{ relation.label }}
-                </h2>
-                {# REL-M3: when this host renders multiple managers as a tab strip,
-                   give each a stable key ("{parentSlug}:{parentId}:{relation}") so
-                   they keep page/search/sort state across tab switches. With a
-                   single section (M1) positional keying is sufficient. #}
+                {% if relations|length == 1 %}
+                    <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        {% if relation.icon %}{{ atrium_icon(relation.icon, { class: 'h-4 w-4' }) }}{% endif %}
+                        {{ relation.label }}
+                    </h2>
+                {% endif %}
+                {# Stable key per (parent, relation) so switching tabs mounts the
+                   newly-active manager as a distinct component rather than morphing
+                   the previous tab's manager into it. #}
                 {{ component('Atrium:RelationManager', {
                     resource: resource,
                     parentId: parentId,
                     relation: relation.name,
                     pathPrefix: pathPrefix,
                     screen: screen,
+                    key: parentId ~ ':' ~ relation.name,
                 }) }}
             </section>
         {% endfor %}
