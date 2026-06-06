@@ -10,6 +10,22 @@
 
 **Gates (run after every task):** `composer test && composer phpstan && composer cs`.
 
+## Plan-review corrections (apply these — verified against the vendored libs)
+
+1. **Nested-component keying (Task 7 template):** `component()` has only `(name, props)` — there is **no third argument**. The stable key goes **inside the props map** as `key:` (UX strips it before it reaches the component and uses it for the deterministic id):
+   ```twig
+   {{ component('Atrium:RelationManager', { resource: resource, parentId: parentId, relation: relation.name, pathPrefix: pathPrefix, screen: screen, key: parentId ~ ':' ~ relation.name }) }}
+   ```
+2. **Array model binding (Task 6 template):** plain `writable: true` array props bind with **bracket** syntax, not dot — matching `filterValues[...]` / `formData[...]` in the repo. Use `data-model="pivotData[{{ column }}]"`.
+3. **`canAssociateRelated()` must exclude M:N (Task 5):** it currently returns `!isReadOnly()` unconditionally; gate it so the 1:M Associate button never shows on an M:N manager:
+   ```php
+   public function canAssociateRelated(): bool { return !$this->isReadOnly() && !$this->isManyToMany(); }
+   ```
+4. **`findRecord()` must branch by kind (Task 5):** `executeAction` calls `findRecord($id)` for the Detach row action, but `descriptor()->foreignKey` is `null` for M:N → a `['' => parentId]` filter. Override so M:N skips the FK filter (look the child up by id within the target scope only); keep the existing FK-scoped path for 1:M.
+5. **Tag constructor (Task 5 Step 1 / Task 1 Step 2):** the real signature is `new Tag(int $id, string $name, string $slug, bool $active = false, array $labels = [], array $meta = [], ?string $kind = null)`. The first three positional args (`new Tag(1, 'A', 'a')`) are all the fixtures need — ignore the earlier "kind = ''" note.
+6. **KernelBootTest count — final target 28.** Current is `assertCount(24, ...)`. REL-M3 adds 4 resources total (`TagRelResource`, `PostTagsResource`, `DenyDetachPostTagsResource`, `PostMultiRelResource`) → bump to **28** as each lands.
+7. **Add a 1:M regression test** after the kind-dispatch refactor: assert `post`/`comments` still shows Dissociate + Delete (not Detach).
+
 ## Scope decisions (confirmed with the user)
 
 1. **M:N = Attach / Detach only.** No owned Create/Edit/Delete on a many-to-many manager (you link existing records; mutating a shared child from a link list is surprising). One-to-many managers are unchanged.
