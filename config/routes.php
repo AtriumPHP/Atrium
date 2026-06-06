@@ -38,6 +38,28 @@ return static function (RoutingConfigurator $routes): void {
         ->controller([AdminController::class, 'view'])
         ->requirements(['resource' => '[a-z0-9-]+', 'id' => '[^/]+']);
 
+    // Nested resources (REL-15): a parent segment scopes a child resource. The
+    // literal variants (/new, /{id}/edit) are declared before the bare /{id} and
+    // the index so the literals win — the flat-route ordering rule, one level
+    // deeper. A path with 3+ segments after the prefix cannot match any flat route
+    // (those have at most 3 placeholders in fixed literal positions; {id} is [^/]+
+    // so it never spans a '/'), so the two families never shadow each other.
+    $routes->add('atrium_nested_create', $prefix.'/{parentResource}/{parentId}/{resource}/new')
+        ->controller([AdminController::class, 'nestedCreate'])
+        ->requirements(['parentResource' => '[a-z0-9-]+', 'resource' => '[a-z0-9-]+', 'parentId' => '[^/]+']);
+
+    $routes->add('atrium_nested_edit', $prefix.'/{parentResource}/{parentId}/{resource}/{id}/edit')
+        ->controller([AdminController::class, 'nestedEdit'])
+        ->requirements(['parentResource' => '[a-z0-9-]+', 'resource' => '[a-z0-9-]+', 'parentId' => '[^/]+', 'id' => '[^/]+']);
+
+    $routes->add('atrium_nested_view', $prefix.'/{parentResource}/{parentId}/{resource}/{id}')
+        ->controller([AdminController::class, 'nestedView'])
+        ->requirements(['parentResource' => '[a-z0-9-]+', 'resource' => '[a-z0-9-]+', 'parentId' => '[^/]+', 'id' => '[^/]+']);
+
+    $routes->add('atrium_nested_index', $prefix.'/{parentResource}/{parentId}/{resource}')
+        ->controller([AdminController::class, 'nestedIndex'])
+        ->requirements(['parentResource' => '[a-z0-9-]+', 'resource' => '[a-z0-9-]+', 'parentId' => '[^/]+']);
+
     // Single-segment catch-all: a dashboard or a resource list (dashboards win).
     $routes->add('atrium_page', $prefix.'/{slug}')
         ->controller([AdminController::class, 'page'])
