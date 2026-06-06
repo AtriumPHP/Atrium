@@ -115,6 +115,17 @@ abstract class AdminResource
     }
 
     /**
+     * Declare this resource is nested under a parent record (REL-14): return a
+     * {@see \Atrium\Relation\ParentRelation} naming the parent resource, the parent
+     * relation that holds these children, and the child→parent foreign key. The
+     * default `null` means the resource is top-level (not nested).
+     */
+    public function parent(): ?\Atrium\Relation\ParentRelation
+    {
+        return null;
+    }
+
+    /**
      * The schema the View screen renders: the resource's {@see view()} when it
      * declares one, otherwise the {@see form()} fields mapped to read-only text
      * entries (the free fallback — a flat list; declare `view()` for layout).
