@@ -189,13 +189,32 @@ abstract class AdminResource
     }
 
     /**
+     * Whether $child may be attached to $parent through a many-to-many relation
+     * (insert a pivot row). Default-allow; override to restrict. Public API (REL-12).
+     */
+    public function canAttach(object $parent, object $child): bool
+    {
+        return true;
+    }
+
+    /**
+     * Whether $child may be detached from $parent (remove the pivot row; both
+     * records persist). Default-allow; override to restrict. Public API (REL-12).
+     */
+    public function canDetach(object $parent, object $child): bool
+    {
+        return true;
+    }
+
+    /**
      * Dispatch a named ability check to the matching hook above. Used to gate an
      * {@see Action} by its {@see Action::getAbility()}.
      * Record-scoped abilities are denied when no record is supplied; an unknown
      * ability is allowed (it is not an Atrium-managed permission). Relation
-     * link/unlink use {@see canAssociate()}/{@see canDissociate()}, which take
-     * both the parent and child, so they are checked directly by the relation
-     * manager rather than through this single-subject dispatch.
+     * link/unlink use {@see canAssociate()}/{@see canDissociate()} (one-to-many)
+     * and {@see canAttach()}/{@see canDetach()} (many-to-many), which take both
+     * the parent and child, so they are checked directly by the relation manager
+     * rather than through this single-subject dispatch.
      */
     public function can(string $ability, ?object $record = null): bool
     {

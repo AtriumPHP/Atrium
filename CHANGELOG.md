@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`Relation::readOnlyOnView()`, default true) and can be hidden per parent with
   `Relation::visible(fn ($parent) => …)`. **(API)** new default-allow authorization
   hooks **`AdminResource::canAssociate(object $parent, object $child): bool`** and
-  **`canDissociate(...)`** (override to restrict link/unlink); owned create/edit/delete
+  **`canDissociate(...)`** (one-to-many) and **`canAttach(...)`** / **`canDetach(...)`**
+  (many-to-many) (override to restrict link/unlink); owned create/edit/delete
   continue to gate on the target resource's `can(...)`. `Atrium:Form` gains optional
   `embedded` / `presetValues` / `notifyEvent` mount arguments (additive; defaults
   preserve behaviour) so it can be hosted inside a relation manager's modal. Owned

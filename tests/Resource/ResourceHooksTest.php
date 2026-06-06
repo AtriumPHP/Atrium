@@ -115,6 +115,24 @@ final class ResourceHooksTest extends TestCase
         self::assertFalse($resource->canDissociate($parent, $child));
     }
 
+    public function testManyToManyLinkAbilitiesDefaultAllowAndAreOverridable(): void
+    {
+        $resource = new class extends AdminResource {
+            public function getEntityClass(): string
+            {
+                return Tag::class;
+            }
+
+            public function canDetach(object $parent, object $child): bool
+            {
+                return false;
+            }
+        };
+
+        self::assertTrue($resource->canAttach(new \stdClass(), new \stdClass()));
+        self::assertFalse($resource->canDetach(new \stdClass(), new \stdClass()));
+    }
+
     private function resource(): AdminResource
     {
         return new class extends AdminResource {
