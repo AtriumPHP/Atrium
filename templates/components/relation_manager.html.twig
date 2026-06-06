@@ -1,5 +1,5 @@
 <div {{ attributes }} class="atrium-relation-manager space-y-3">
-    {% if this.canCreateRelated or this.canAssociateRelated or this.canAttachRelated %}
+    {% if this.canCreateRelated or this.canAssociateRelated or this.canAttachRelated or this.getNestedCreateUrl %}
         <div class="flex justify-end gap-2">
             {% if this.canAssociateRelated %}
                 <button type="button" data-action="live#action" data-live-action-param="openAssociate"
@@ -13,7 +13,13 @@
                     {{ atrium_icon('link', { class: 'h-4 w-4' }) }} Attach existing
                 </button>
             {% endif %}
-            {% if this.canCreateRelated %}
+            {% if this.getNestedCreateUrl %}
+                {# Nested target: New links to the child's full nested create page. #}
+                <a href="{{ this.getNestedCreateUrl }}"
+                   class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950">
+                    {{ atrium_icon('plus', { class: 'h-4 w-4' }) }} New {{ this.singularLabel }}
+                </a>
+            {% elseif this.canCreateRelated %}
                 <button type="button" data-action="live#action" data-live-action-param="openCreate"
                         class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950">
                     {{ atrium_icon('plus', { class: 'h-4 w-4' }) }} New {{ this.singularLabel }}

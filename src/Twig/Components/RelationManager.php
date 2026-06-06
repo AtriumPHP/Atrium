@@ -6,10 +6,12 @@ namespace Atrium\Twig\Components;
 
 use Atrium\Action\Action;
 use Atrium\Action\ActionContext;
+use Atrium\Action\NestedActionContext;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataQuery;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\DataProvider\RelationDataProvider;
+use Atrium\Relation\ParentRelationResolver;
 use Atrium\Relation\Relation;
 use Atrium\Relation\RelationDescriptor;
 use Atrium\Relation\RelationKind;
@@ -78,15 +80,39 @@ final class RelationManager extends AbstractRecordTable
     private ?AdminResource $targetResource = null;
     private ?object $parentRecord = null;
 
+    private ?bool $nested = null;
+
     public function __construct(
         private readonly ResourceRegistry $registry,
         private readonly DataProviderInterface $dataProvider,
         private readonly RelationDataProvider $relationProvider,
         private readonly RelationResolver $resolver,
+        private readonly ParentRelationResolver $parentResolver,
         DataWriterInterface $writer,
         PropertyAccessorInterface $accessor,
     ) {
         parent::__construct($writer, $accessor);
+    }
+
+    /**
+     * True when the target resource is nested under *this* parent + relation, so
+     * rows link to the child's full nested pages and New points at nested create
+     * (REL-18) instead of opening inline modals.
+     */
+    public function isNested(): bool
+    {
+        if (null !== $this->nested) {
+            return $this->nested;
+        }
+
+        if (null === $this->target()->parent()) {
+            return $this->nested = false;
+        }
+
+        $resolved = $this->parentResolver->resolve($this->target());
+
+        return $this->nested = $resolved->parentResource->getSlug() === $this->parentResource()->getSlug()
+            && $resolved->relation->getName() === $this->relationName;
     }
 
     public function mount(string $resource, string $parentId, string $relation, string $pathPrefix = '', string $screen = 'edit'): void
@@ -277,12 +303,31 @@ final class RelationManager extends AbstractRecordTable
 
     protected function actionContext(?string $id): ActionContext
     {
+        if ($this->isNested()) {
+            return new NestedActionContext(
+                $this->pathPrefix,
+                $this->parentResource()->getSlug(),
+                $this->parentId,
+                $this->target()->getSlug(),
+                $id ?? '',
+            );
+        }
+
         return new ActionContext($this->pathPrefix, $this->target()->getSlug(), $id ?? '');
     }
 
     protected function rowUrl(object $record, ActionContext $context): ?string
     {
-        return null;   // row-click target is wired with nesting (M4)
+        if (!$this->isNested()) {
+            return null;   // inline mode: row click opens the edit modal (getRowAction)
+        }
+
+        // Prefer the child's nested view page, else its nested edit page.
+        if (null !== $this->target()->resolvePage('view')) {
+            return $context->recordRootUrl();
+        }
+
+        return $context->recordUrl('edit');
     }
 
     public function getEmptyHeading(): string
@@ -307,7 +352,9 @@ final class RelationManager extends AbstractRecordTable
     {
         // Owned create is one-to-many only; the M:N guard also stops a crafted
         // request opening a modal whose preset FK would be empty (no foreignKey).
-        if ($this->isReadOnly() || $this->isManyToMany() || !$this->target()->canCreate()) {
+        // In nested mode the New affordance is a link to the nested create page,
+        // not the inline modal.
+        if ($this->isReadOnly() || $this->isManyToMany() || $this->isNested() || !$this->target()->canCreate()) {
             return;
         }
 
@@ -524,7 +571,17 @@ final class RelationManager extends AbstractRecordTable
 
     public function canCreateRelated(): bool
     {
-        return !$this->isReadOnly() && !$this->isManyToMany() && $this->target()->canCreate();
+        return !$this->isReadOnly() && !$this->isManyToMany() && !$this->isNested() && $this->target()->canCreate();
+    }
+
+    /** The nested create URL when the manager is nested + create is allowed, else null. */
+    public function getNestedCreateUrl(): ?string
+    {
+        if (!$this->isNested() || $this->isReadOnly() || !$this->target()->canCreate()) {
+            return null;
+        }
+
+        return rtrim($this->pathPrefix, '/').'/'.$this->parentResource()->getSlug().'/'.rawurlencode($this->parentId).'/'.$this->target()->getSlug().'/new';
     }
 
     public function getSingularLabel(): string
@@ -539,7 +596,8 @@ final class RelationManager extends AbstractRecordTable
      */
     public function getRowAction(): ?string
     {
-        return ($this->isReadOnly() || $this->isManyToMany()) ? null : 'openEdit';
+        // Nested rows navigate via rowUrl; M:N / read-only rows aren't clickable.
+        return ($this->isReadOnly() || $this->isManyToMany() || $this->isNested()) ? null : 'openEdit';
     }
 
     private function parentIdValue(): string
