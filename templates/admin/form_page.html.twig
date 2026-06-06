@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block body %}
+    {% include '@Atrium/admin/_breadcrumb.html.twig' with { breadcrumbs: breadcrumbs|default([]) } only %}
     <div class="mx-auto max-w-4xl">
         {# The resource picks its form component (plain Form, or WizardForm when
            the schema has a Wizard) — see AdminResource::getFormComponentName().

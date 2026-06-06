@@ -345,14 +345,17 @@ final readonly class AdminController
      */
     private function nestedPageContext(array $ctx, ?string $entityId): PageContext
     {
-        // Task 8 enriches PageContext with parent records + nestedUrl(); for now a
-        // plain context over the child slug keeps Page hooks working.
+        $parentRecords = null !== $ctx['parentRecord'] ? [$ctx['parentRecord']] : [];
+
         return new PageContext(
             $ctx['child']->getSlug(),
             $this->pathPrefix,
             $entityId,
             $ctx['child']->getSingularLabel(),
             $ctx['child']->getLabel(),
+            parentResourceSlug: $ctx['parent']->getSlug(),
+            parentRecordId: null !== $ctx['parentRecord'] ? $this->stringId($ctx['parent'], $ctx['parentRecord']) : null,
+            parentRecords: $parentRecords,
         );
     }
 
@@ -383,13 +386,47 @@ final readonly class AdminController
     }
 
     /**
+     * Breadcrumb trail for a nested page: the parent resource index, the parent
+     * record (titled via the ParentRelation's recordTitle / the parent identifier),
+     * then the child resource index. The current record is the page <h1>, not a crumb.
+     *
      * @param array{parent: AdminResource, parentRecord: ?object, child: AdminResource, resolved: ResolvedParentRelation} $ctx
      *
      * @return list<array{label: string, url: ?string}>
      */
     private function nestedBreadcrumbs(array $ctx): array
     {
-        return []; // Task 8 builds the real trail.
+        $parent = $ctx['parent'];
+        $base = rtrim($this->pathPrefix, '/');
+        $crumbs = [
+            ['label' => $parent->getLabel(), 'url' => $base.'/'.$parent->getSlug()],
+        ];
+
+        $record = $ctx['parentRecord'];
+        if (null !== $record) {
+            $parentId = $this->stringId($parent, $record);
+            $titleValue = $this->accessor->getValue($record, $ctx['resolved']->recordTitleAttribute);
+            $title = \is_scalar($titleValue) ? (string) $titleValue : $parentId;
+            // Link to the parent's view page if it has one, else its edit page.
+            $suffix = null !== $parent->resolvePage('view') ? '' : '/edit';
+            $crumbs[] = [
+                'label' => $title,
+                'url' => $base.'/'.$parent->getSlug().'/'.rawurlencode($parentId).$suffix,
+            ];
+            $crumbs[] = [
+                'label' => $ctx['child']->getLabel(),
+                'url' => $base.'/'.$parent->getSlug().'/'.rawurlencode($parentId).'/'.$ctx['child']->getSlug(),
+            ];
+        }
+
+        return $crumbs;
+    }
+
+    private function stringId(AdminResource $resource, object $record): string
+    {
+        $id = $this->accessor->getValue($record, $resource->getIdentifierField());
+
+        return \is_scalar($id) ? (string) $id : '';
     }
 
     private function resourceList(string $resource): Response

@@ -9,6 +9,7 @@
 
 {% block body %}
     {% set parentRecordId = parentRecordId|default(null) %}
+    {% include '@Atrium/admin/_breadcrumb.html.twig' with { breadcrumbs: breadcrumbs|default([]) } only %}
     {% set headerComponents = headerWidgets.getComponents() %}
     {% if headerComponents is not empty %}
         {# Summary widgets above the table. Independent of the table's live
