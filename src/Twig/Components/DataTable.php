@@ -6,10 +6,13 @@ namespace Atrium\Twig\Components;
 
 use Atrium\Action\Action;
 use Atrium\Action\ActionContext;
+use Atrium\Action\NestedActionContext;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataQuery;
 use Atrium\DataProvider\DataWriterInterface;
 use Atrium\Page\PageContext;
+use Atrium\Relation\ParentRelationResolver;
+use Atrium\Relation\ResolvedParentRelation;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Table\TableConfiguration;
@@ -31,21 +34,42 @@ final class DataTable extends AbstractRecordTable
     #[LiveProp]
     public string $resource = '';
 
+    /** When set, the table is the nested index of a child under this parent id. */
+    #[LiveProp]
+    public ?string $parentId = null;
+
+    private ?ResolvedParentRelation $resolvedParent = null;
+
     public function __construct(
         private readonly ResourceRegistry $registry,
         private readonly DataProviderInterface $dataProvider,
+        private readonly ParentRelationResolver $parentResolver,
         DataWriterInterface $writer,
         PropertyAccessorInterface $accessor,
     ) {
         parent::__construct($writer, $accessor);
     }
 
-    public function mount(string $resource, string $pathPrefix = '', ?int $perPage = null): void
+    public function mount(string $resource, string $pathPrefix = '', ?int $perPage = null, ?string $parentId = null): void
     {
         $this->resource = $resource;
         $this->pathPrefix = $pathPrefix;
+        $this->parentId = $parentId;
         // An explicit mount arg wins; otherwise take the resource's configured size.
         $this->perPage = $perPage ?? $this->tableConfig()->getPerPage();
+    }
+
+    /**
+     * The resolved nesting when this table is a child's nested index (its parentId
+     * is set), else null. Validated lazily by the {@see ParentRelationResolver}.
+     */
+    private function nestedParent(): ?ResolvedParentRelation
+    {
+        if (null === $this->parentId || '' === $this->parentId) {
+            return null;
+        }
+
+        return $this->resolvedParent ??= $this->parentResolver->resolve($this->resource());
     }
 
     protected function resource(): AdminResource
@@ -83,10 +107,18 @@ final class DataTable extends AbstractRecordTable
      */
     protected function findRecord(string $id): ?object
     {
+        $filters = $this->resource()->scopeFilters();
+        // In nested mode also scope by the parent FK, so a forged action id for a
+        // child of another parent resolves to null (no cross-parent mutation).
+        $parent = $this->nestedParent();
+        if (null !== $parent) {
+            $filters[$parent->foreignKey] = $this->parentId;
+        }
+
         return $this->dataProvider->find(
             $this->entityClass(),
             $id,
-            $this->resource()->scopeFilters(),
+            $filters,
             $this->resource()->getIdentifierField(),
         );
     }
@@ -101,9 +133,27 @@ final class DataTable extends AbstractRecordTable
         return $this->resource()->resolveHeaderActions('index', $this->pageContext());
     }
 
+    protected function extraFilters(): array
+    {
+        $parent = $this->nestedParent();
+
+        return null === $parent ? [] : [$parent->foreignKey => (string) $this->parentId];
+    }
+
     protected function actionContext(?string $id): ActionContext
     {
-        return new ActionContext($this->pathPrefix, $this->resource, $id ?? '');
+        $parent = $this->nestedParent();
+        if (null === $parent) {
+            return new ActionContext($this->pathPrefix, $this->resource, $id ?? '');
+        }
+
+        return new NestedActionContext(
+            $this->pathPrefix,
+            $parent->parentResource->getSlug(),
+            (string) $this->parentId,
+            $this->resource,
+            $id ?? '',
+        );
     }
 
     /**

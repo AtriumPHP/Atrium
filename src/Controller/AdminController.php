@@ -17,6 +17,7 @@ use Atrium\Resource\ResourceRegistry;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Twig\Environment;
 
 /**
@@ -38,6 +39,7 @@ final readonly class AdminController
         private string $brand,
         private string $pathPrefix,
         private ParentRelationResolver $parentResolver,
+        private PropertyAccessorInterface $accessor,
         private ?DataProviderInterface $dataProvider = null,
     ) {
     }
@@ -258,7 +260,29 @@ final readonly class AdminController
 
     public function nestedCreate(string $parentResource, string $parentId, string $resource): Response
     {
-        throw new NotFoundHttpException('Not implemented yet.'); // Task 7
+        $ctx = $this->resolveNested($parentResource, $parentId, $resource);
+        $child = $ctx['child'];
+        $this->denyUnless($child->canCreate());
+
+        $page = $child->resolvePage('create');
+        $context = $this->nestedPageContext($ctx, null);
+
+        return $this->render('@Atrium/admin/form_page.html.twig', [
+            'panel' => $this->panel($parentResource),
+            'resource' => $child,
+            'heading' => $page?->getHeading($context) ?? 'New '.$child->getSingularLabel(),
+            'subheading' => $page?->getSubheading($context),
+            'entityId' => null,
+            'redirectUrl' => $page?->getRedirectUrl($context) ?? $this->nestedIndexUrl($ctx, $parentId),
+            // Preset the FK so the created child is linked to this parent in one save.
+            // Read the parent's *typed* id from the resolved record (not the raw URL
+            // string) so PropertyAccess can set an int-typed FK (e.g. Task.projectId).
+            'presetValues' => [$ctx['resolved']->foreignKey => $this->parentScalarId($ctx)],
+            'parentResourceSlug' => $parentResource,
+            'parentRecordId' => $parentId,
+            'breadcrumbs' => $this->nestedBreadcrumbs($ctx),
+            'backUrl' => $this->nestedIndexUrl($ctx, $parentId),
+        ]);
     }
 
     public function nestedEdit(string $parentResource, string $parentId, string $resource, string $id): Response
@@ -295,7 +319,25 @@ final readonly class AdminController
 
     public function nestedIndex(string $parentResource, string $parentId, string $resource): Response
     {
-        throw new NotFoundHttpException('Not implemented yet.'); // Task 7
+        $ctx = $this->resolveNested($parentResource, $parentId, $resource);
+        $child = $ctx['child'];
+        $this->denyUnless($child->canViewAny());
+
+        $page = $child->resolvePage('index');
+        $context = $this->nestedPageContext($ctx, null);
+
+        return $this->render('@Atrium/admin/resource.html.twig', [
+            'panel' => $this->panel($parentResource),
+            'resource' => $child,
+            'heading' => $page?->getHeading($context) ?? $child->getLabel(),
+            'subheading' => $page?->getSubheading($context),
+            'headerWidgets' => $child->resolveHeaderWidgets($context),
+            'footerWidgets' => $child->resolveFooterWidgets($context),
+            'parentRecordId' => $parentId,           // flips the DataTable into nested mode
+            'parentResourceSlug' => $parentResource,
+            'breadcrumbs' => $this->nestedBreadcrumbs($ctx),
+            'createUrl' => $this->nestedIndexUrl($ctx, $parentId).'/new',
+        ]);
     }
 
     /**
@@ -312,6 +354,24 @@ final readonly class AdminController
             $ctx['child']->getSingularLabel(),
             $ctx['child']->getLabel(),
         );
+    }
+
+    /**
+     * The parent's identifier as a scalar of its *native* type (int/string), read
+     * from the already-resolved parent record so a preset FK matches the child
+     * property's type. Null when no data provider resolved a parent (no-DB install).
+     *
+     * @param array{parent: AdminResource, parentRecord: ?object, child: AdminResource, resolved: ResolvedParentRelation} $ctx
+     */
+    private function parentScalarId(array $ctx): int|string|null
+    {
+        if (null === $ctx['parentRecord']) {
+            return null;
+        }
+
+        $id = $this->accessor->getValue($ctx['parentRecord'], $ctx['parent']->getIdentifierField());
+
+        return \is_int($id) || \is_string($id) ? $id : null;
     }
 
     /**

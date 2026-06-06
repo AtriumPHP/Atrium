@@ -679,8 +679,21 @@ abstract class AbstractRecordTable
             sortDirection: $this->getActiveSortDirection(),
             offset: 0,
             limit: max(1, $this->getTotalCount()),
-            filters: $this->resolvedFilters(),
+            filters: $this->extraFilters() + $this->resolvedFilters(),
         ));
+    }
+
+    /**
+     * Always-on equality conditions layered under the configured filters (e.g. a
+     * nested table's parent foreign key). Empty by default; a subclass narrows the
+     * whole table. As the left operand of the union it wins over a user-supplied
+     * filter on the same field, so a forged filter value cannot relax the scope.
+     *
+     * @return array<string, scalar|bool|null>
+     */
+    protected function extraFilters(): array
+    {
+        return [];
     }
 
     /**
@@ -713,7 +726,7 @@ abstract class AbstractRecordTable
             sortDirection: $this->getActiveSortDirection(),
             offset: (max(1, $this->page) - 1) * $this->perPage,
             limit: $this->perPage,
-            filters: $this->resolvedFilters(),
+            filters: $this->extraFilters() + $this->resolvedFilters(),
         ));
     }
 

@@ -65,4 +65,35 @@ final class NestedResourceTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testNestedIndexListsOnlyThisParentsChildren(): void
+    {
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/admin/project/1/task');
+
+        self::assertResponseIsSuccessful();
+        $body = $crawler->filter('body')->text();
+        self::assertStringContainsString('Design', $body);  // project 1
+        self::assertStringContainsString('Build', $body);   // project 1
+        self::assertStringNotContainsString('Ship', $body); // project 2 — excluded
+    }
+
+    public function testNestedIndexRowLinksAreFiveSegment(): void
+    {
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/admin/project/1/task');
+
+        self::assertResponseIsSuccessful();
+        // A row link to a task view must carry the parent segment.
+        self::assertStringContainsString('/admin/project/1/task/1', $crawler->html());
+    }
+
+    public function testNestedCreateRenders(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/admin/project/1/task/new');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('form');
+    }
 }

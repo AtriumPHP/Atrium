@@ -47,6 +47,7 @@ return static function (ContainerConfigurator $container): void {
             param('atrium.brand'),
             param('atrium.path_prefix'),
             service(ParentRelationResolver::class),
+            service('property_accessor'),
             service(DataProviderInterface::class)->ignoreOnInvalid(),
         ])
         ->tag('controller.service_arguments');

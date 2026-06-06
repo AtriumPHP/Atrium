@@ -12,6 +12,7 @@ use Atrium\Relation\ParentRelationResolver;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Twig\Environment;
 
 /**
@@ -72,7 +73,7 @@ final class DashboardControllerTest extends KernelTestCase
         $twig = self::getContainer()->get('twig');
         self::assertInstanceOf(Environment::class, $twig);
 
-        return new AdminController($twig, $resources, $dashboards, 'Atrium', '/admin', new ParentRelationResolver($resources), null);
+        return new AdminController($twig, $resources, $dashboards, 'Atrium', '/admin', new ParentRelationResolver($resources), PropertyAccess::createPropertyAccessor(), null);
     }
 }
 
