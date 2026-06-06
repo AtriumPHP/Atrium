@@ -97,8 +97,8 @@ Every hook below is an override point on `AdminResource` with a safe default
 
 | Hook | Purpose |
 | --- | --- |
-| `relations()` | Declare one-to-many relation managers (`Relation::make(...)->oneToMany(...)`). |
-| `canAssociate($parent, $child)` / `canDissociate($parent, $child)` | Gate link/unlink of related records. |
+| `relations()` | Declare relation managers (`Relation::make(...)->oneToMany(...)` / `->manyToMany(...)`). |
+| `canAssociate` / `canDissociate` / `canAttach` / `canDetach` `($parent, $child)` | Gate link/unlink of related records. |
 
 ### [Record lifecycle hooks](lifecycle-hooks.md) — shape data & react to writes
 

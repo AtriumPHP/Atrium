@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Relation managers — many-to-many + tabs (`REL-02`, `REL-06`, `REL-07`,
+  `REL-08`, `REL-12`).** A `manyToMany()` relation (declared with `pivotTable()` +
+  `pivotKeys()` + optional `pivotColumns()`) renders a manager that **Attaches** an
+  existing record (a `listLinkable` picker that excludes already-linked rows, plus a
+  field per pivot column) and **Detaches** it (row + bulk; the pivot row is removed,
+  both records persist). Pivot reads/writes go through the `RelationDataProvider`
+  seam (Doctrine via DBAL — the pivot is never mapped as an entity; array adapter via
+  an in-memory pivot store). When a resource declares **several relations**, the host
+  renders a **server-driven tab strip** and mounts only the active relation's manager.
+  **(API)** new default-allow hooks **`canAttach(object $parent, object $child)`** /
+  **`canDetach(...)`** (override to restrict). Pivot-column *display* in the related
+  table is a later enhancement. Owned create/edit/delete remain one-to-many only.
 - **Relation managers — one-to-many actions (`REL-05`, `REL-06`, `REL-07`,
   `REL-09`, `REL-12`).** A one-to-many `RelationManager` now offers a full lifecycle
   scoped to the parent: owned **Create/Edit** (an inline modal hosting the target
