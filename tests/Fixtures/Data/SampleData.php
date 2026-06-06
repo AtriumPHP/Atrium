@@ -78,8 +78,18 @@ final class SampleData
 
     public function relationProvider(): ArrayRelationProvider
     {
-        return new ArrayRelationProvider([
-            Comment::class => $this->comments,
-        ]);
+        return new ArrayRelationProvider(
+            [
+                Comment::class => $this->comments,
+                Tag::class => $this->tags,
+            ],
+            pivots: [
+                // Post 1 ↔ Tags 1 and 2 (many-to-many). Tags 3+ are linkable.
+                'post_tag' => [
+                    ['parent' => 1, 'related' => 1, 'columns' => []],
+                    ['parent' => 1, 'related' => 2, 'columns' => []],
+                ],
+            ],
+        );
     }
 }

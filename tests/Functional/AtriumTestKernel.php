@@ -29,9 +29,12 @@ use Atrium\Tests\Fixtures\Resource\LayoutTagResource;
 use Atrium\Tests\Fixtures\Resource\ListWidgetTagResource;
 use Atrium\Tests\Fixtures\Resource\PaginatedTagResource;
 use Atrium\Tests\Fixtures\Resource\PostRelResource;
+use Atrium\Tests\Fixtures\Resource\PostTagsResource;
+use Atrium\Tests\Fixtures\Resource\RestrictedPostTagsResource;
 use Atrium\Tests\Fixtures\Resource\RowUrlTagResource;
 use Atrium\Tests\Fixtures\Resource\ScopedTagResource;
 use Atrium\Tests\Fixtures\Resource\TabsTagResource;
+use Atrium\Tests\Fixtures\Resource\TagRelResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Atrium\Tests\Fixtures\Resource\UnlistedTagResource;
 use Atrium\Tests\Fixtures\Resource\ViewFallbackTagResource;
@@ -213,6 +216,20 @@ class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(DenyAssociatePostResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        // Many-to-many relation fixtures: a parent (Post) with a `tags` relation
+        // through the post_tag pivot to the child resource (Tag).
+        $services->set(TagRelResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(PostTagsResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(RestrictedPostTagsResource::class)
             ->autoconfigure()
             ->autowire();
 

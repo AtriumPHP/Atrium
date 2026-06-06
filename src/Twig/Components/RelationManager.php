@@ -12,6 +12,7 @@ use Atrium\DataProvider\DataWriterInterface;
 use Atrium\DataProvider\RelationDataProvider;
 use Atrium\Relation\Relation;
 use Atrium\Relation\RelationDescriptor;
+use Atrium\Relation\RelationKind;
 use Atrium\Relation\RelationResolver;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
@@ -56,9 +57,21 @@ final class RelationManager extends AbstractRecordTable
     #[LiveProp]
     public ?string $modalRecordId = null;
 
-    /** The picked record id in the Associate modal. */
+    /** The picked record id in the Associate modal (one-to-many). */
     #[LiveProp(writable: true)]
     public string $associateId = '';
+
+    /** The picked record id in the Attach modal (many-to-many). */
+    #[LiveProp(writable: true)]
+    public string $attachId = '';
+
+    /**
+     * Pivot-column values entered in the Attach modal, keyed by column name.
+     *
+     * @var array<string, string>
+     */
+    #[LiveProp(writable: true)]
+    public array $pivotData = [];
 
     private ?Relation $relation = null;
     private ?RelationDescriptor $descriptor = null;
@@ -118,8 +131,20 @@ final class RelationManager extends AbstractRecordTable
 
     protected function findRecord(string $id): ?object
     {
-        // Parent-scoped: a child of another parent (a forged id) must resolve to
-        // null, so a mutating row action can never reach across parents.
+        if ($this->isManyToMany()) {
+            // Many-to-many has no foreign key on the child; resolve it by id within
+            // the target's own scope only (the pivot decides membership, enforced
+            // separately by the provider's listRelated/listLinkable).
+            return $this->dataProvider->find(
+                $this->entityClass(),
+                $id,
+                $this->target()->scopeFilters(),
+                $this->descriptor()->childIdField,
+            );
+        }
+
+        // One-to-many: parent-scoped, so a child of another parent (a forged id)
+        // resolves to null and a mutating row action can never reach across parents.
         $filters = $this->target()->scopeFilters();
         $parentId = $this->accessor->getValue($this->parent(), $this->descriptor()->parentIdField);
         $filters[(string) $this->descriptor()->foreignKey] = \is_scalar($parentId) ? $parentId : null;
@@ -135,7 +160,7 @@ final class RelationManager extends AbstractRecordTable
     /** @return list<Action> */
     public function getHeaderActions(): array
     {
-        return [];   // the New / Attach affordances are template triggers (M2)
+        return [];   // the New / Attach affordances are template triggers
     }
 
     public function getRecordActions(): array
@@ -144,10 +169,9 @@ final class RelationManager extends AbstractRecordTable
             return [];
         }
 
-        return [
-            $this->dissociateAction(),
-            DeleteAction::make(),
-        ];
+        return $this->isManyToMany()
+            ? [$this->detachAction()]
+            : [$this->dissociateAction(), DeleteAction::make()];
     }
 
     /**
@@ -171,16 +195,56 @@ final class RelationManager extends AbstractRecordTable
             });
     }
 
+    /** Remove the pivot row linking the record to this parent; the record persists. */
+    private function detachAction(): Action
+    {
+        $descriptor = $this->descriptor();
+        $parent = $this->parent();
+
+        return Action::make('detach')
+            ->label('Detach')
+            ->icon('unlink')
+            ->color('gray')
+            ->authorize('detach')
+            ->confirmationMessage('Detach this record? The link is removed; the record itself is kept.')
+            ->action(function (object $child) use ($descriptor, $parent): void {
+                $this->relationProvider->detach($descriptor, $parent, $child);
+            });
+    }
+
+    /** Detach every selected record's pivot row from this parent. */
+    private function bulkDetachAction(): Action
+    {
+        $descriptor = $this->descriptor();
+        $parent = $this->parent();
+
+        return Action::make('detachSelected')
+            ->label('Detach selected')
+            ->icon('unlink')
+            ->color('gray')
+            ->authorize('detach')
+            ->confirmationMessage('Detach the selected records?')
+            ->action(function (array $children) use ($descriptor, $parent): void {
+                foreach ($children as $child) {
+                    if (\is_object($child)) {
+                        $this->relationProvider->detach($descriptor, $parent, $child);
+                    }
+                }
+            });
+    }
+
     /**
      * Owned abilities (create/edit/delete/view) gate on the target resource via the
-     * base; relation link/unlink gate on the *parent* resource's canAssociate/
-     * canDissociate, which take both the parent record and the child (REL-12).
+     * base; relation link/unlink gate on the *parent* resource's hooks, which take
+     * both the parent record and the child (REL-12).
      */
     protected function actionAuthorized(Action $action, ?object $record): bool
     {
         return match ($action->getAbility()) {
             'associate' => null !== $record && $this->parentResource()->canAssociate($this->parent(), $record),
             'dissociate' => null !== $record && $this->parentResource()->canDissociate($this->parent(), $record),
+            'attach' => null !== $record && $this->parentResource()->canAttach($this->parent(), $record),
+            'detach' => null !== $record && $this->parentResource()->canDetach($this->parent(), $record),
             default => parent::actionAuthorized($action, $record),
         };
     }
@@ -191,9 +255,14 @@ final class RelationManager extends AbstractRecordTable
             return [];
         }
 
-        return [
-            BulkDeleteAction::make(),
-        ];
+        return $this->isManyToMany()
+            ? [$this->bulkDetachAction()]
+            : [BulkDeleteAction::make()];
+    }
+
+    private function isManyToMany(): bool
+    {
+        return RelationKind::ManyToMany === $this->descriptor()->kind;
     }
 
     /**
@@ -262,14 +331,16 @@ final class RelationManager extends AbstractRecordTable
         $this->modalMode = null;
         $this->modalRecordId = null;
         $this->associateId = '';
+        $this->attachId = '';
+        $this->pivotData = [];
     }
 
-    // -- Associate an existing record (REL-07) ----------------------------
+    // -- Associate an existing record (one-to-many, REL-07) ---------------
 
     #[LiveAction]
     public function openAssociate(): void
     {
-        if ($this->isReadOnly()) {
+        if ($this->isReadOnly() || $this->isManyToMany()) {
             return;
         }
 
@@ -301,12 +372,77 @@ final class RelationManager extends AbstractRecordTable
 
     public function canAssociateRelated(): bool
     {
-        return !$this->isReadOnly();
+        return !$this->isReadOnly() && !$this->isManyToMany();
+    }
+
+    // -- Attach an existing record (many-to-many, REL-07) -----------------
+
+    #[LiveAction]
+    public function openAttach(): void
+    {
+        if ($this->isReadOnly() || !$this->isManyToMany()) {
+            return;
+        }
+
+        $this->modalMode = 'attach';
+        $this->attachId = '';
+        $this->pivotData = [];
+    }
+
+    #[LiveAction]
+    public function submitAttach(): void
+    {
+        if ($this->isReadOnly() || !$this->isManyToMany() || '' === $this->attachId) {
+            return;
+        }
+
+        // Re-resolve from listLinkable so a forged id (already-linked or out of the
+        // target's scope) is refused; then re-check authorization at execution.
+        $child = $this->findLinkable($this->attachId);
+        if (null === $child || !$this->parentResource()->canAttach($this->parent(), $child)) {
+            return;
+        }
+
+        $pivot = $this->sanitisedPivot();
+        $this->writer->transactional(function () use ($child, $pivot): void {
+            $this->relationProvider->attach($this->descriptor(), $this->parent(), $child, $pivot);
+        });
+
+        $this->closeModal();
+        $this->refreshRecords();
+    }
+
+    public function canAttachRelated(): bool
+    {
+        return !$this->isReadOnly() && $this->isManyToMany();
+    }
+
+    /** @return list<string> */
+    public function getPivotColumns(): array
+    {
+        return $this->descriptor()->pivotColumns;
     }
 
     /**
-     * Options for the Associate picker: linkable records (not already linked,
-     * within the target's scope) titled by the relation's recordTitle, keyed by id.
+     * Only the declared pivot columns, coerced to strings (a forged extra key is
+     * dropped; the columns come from the trusted descriptor).
+     *
+     * @return array<string, scalar|null>
+     */
+    private function sanitisedPivot(): array
+    {
+        $clean = [];
+        foreach ($this->descriptor()->pivotColumns as $column) {
+            $value = $this->pivotData[$column] ?? null;
+            $clean[$column] = \is_scalar($value) ? (string) $value : null;
+        }
+
+        return $clean;
+    }
+
+    /**
+     * Options for the Associate/Attach picker: linkable records (not already
+     * linked, within the target's scope) titled by recordTitle, keyed by id.
      *
      * @return array<string, string>
      */
@@ -380,7 +516,7 @@ final class RelationManager extends AbstractRecordTable
 
     public function canCreateRelated(): bool
     {
-        return !$this->isReadOnly() && $this->target()->canCreate();
+        return !$this->isReadOnly() && !$this->isManyToMany() && $this->target()->canCreate();
     }
 
     public function getSingularLabel(): string
@@ -389,13 +525,13 @@ final class RelationManager extends AbstractRecordTable
     }
 
     /**
-     * Row clicks open the edit modal (unless read-only). This is a table-level
-     * flag, so every row is rendered clickable; `openEdit()` then re-checks
-     * `canEdit($record)` per record and no-ops for ones the user may not edit.
+     * Row clicks open the edit modal for one-to-many (the owned record is editable);
+     * many-to-many rows are not clickable (no owned edit — only Attach/Detach). A
+     * table-level flag, so `openEdit()` re-checks `canEdit($record)` per record.
      */
     public function getRowAction(): ?string
     {
-        return $this->isReadOnly() ? null : 'openEdit';
+        return ($this->isReadOnly() || $this->isManyToMany()) ? null : 'openEdit';
     }
 
     private function parentIdValue(): string
