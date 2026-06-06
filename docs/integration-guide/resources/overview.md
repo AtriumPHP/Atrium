@@ -99,6 +99,7 @@ Every hook below is an override point on `AdminResource` with a safe default
 | --- | --- |
 | `relations()` | Declare relation managers (`Relation::make(...)->oneToMany(...)` / `->manyToMany(...)`). |
 | `canAssociate` / `canDissociate` / `canAttach` / `canDetach` `($parent, $child)` | Gate link/unlink of related records. |
+| `parent()` | Declare the resource is **nested** under a parent record (`ParentRelation`); see [Nesting](nesting.md). |
 
 ### [Record lifecycle hooks](lifecycle-hooks.md) — shape data & react to writes
 

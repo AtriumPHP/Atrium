@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Nested resources (`REL-14..18`, `REL-20`).** A resource becomes **nested**
+  under a parent record by declaring **`parent(): ?ParentRelation`** —
+  `ParentRelation::make(ParentResource::class)->relationship('tasks')->foreignKey('projectId')->recordTitle('name')`,
+  validated lazily against the registry (parent registered, the named one-to-many
+  relation exists, foreign keys agree). An explicit nested route family
+  (`/{prefix}/{parentResource}/{parentId}/{resource}/…` for index/new/{id}/{id}/edit,
+  proven non-colliding with the flat routes) serves full CRUD **scoped to the
+  parent**: the list filters by the parent foreign key, create **presets** it, and a
+  child of another parent (a forged id) is a **404** (resolved against both the
+  child's `scopeQuery()` and the parent FK). A **breadcrumb** renders the ancestry
+  (`Projects › Alpha › Tasks`), and a parent-page relation manager whose target is
+  nested links each row into the child's nested view/edit pages and points **New** at
+  nested create instead of inline modals. **(API)** new **`AdminResource::parent()`**
+  hook (default `null` = top-level) and the **`ParentRelation`** builder;
+  `Atrium\Action\ActionContext` is no longer `final` — `NestedActionContext` extends
+  it to emit 5-segment URLs (additive, not a break); `Atrium\Page\PageContext` gains
+  optional `parentResourceSlug` / `parentRecordId` / `parentRecords` constructor
+  arguments and a `nestedUrl()` helper (additive); `Atrium:DataTable` gains an
+  optional `parentId` mount argument (additive) that scopes the list and emits nested
+  URLs. See [Nesting resources](docs/integration-guide/resources/nesting.md).
 - **Relation managers — many-to-many + tabs (`REL-02`, `REL-06`, `REL-07`,
   `REL-08`, `REL-12`).** A `manyToMany()` relation (declared with `pivotTable()` +
   `pivotKeys()` + optional `pivotColumns()`) renders a manager that **Attaches** an

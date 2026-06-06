@@ -15,7 +15,10 @@ lifecycle: create/edit (in a modal), delete, and attach/detach existing records.
 
 This page covers **one-to-many** relations (a child points back at one parent
 via a foreign key) and **many-to-many** relations (linked through a pivot table).
-Nested resources arrive in a later milestone.
+When a relation's target is itself a **nested resource** (it declares a
+[`parent()`](nesting.md)), its manager links each row into the child's full
+nested pages and points **New** at the nested create page instead of opening an
+inline modal — see [Nesting resources](nesting.md).
 
 ## Example
 
