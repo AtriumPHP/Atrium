@@ -7,9 +7,11 @@ namespace Atrium\Action;
 /**
  * The routing context an {@see Action} needs to resolve a per-record URL: the
  * panel path prefix, the resource slug and the record's id. Kept tiny and
- * Doctrine-agnostic so actions never reach into the router or the entity.
+ * Doctrine-agnostic so actions never reach into the router or the entity. Not
+ * `final`: {@see NestedActionContext} extends it to prepend a parent segment for
+ * nested resources (REL-16).
  */
-final readonly class ActionContext
+readonly class ActionContext
 {
     public function __construct(
         public string $pathPrefix,
