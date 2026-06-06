@@ -102,7 +102,7 @@ final class DoctrineRelationProvider implements RelationDataProvider
     private function setForeignKey(RelationDescriptor $relation, object $child, mixed $value): void
     {
         if (RelationKind::OneToMany !== $relation->kind) {
-            throw new \LogicException('Many-to-many link/unlink is implemented in REL-M3.');
+            throw new \LogicException('associate()/dissociate() require a one-to-many relation; use attach()/detach() for many-to-many.');
         }
 
         $this->accessor->setValue($child, (string) $relation->foreignKey, $value);

@@ -100,6 +100,23 @@ final class RelationManagerManyToManyTest extends KernelTestCase
         self::assertNull($this->state($component)->confirmingAction);
     }
 
+    public function testOneToManyOnlyActionsAreNoOpsOnAManyToManyManager(): void
+    {
+        // openCreate/openEdit/submitAssociate are one-to-many affordances; posting
+        // them straight to an M:N manager must not open a (broken) modal or reach
+        // the provider's associate() (which would throw for a pivot relation).
+        $component = $this->manager();
+
+        $component->call('openCreate');
+        self::assertNull($this->state($component)->modalMode);
+
+        $component->set('associateId', '3');
+        $component->call('submitAssociate');
+        self::assertNull($this->state($component)->modalMode);
+        // Tag 03 was not linked (associate is a no-op on M:N).
+        self::assertStringNotContainsString('Tag 03', $this->manager()->render()->toString());
+    }
+
     public function testOneToManyManagerStillShowsDissociateAndDeleteAfterKindDispatch(): void
     {
         // Regression guard: the 1:M `comments` manager keeps its REL-M2 action set.

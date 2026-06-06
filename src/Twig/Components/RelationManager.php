@@ -305,7 +305,9 @@ final class RelationManager extends AbstractRecordTable
     #[LiveAction]
     public function openCreate(): void
     {
-        if ($this->isReadOnly() || !$this->target()->canCreate()) {
+        // Owned create is one-to-many only; the M:N guard also stops a crafted
+        // request opening a modal whose preset FK would be empty (no foreignKey).
+        if ($this->isReadOnly() || $this->isManyToMany() || !$this->target()->canCreate()) {
             return;
         }
 
@@ -316,8 +318,12 @@ final class RelationManager extends AbstractRecordTable
     #[LiveAction]
     public function openEdit(#[LiveArg] string $id): void
     {
+        if ($this->isReadOnly() || $this->isManyToMany()) {
+            return;   // owned edit is one-to-many only
+        }
+
         $record = $this->findRecord($id);   // parent-scoped
-        if ($this->isReadOnly() || null === $record || !$this->target()->canEdit($record)) {
+        if (null === $record || !$this->target()->canEdit($record)) {
             return;
         }
 
@@ -351,7 +357,9 @@ final class RelationManager extends AbstractRecordTable
     #[LiveAction]
     public function submitAssociate(): void
     {
-        if ($this->isReadOnly() || '' === $this->associateId) {
+        // One-to-many only; the M:N guard stops a crafted request reaching the
+        // provider's associate() (which would throw for a pivot relation).
+        if ($this->isReadOnly() || $this->isManyToMany() || '' === $this->associateId) {
             return;
         }
 
