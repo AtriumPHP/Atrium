@@ -8,6 +8,7 @@ use Atrium\Controller\AdminController;
 use Atrium\Dashboard\Dashboard;
 use Atrium\Dashboard\DashboardRegistry;
 use Atrium\Dashboard\DefaultDashboard;
+use Atrium\Relation\ParentRelationResolver;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -71,7 +72,7 @@ final class DashboardControllerTest extends KernelTestCase
         $twig = self::getContainer()->get('twig');
         self::assertInstanceOf(Environment::class, $twig);
 
-        return new AdminController($twig, $resources, $dashboards, 'Atrium', '/admin', null);
+        return new AdminController($twig, $resources, $dashboards, 'Atrium', '/admin', new ParentRelationResolver($resources), null);
     }
 }
 

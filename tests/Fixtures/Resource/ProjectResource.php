@@ -6,6 +6,7 @@ namespace Atrium\Tests\Fixtures\Resource;
 
 use Atrium\Form\Field\TextField;
 use Atrium\Form\Schema;
+use Atrium\Page\ViewPage;
 use Atrium\Relation\Relation;
 use Atrium\Resource\AdminResource;
 use Atrium\Table\Column;
@@ -18,6 +19,12 @@ final class ProjectResource extends AdminResource
     public function getEntityClass(): string
     {
         return Project::class;
+    }
+
+    /** @return array<string, class-string<\Atrium\Page\Page>> */
+    public static function pages(): array
+    {
+        return [...parent::pages(), 'view' => ViewPage::class];
     }
 
     public function table(TableConfiguration $table): TableConfiguration

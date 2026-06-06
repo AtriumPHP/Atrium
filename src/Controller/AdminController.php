@@ -10,6 +10,8 @@ use Atrium\Dashboard\DashboardRegistry;
 use Atrium\Dashboard\DefaultDashboard;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\Page\PageContext;
+use Atrium\Relation\ParentRelationResolver;
+use Atrium\Relation\ResolvedParentRelation;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,6 +37,7 @@ final readonly class AdminController
         private DashboardRegistry $dashboards,
         private string $brand,
         private string $pathPrefix,
+        private ParentRelationResolver $parentResolver,
         private ?DataProviderInterface $dataProvider = null,
     ) {
     }
@@ -159,6 +162,147 @@ final readonly class AdminController
             'record' => $record,
             'entityId' => $id,
         ]);
+    }
+
+    /**
+     * Resolve a nested request: the parent resource + its (scoped) record and the
+     * child resource, asserting the URL's nesting is the one the child declares.
+     * Any failure — unregistered/forbidden resource, undeclared nesting, or an
+     * out-of-scope parent — is a 404/403, never a leak.
+     *
+     * @return array{parent: AdminResource, parentRecord: ?object, child: AdminResource, resolved: ResolvedParentRelation}
+     */
+    private function resolveNested(string $parentResource, string $parentId, string $resource): array
+    {
+        $parent = $this->requireResource($parentResource);
+        $child = $this->requireResource($resource);
+        $this->denyUnless($parent->canAccess() && $child->canAccess());
+
+        // The child must declare it is nested under exactly this parent + relation.
+        // A mismatch (or a non-nested child) is a 404: this URL shape isn't offered.
+        if (null === $child->parent()) {
+            throw new NotFoundHttpException(\sprintf('Resource "%s" is not a nested resource.', $resource));
+        }
+        $resolved = $this->parentResolver->resolve($child);
+        if ($resolved->parentResource->getSlug() !== $parent->getSlug()) {
+            throw new NotFoundHttpException(\sprintf('Resource "%s" is not nested under "%s".', $resource, $parentResource));
+        }
+
+        $parentRecord = null;
+        if (null !== $this->dataProvider) {
+            $parentRecord = $this->dataProvider->find(
+                $parent->getEntityClass(),
+                $parentId,
+                $parent->scopeFilters(),
+                $parent->getIdentifierField(),
+            );
+            if (null === $parentRecord) {
+                throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $parentResource, $parentId));
+            }
+        }
+
+        return ['parent' => $parent, 'parentRecord' => $parentRecord, 'child' => $child, 'resolved' => $resolved];
+    }
+
+    /**
+     * Resolve the child record scoped to BOTH its own scopeQuery and the parent FK
+     * (a child of another parent — a forged id — is a 404, never reachable here).
+     */
+    private function findNestedRecord(AdminResource $child, ResolvedParentRelation $resolved, string $parentId, string $id): ?object
+    {
+        if (null === $this->dataProvider) {
+            return null;
+        }
+
+        $filters = $child->scopeFilters() + [$resolved->foreignKey => $parentId];
+
+        return $this->dataProvider->find($child->getEntityClass(), $id, $filters, $child->getIdentifierField());
+    }
+
+    public function nestedView(string $parentResource, string $parentId, string $resource, string $id): Response
+    {
+        $ctx = $this->resolveNested($parentResource, $parentId, $resource);
+        $child = $ctx['child'];
+
+        $page = $child->resolvePage('view');
+        if (null === $page) {
+            throw new NotFoundHttpException(\sprintf('The "%s" resource has no view screen.', $resource));
+        }
+
+        $record = $this->findNestedRecord($child, $ctx['resolved'], $parentId, $id);
+        if (null !== $this->dataProvider) {
+            if (null === $record) {
+                throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
+            }
+            $this->denyUnless($child->canView($record));
+        }
+
+        $context = $this->nestedPageContext($ctx, $id);
+
+        return $this->render('@Atrium/admin/view_page.html.twig', [
+            'panel' => $this->panel($parentResource),
+            'resource' => $child,
+            'heading' => $page->getHeading($context),
+            'subheading' => $page->getSubheading($context),
+            'schema' => $child->resolveViewSchema(),
+            'headerWidgets' => $child->resolveViewHeaderWidgets($context),
+            'footerWidgets' => $child->resolveViewFooterWidgets($context),
+            'record' => $record,
+            'entityId' => $id,
+            'parentResourceSlug' => $parentResource,
+            'parentRecordId' => $parentId,
+            'breadcrumbs' => $this->nestedBreadcrumbs($ctx),
+            'backUrl' => $this->nestedIndexUrl($ctx, $parentId),
+        ]);
+    }
+
+    public function nestedCreate(string $parentResource, string $parentId, string $resource): Response
+    {
+        throw new NotFoundHttpException('Not implemented yet.'); // Task 7
+    }
+
+    public function nestedEdit(string $parentResource, string $parentId, string $resource, string $id): Response
+    {
+        throw new NotFoundHttpException('Not implemented yet.'); // Task 6
+    }
+
+    public function nestedIndex(string $parentResource, string $parentId, string $resource): Response
+    {
+        throw new NotFoundHttpException('Not implemented yet.'); // Task 7
+    }
+
+    /**
+     * @param array{parent: AdminResource, parentRecord: ?object, child: AdminResource, resolved: ResolvedParentRelation} $ctx
+     */
+    private function nestedPageContext(array $ctx, ?string $entityId): PageContext
+    {
+        // Task 8 enriches PageContext with parent records + nestedUrl(); for now a
+        // plain context over the child slug keeps Page hooks working.
+        return new PageContext(
+            $ctx['child']->getSlug(),
+            $this->pathPrefix,
+            $entityId,
+            $ctx['child']->getSingularLabel(),
+            $ctx['child']->getLabel(),
+        );
+    }
+
+    /**
+     * @param array{parent: AdminResource, parentRecord: ?object, child: AdminResource, resolved: ResolvedParentRelation} $ctx
+     */
+    private function nestedIndexUrl(array $ctx, string $parentId): string
+    {
+        return rtrim($this->pathPrefix, '/').'/'.$ctx['parent']->getSlug().'/'.rawurlencode($parentId).'/'.$ctx['child']->getSlug();
+    }
+
+    /**
+     * @param array{parent: AdminResource, parentRecord: ?object, child: AdminResource, resolved: ResolvedParentRelation} $ctx
+     *
+     * @return list<array{label: string, url: ?string}>
+     */
+    private function nestedBreadcrumbs(array $ctx): array
+    {
+        return []; // Task 8 builds the real trail.
     }
 
     private function resourceList(string $resource): Response

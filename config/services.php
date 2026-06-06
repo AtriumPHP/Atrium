@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Atrium\Controller\AdminController;
 use Atrium\Dashboard\DashboardRegistry;
 use Atrium\DataProvider\DataProviderInterface;
+use Atrium\Relation\ParentRelationResolver;
 use Atrium\Relation\RelationResolver;
 use Atrium\Resource\ResourceRegistry;
 use Atrium\Twig\IconExtension;
@@ -45,11 +46,15 @@ return static function (ContainerConfigurator $container): void {
             service(DashboardRegistry::class),
             param('atrium.brand'),
             param('atrium.path_prefix'),
+            service(ParentRelationResolver::class),
             service(DataProviderInterface::class)->ignoreOnInvalid(),
         ])
         ->tag('controller.service_arguments');
 
     $services->set(RelationResolver::class)
+        ->args([service(ResourceRegistry::class)]);
+
+    $services->set(ParentRelationResolver::class)
         ->args([service(ResourceRegistry::class)]);
 
     $services->load('Atrium\\Twig\\Components\\', \dirname(__DIR__).'/src/Twig/Components/')
