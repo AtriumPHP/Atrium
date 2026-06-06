@@ -48,4 +48,21 @@ final class NestedResourceTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testNestedEditRendersScopedRecord(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/admin/project/1/task/2/edit');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('form');
+    }
+
+    public function testCrossParentEditIs404(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/admin/project/2/task/1/edit'); // task 1 is under project 1
+
+        self::assertResponseStatusCodeSame(404);
+    }
 }

@@ -263,7 +263,34 @@ final readonly class AdminController
 
     public function nestedEdit(string $parentResource, string $parentId, string $resource, string $id): Response
     {
-        throw new NotFoundHttpException('Not implemented yet.'); // Task 6
+        $ctx = $this->resolveNested($parentResource, $parentId, $resource);
+        $child = $ctx['child'];
+
+        $record = $this->findNestedRecord($child, $ctx['resolved'], $parentId, $id);
+        if (null !== $this->dataProvider) {
+            if (null === $record) {
+                throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
+            }
+            $this->denyUnless($child->canEdit($record));
+        }
+
+        $page = $child->resolvePage('edit');
+        $context = $this->nestedPageContext($ctx, $id);
+
+        return $this->render('@Atrium/admin/form_page.html.twig', [
+            'panel' => $this->panel($parentResource),
+            'resource' => $child,
+            'heading' => $page?->getHeading($context) ?? 'Edit '.$child->getSingularLabel(),
+            'subheading' => $page?->getSubheading($context),
+            'entityId' => $id,
+            // After saving the child, return to its nested index under this parent.
+            'redirectUrl' => $page?->getRedirectUrl($context) ?? $this->nestedIndexUrl($ctx, $parentId),
+            'presetValues' => [],
+            'parentResourceSlug' => $parentResource,
+            'parentRecordId' => $parentId,
+            'breadcrumbs' => $this->nestedBreadcrumbs($ctx),
+            'backUrl' => $this->nestedIndexUrl($ctx, $parentId),
+        ]);
     }
 
     public function nestedIndex(string $parentResource, string $parentId, string $resource): Response

@@ -5,7 +5,7 @@
 {% block subheading %}{% if subheading %}<p class="mt-0.5 truncate text-sm text-gray-500 dark:text-gray-400">{{ subheading }}</p>{% endif %}{% endblock %}
 
 {% block header_actions %}
-    <a href="{{ panel.pathPrefix }}/{{ resource.slug }}"
+    <a href="{{ backUrl|default(panel.pathPrefix ~ '/' ~ resource.slug) }}"
        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white">
         {{ atrium_icon('arrow-left', { class: 'h-4 w-4' }) }}
         {{ resource.label }}
@@ -15,12 +15,14 @@
 {% block body %}
     <div class="mx-auto max-w-4xl">
         {# The resource picks its form component (plain Form, or WizardForm when
-           the schema has a Wizard) — see AdminResource::getFormComponentName(). #}
+           the schema has a Wizard) — see AdminResource::getFormComponentName().
+           `presetValues` seeds fields (e.g. a nested child's parent foreign key). #}
         {{ component(resource.formComponentName, {
             resource: resource.slug,
             entityId: entityId,
             redirectAfterSave: redirectUrl,
             pathPrefix: panel.pathPrefix,
+            presetValues: presetValues|default({}),
         }) }}
 
         {# Relation managers (REL-08): a band of related-records tables below the
