@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atrium\Tests\Functional;
 
 use Atrium\DataProvider\ArrayDataWriter;
+use Atrium\Tests\Fixtures\Entity\Comment;
 use Atrium\Twig\Components\RelationManager;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
@@ -48,7 +49,13 @@ final class RelationManagerActionsTest extends KernelTestCase
         self::assertSame('delete', $this->state($component)->confirmingAction);
 
         $component->call('confirmAction');
+
+        // Exactly the parent's own child (comment 1) was handed to the writer.
         self::assertCount(1, $this->writer()->deleted);
+        $deleted = $this->writer()->deleted[0];
+        self::assertInstanceOf(Comment::class, $deleted);
+        self::assertSame(1, $deleted->id);
+        self::assertSame(1, $deleted->postId);
     }
 
     public function testDissociateUnlinksTheChildFromThisParent(): void
@@ -122,6 +129,20 @@ final class RelationManagerActionsTest extends KernelTestCase
 
         // Still open (nothing picked); no exception.
         self::assertSame('associate', $this->state($component)->modalMode);
+    }
+
+    public function testSubmitAssociateIsRefusedWhenParentDeniesAssociate(): void
+    {
+        // The picker is reachable (canAssociate needs a child, so it can't gate the
+        // button), but the execution path must refuse when canAssociate is false.
+        $component = $this->manager('1', 'edit', 'post-deny-assoc');
+        $component->call('openAssociate');
+        $component->set('associateId', '100');   // a genuinely linkable record
+        $component->call('submitAssociate');
+
+        // Comment 100 stays unlinked: it is not listed under the parent.
+        $html = $this->manager('1', 'edit', 'post-deny-assoc')->render()->toString();
+        self::assertStringNotContainsString('Unassigned A', $html);
     }
 
     public function testViewScreenManagerIsReadOnly(): void

@@ -78,9 +78,10 @@ final class DoctrineRelationProvider implements RelationDataProvider
     }
 
     /**
-     * Set (or clear) the child's foreign key and persist. The flush enlists in the
-     * ambient transaction opened by the relation manager (so a create+associate
-     * commits or rolls back together).
+     * Set (or clear) the child's foreign key and persist. When called inside the
+     * relation manager's `writer->transactional()` (Doctrine `wrapInTransaction`),
+     * this flush executes its SQL within that already-open transaction, so the
+     * link commits or rolls back together with the surrounding work.
      */
     private function setForeignKey(RelationDescriptor $relation, object $child, mixed $value): void
     {

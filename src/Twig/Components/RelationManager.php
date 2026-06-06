@@ -388,7 +388,11 @@ final class RelationManager extends AbstractRecordTable
         return $this->target()->getSingularLabel();
     }
 
-    /** Row clicks open the edit modal (unless read-only). */
+    /**
+     * Row clicks open the edit modal (unless read-only). This is a table-level
+     * flag, so every row is rendered clickable; `openEdit()` then re-checks
+     * `canEdit($record)` per record and no-ops for ones the user may not edit.
+     */
     public function getRowAction(): ?string
     {
         return $this->isReadOnly() ? null : 'openEdit';
@@ -397,8 +401,14 @@ final class RelationManager extends AbstractRecordTable
     private function parentIdValue(): string
     {
         $value = $this->accessor->getValue($this->parent(), $this->descriptor()->parentIdField);
+        if (!\is_scalar($value)) {
+            // A non-scalar parent identifier (e.g. a value-object id) cannot be
+            // carried as a preset FK through the form's serialized state. Fail loud
+            // rather than silently linking the child to an empty key.
+            throw new \RuntimeException(\sprintf('Relation "%s" cannot preset a non-scalar parent identifier from "%s".', $this->relationName, $this->descriptor()->parentIdField));
+        }
 
-        return \is_scalar($value) ? (string) $value : '';
+        return (string) $value;
     }
 
     // -- Resolution helpers -----------------------------------------------

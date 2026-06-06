@@ -18,6 +18,11 @@ use Atrium\Tests\Fixtures\Entity\Tag;
  * and {@see relationProvider()} share the *same* fixture objects — mirroring a
  * single backend where reads and relation queries see one record store. A fresh
  * instance per boot keeps tests isolated.
+ *
+ * Note: the {@see \Atrium\DataProvider\ArrayDataWriter} is a *separate* store, so
+ * a create/delete through the writer is observed via the writer's own `created`/
+ * `deleted` lists (and a dissociate via the shared object's mutated FK), not by
+ * re-reading the provider. In production a single Doctrine backend unifies them.
  */
 final class SampleData
 {
