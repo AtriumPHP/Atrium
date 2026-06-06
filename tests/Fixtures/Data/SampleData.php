@@ -8,7 +8,9 @@ use Atrium\DataProvider\ArrayDataProvider;
 use Atrium\DataProvider\ArrayRelationProvider;
 use Atrium\Tests\Fixtures\Entity\Comment;
 use Atrium\Tests\Fixtures\Entity\Post;
+use Atrium\Tests\Fixtures\Entity\Project;
 use Atrium\Tests\Fixtures\Entity\Tag;
+use Atrium\Tests\Fixtures\Entity\Task;
 
 /**
  * Seeds the in-memory adapters with sample records for the functional tests, so
@@ -34,6 +36,12 @@ final class SampleData
 
     /** @var list<Comment> */
     private array $comments;
+
+    /** @var list<Project> */
+    private array $projects;
+
+    /** @var list<Task> */
+    private array $tasks;
 
     public function __construct()
     {
@@ -65,6 +73,17 @@ final class SampleData
             new Comment(100, 'Unassigned A', postId: null),
             new Comment(101, 'Unassigned B', postId: null),
         ];
+
+        // Nested-resource fixtures: Tasks belong to a Project via Task.projectId.
+        $this->projects = [
+            new Project(1, 'Alpha'),
+            new Project(2, 'Beta'),
+        ];
+        $this->tasks = [
+            new Task(1, 'Design', projectId: 1),
+            new Task(2, 'Build', projectId: 1),
+            new Task(3, 'Ship', projectId: 2),
+        ];
     }
 
     public function provider(): ArrayDataProvider
@@ -73,6 +92,8 @@ final class SampleData
             Tag::class => $this->tags,
             Post::class => $this->posts,
             Comment::class => $this->comments,
+            Project::class => $this->projects,
+            Task::class => $this->tasks,
         ]);
     }
 
@@ -82,6 +103,7 @@ final class SampleData
             [
                 Comment::class => $this->comments,
                 Tag::class => $this->tags,
+                Task::class => $this->tasks,
             ],
             pivots: [
                 // Post 1 ↔ Tags 1 and 2 (many-to-many). Tags 3+ are linkable.

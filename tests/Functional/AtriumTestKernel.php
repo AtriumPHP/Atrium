@@ -31,12 +31,14 @@ use Atrium\Tests\Fixtures\Resource\PaginatedTagResource;
 use Atrium\Tests\Fixtures\Resource\PostMultiRelResource;
 use Atrium\Tests\Fixtures\Resource\PostRelResource;
 use Atrium\Tests\Fixtures\Resource\PostTagsResource;
+use Atrium\Tests\Fixtures\Resource\ProjectResource;
 use Atrium\Tests\Fixtures\Resource\RestrictedPostTagsResource;
 use Atrium\Tests\Fixtures\Resource\RowUrlTagResource;
 use Atrium\Tests\Fixtures\Resource\ScopedTagResource;
 use Atrium\Tests\Fixtures\Resource\TabsTagResource;
 use Atrium\Tests\Fixtures\Resource\TagRelResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
+use Atrium\Tests\Fixtures\Resource\TaskResource;
 use Atrium\Tests\Fixtures\Resource\UnlistedTagResource;
 use Atrium\Tests\Fixtures\Resource\ViewFallbackTagResource;
 use Atrium\Tests\Fixtures\Resource\ViewTagResource;
@@ -235,6 +237,16 @@ class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(PostMultiRelResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        // Nested-resource fixtures: a parent (Project) whose `tasks` one-to-many
+        // targets a nested child resource (Task) declaring parent().
+        $services->set(ProjectResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        $services->set(TaskResource::class)
             ->autoconfigure()
             ->autowire();
 
