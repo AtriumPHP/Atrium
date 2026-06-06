@@ -31,6 +31,10 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
     public function listRelated(RelationDescriptor $relation, object $parent, DataQuery $query): iterable
     {
+        if ($relation->kind->usesPivot()) {
+            return $this->childrenByIds($relation, $this->pivotRelatedIds($relation, $parent), $query, exclude: false);
+        }
+
         $qb = $this->relatedQuery($relation, $parent, $query)
             ->setFirstResult(max(0, $query->offset))
             ->setMaxResults(max(1, $query->limit));
@@ -43,6 +47,10 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
     public function countRelated(RelationDescriptor $relation, object $parent, DataQuery $query): int
     {
+        if ($relation->kind->usesPivot()) {
+            return $this->countByIds($relation, $this->pivotRelatedIds($relation, $parent), $query, exclude: false);
+        }
+
         $qb = $this->relatedQuery($relation, $parent, $query)->select(\sprintf('COUNT(%s)', self::ALIAS));
 
         return (int) $qb->getQuery()->getSingleScalarResult();
@@ -50,6 +58,10 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
     public function listLinkable(RelationDescriptor $relation, object $parent, DataQuery $query): iterable
     {
+        if ($relation->kind->usesPivot()) {
+            return $this->childrenByIds($relation, $this->pivotRelatedIds($relation, $parent), $query, exclude: true);
+        }
+
         $qb = $this->linkableQuery($relation, $query)
             ->setFirstResult(max(0, $query->offset))
             ->setMaxResults(max(1, $query->limit));
@@ -62,6 +74,10 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
     public function countLinkable(RelationDescriptor $relation, object $parent, DataQuery $query): int
     {
+        if ($relation->kind->usesPivot()) {
+            return $this->countByIds($relation, $this->pivotRelatedIds($relation, $parent), $query, exclude: true);
+        }
+
         $qb = $this->linkableQuery($relation, $query)->select(\sprintf('COUNT(%s)', self::ALIAS));
 
         return (int) $qb->getQuery()->getSingleScalarResult();
@@ -96,12 +112,27 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
     public function attach(RelationDescriptor $relation, object $parent, object $child, array $pivot = []): void
     {
-        throw new \LogicException('attach() is implemented in REL-M3.');
+        $this->assertManyToMany($relation);
+        $data = [
+            (string) $relation->pivotParentKey => $this->accessor->getValue($parent, $relation->parentIdField),
+            (string) $relation->pivotRelatedKey => $this->accessor->getValue($child, $relation->childIdField),
+        ];
+        foreach ($relation->pivotColumns as $column) {
+            $data[$column] = $pivot[$column] ?? null;
+        }
+
+        // Connection::insert quotes identifiers and binds every value as a
+        // parameter; column/table names come from the trusted descriptor.
+        $this->entityManager->getConnection()->insert((string) $relation->pivotTable, $data);
     }
 
     public function detach(RelationDescriptor $relation, object $parent, object $child): void
     {
-        throw new \LogicException('detach() is implemented in REL-M3.');
+        $this->assertManyToMany($relation);
+        $this->entityManager->getConnection()->delete((string) $relation->pivotTable, [
+            (string) $relation->pivotParentKey => $this->accessor->getValue($parent, $relation->parentIdField),
+            (string) $relation->pivotRelatedKey => $this->accessor->getValue($child, $relation->childIdField),
+        ]);
     }
 
     private function relatedQuery(RelationDescriptor $relation, object $parent, DataQuery $query): QueryBuilder
@@ -137,6 +168,95 @@ final class DoctrineRelationProvider implements RelationDataProvider
         $this->applyFilters($qb, $query->filters);
 
         return $qb;
+    }
+
+    /**
+     * Related child ids linked to $parent through the relation's pivot table. One
+     * DBAL query; table/column names come from the trusted descriptor (developer
+     * config, never user input), the parent id bound as a parameter.
+     *
+     * @return list<scalar>
+     */
+    private function pivotRelatedIds(RelationDescriptor $relation, object $parent): array
+    {
+        if (!$relation->kind->usesPivot()) {
+            throw new \LogicException('Pivot lookup requires a many-to-many relation.');
+        }
+
+        $parentId = $this->accessor->getValue($parent, $relation->parentIdField);
+        $sql = \sprintf(
+            'SELECT %s FROM %s WHERE %s = ?',
+            $relation->pivotRelatedKey,
+            $relation->pivotTable,
+            $relation->pivotParentKey,
+        );
+
+        return array_values(array_filter(
+            $this->entityManager->getConnection()->fetchFirstColumn($sql, [$parentId]),
+            static fn (mixed $value): bool => \is_scalar($value),
+        ));
+    }
+
+    /**
+     * Children whose id is IN (or NOT IN, when $exclude) the given id set, with the
+     * target scope filters, pagination and sort applied. For the IN case an empty
+     * set means no rows; for NOT-IN an empty set means no exclusion (all children).
+     *
+     * @param list<scalar> $ids
+     *
+     * @return list<object>
+     */
+    private function childrenByIds(RelationDescriptor $relation, array $ids, DataQuery $query, bool $exclude): array
+    {
+        if (!$exclude && [] === $ids) {
+            return [];
+        }
+
+        $qb = $this->idScopedQuery($relation, $ids, $exclude, $query)
+            ->setFirstResult(max(0, $query->offset))
+            ->setMaxResults(max(1, $query->limit));
+
+        return array_values(array_filter(
+            (array) $qb->getQuery()->getResult(),
+            static fn (mixed $row): bool => \is_object($row),
+        ));
+    }
+
+    /**
+     * @param list<scalar> $ids
+     */
+    private function countByIds(RelationDescriptor $relation, array $ids, DataQuery $query, bool $exclude): int
+    {
+        if (!$exclude && [] === $ids) {
+            return 0;
+        }
+
+        $qb = $this->idScopedQuery($relation, $ids, $exclude, $query)->select(\sprintf('COUNT(%s)', self::ALIAS));
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * @param list<scalar> $ids
+     */
+    private function idScopedQuery(RelationDescriptor $relation, array $ids, bool $exclude, DataQuery $query): QueryBuilder
+    {
+        $qb = $this->entityManager->getRepository($relation->childEntityClass)->createQueryBuilder(self::ALIAS);
+        if ([] !== $ids) {
+            $field = self::ALIAS.'.'.$relation->childIdField;
+            $qb->where($exclude ? $qb->expr()->notIn($field, ':atrium_ids') : $qb->expr()->in($field, ':atrium_ids'))
+                ->setParameter('atrium_ids', $ids);
+        }
+        $this->applyFilters($qb, $query->filters);
+
+        return $qb;
+    }
+
+    private function assertManyToMany(RelationDescriptor $relation): void
+    {
+        if (!$relation->kind->usesPivot()) {
+            throw new \LogicException('This relation operation requires a many-to-many relation.');
+        }
     }
 
     /**

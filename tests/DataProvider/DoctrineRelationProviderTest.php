@@ -10,7 +10,9 @@ use Atrium\Relation\RelationDescriptor;
 use Atrium\Relation\RelationKind;
 use Atrium\Tests\Fixtures\Doctrine\EntityManagerFactory;
 use Atrium\Tests\Fixtures\Entity\Article;
+use Atrium\Tests\Fixtures\Entity\Course;
 use Atrium\Tests\Fixtures\Entity\Note;
+use Atrium\Tests\Fixtures\Entity\Student;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +28,13 @@ final class DoctrineRelationProviderTest extends TestCase
         (new SchemaTool($this->entityManager))->createSchema([
             $this->entityManager->getClassMetadata(Article::class),
             $this->entityManager->getClassMetadata(Note::class),
+            $this->entityManager->getClassMetadata(Course::class),
+            $this->entityManager->getClassMetadata(Student::class),
         ]);
+        // The pivot is not a mapped entity — create it directly (REL-02).
+        $this->entityManager->getConnection()->executeStatement(
+            'CREATE TABLE course_student (course_id INTEGER NOT NULL, student_id INTEGER NOT NULL, role VARCHAR(255) DEFAULT NULL)'
+        );
         $this->provider = new DoctrineRelationProvider($this->entityManager);
     }
 
@@ -40,6 +48,22 @@ final class DoctrineRelationProviderTest extends TestCase
             parentIdField: 'id',
             recordTitleAttribute: 'body',
             foreignKey: 'articleId',
+        );
+    }
+
+    private function pivotDescriptor(): RelationDescriptor
+    {
+        return new RelationDescriptor(
+            name: 'students',
+            kind: RelationKind::ManyToMany,
+            childEntityClass: Student::class,
+            childIdField: 'id',
+            parentIdField: 'id',
+            recordTitleAttribute: 'name',
+            pivotTable: 'course_student',
+            pivotParentKey: 'course_id',
+            pivotRelatedKey: 'student_id',
+            pivotColumns: ['role'],
         );
     }
 
@@ -137,5 +161,71 @@ final class DoctrineRelationProviderTest extends TestCase
         self::assertInstanceOf(Note::class, $rows[0]);
         self::assertSame('free', $rows[0]->body);
         self::assertSame(1, $this->provider->countLinkable($this->descriptor(), $parent, new DataQuery()));
+    }
+
+    public function testManyToManyListRelatedJoinsThroughThePivot(): void
+    {
+        $course = new Course('Math');
+        $this->entityManager->persist($course);
+        $s1 = new Student('Ada');
+        $s2 = new Student('Bo');
+        $s3 = new Student('Cy');
+        foreach ([$s1, $s2, $s3] as $student) {
+            $this->entityManager->persist($student);
+        }
+        $this->entityManager->flush();
+
+        $conn = $this->entityManager->getConnection();
+        $conn->insert('course_student', ['course_id' => $course->id, 'student_id' => $s1->id]);
+        $conn->insert('course_student', ['course_id' => $course->id, 'student_id' => $s3->id]);
+        $this->entityManager->clear();
+
+        $parent = $this->entityManager->find(Course::class, $course->id);
+        self::assertNotNull($parent);
+
+        $rows = [...$this->provider->listRelated($this->pivotDescriptor(), $parent, new DataQuery())];
+        self::assertCount(2, $rows);
+        self::assertContainsOnlyInstancesOf(Student::class, $rows);
+        self::assertSame(2, $this->provider->countRelated($this->pivotDescriptor(), $parent, new DataQuery()));
+    }
+
+    public function testManyToManyListLinkableExcludesAlreadyLinked(): void
+    {
+        $course = new Course('Math');
+        $this->entityManager->persist($course);
+        $s1 = new Student('Ada');
+        $s2 = new Student('Bo');
+        foreach ([$s1, $s2] as $student) {
+            $this->entityManager->persist($student);
+        }
+        $this->entityManager->flush();
+        $this->entityManager->getConnection()->insert('course_student', ['course_id' => $course->id, 'student_id' => $s1->id]);
+        $this->entityManager->clear();
+
+        $parent = $this->entityManager->find(Course::class, $course->id);
+        self::assertNotNull($parent);
+
+        $rows = [...$this->provider->listLinkable($this->pivotDescriptor(), $parent, new DataQuery())];
+        self::assertCount(1, $rows);
+        self::assertInstanceOf(Student::class, $rows[0]);
+        self::assertSame('Bo', $rows[0]->name);
+        self::assertSame(1, $this->provider->countLinkable($this->pivotDescriptor(), $parent, new DataQuery()));
+    }
+
+    public function testManyToManyAttachInsertsPivotRowWithColumnsAndDetachRemovesIt(): void
+    {
+        $course = new Course('Math');
+        $student = new Student('Ada');
+        $this->entityManager->persist($course);
+        $this->entityManager->persist($student);
+        $this->entityManager->flush();
+
+        $this->provider->attach($this->pivotDescriptor(), $course, $student, ['role' => 'lead']);
+
+        $conn = $this->entityManager->getConnection();
+        self::assertSame('lead', $conn->fetchOne('SELECT role FROM course_student WHERE course_id = ? AND student_id = ?', [$course->id, $student->id]));
+
+        $this->provider->detach($this->pivotDescriptor(), $course, $student);
+        self::assertFalse($conn->fetchOne('SELECT role FROM course_student WHERE course_id = ? AND student_id = ?', [$course->id, $student->id]));
     }
 }

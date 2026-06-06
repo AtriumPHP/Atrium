@@ -18,36 +18,52 @@ final class ArrayRelationProvider implements RelationDataProvider
 {
     private readonly PropertyAccessorInterface $accessor;
 
-    /** @param array<class-string, list<object>> $records */
+    /**
+     * @param array<class-string, list<object>>                                                                          $records
+     * @param array<string, list<array{parent: scalar|null, related: scalar|null, columns: array<string, scalar|null>}>> $pivots  in-memory pivot rows, keyed by pivot table name
+     */
     public function __construct(
         private array $records = [],
         ?PropertyAccessorInterface $accessor = null,
+        private array $pivots = [],
     ) {
         $this->accessor = $accessor ?? PropertyAccess::createPropertyAccessor();
     }
 
     public function listRelated(RelationDescriptor $relation, object $parent, DataQuery $query): iterable
     {
-        $matched = $this->matchingChildren($relation, $parent, $query);
+        $matched = $relation->kind->usesPivot()
+            ? $this->relatedThroughPivot($relation, $parent, $query)
+            : $this->matchingChildren($relation, $parent, $query);
 
         return \array_slice($matched, max(0, $query->offset), max(1, $query->limit));
     }
 
     public function countRelated(RelationDescriptor $relation, object $parent, DataQuery $query): int
     {
-        return \count($this->matchingChildren($relation, $parent, $query));
+        $matched = $relation->kind->usesPivot()
+            ? $this->relatedThroughPivot($relation, $parent, $query)
+            : $this->matchingChildren($relation, $parent, $query);
+
+        return \count($matched);
     }
 
     public function listLinkable(RelationDescriptor $relation, object $parent, DataQuery $query): iterable
     {
-        $matched = $this->linkableChildren($relation, $query);
+        $matched = $relation->kind->usesPivot()
+            ? $this->linkableThroughPivot($relation, $parent, $query)
+            : $this->linkableChildren($relation, $query);
 
         return \array_slice($matched, max(0, $query->offset), max(1, $query->limit));
     }
 
     public function countLinkable(RelationDescriptor $relation, object $parent, DataQuery $query): int
     {
-        return \count($this->linkableChildren($relation, $query));
+        $matched = $relation->kind->usesPivot()
+            ? $this->linkableThroughPivot($relation, $parent, $query)
+            : $this->linkableChildren($relation, $query);
+
+        return \count($matched);
     }
 
     public function associate(RelationDescriptor $relation, object $parent, object $child): void
@@ -64,12 +80,25 @@ final class ArrayRelationProvider implements RelationDataProvider
 
     public function attach(RelationDescriptor $relation, object $parent, object $child, array $pivot = []): void
     {
-        throw new \LogicException('attach() is implemented in REL-M3.');
+        $this->assertManyToMany($relation);
+        $this->pivots[(string) $relation->pivotTable][] = [
+            'parent' => $this->scalarOrNull($this->parentId($relation, $parent)),
+            'related' => $this->scalarOrNull($this->childId($child, $relation)),
+            'columns' => $pivot,
+        ];
     }
 
     public function detach(RelationDescriptor $relation, object $parent, object $child): void
     {
-        throw new \LogicException('detach() is implemented in REL-M3.');
+        $this->assertManyToMany($relation);
+        $table = (string) $relation->pivotTable;
+        $parentId = $this->scalarOrNull($this->parentId($relation, $parent));
+        $relatedId = $this->scalarOrNull($this->childId($child, $relation));
+
+        $this->pivots[$table] = array_values(array_filter(
+            $this->pivots[$table] ?? [],
+            static fn (array $row): bool => !($row['parent'] === $parentId && $row['related'] === $relatedId),
+        ));
     }
 
     /**
@@ -93,14 +122,7 @@ final class ArrayRelationProvider implements RelationDataProvider
                 && $this->accessor->getValue($child, $foreignKey) === $parentId,
         ));
 
-        foreach ($query->filters as $field => $value) {
-            $children = array_values(array_filter(
-                $children,
-                fn (object $child): bool => $this->matchesFilter($child, (string) $field, $value),
-            ));
-        }
-
-        return $children;
+        return $this->applyArrayFilters($children, $query);
     }
 
     /**
@@ -121,6 +143,79 @@ final class ArrayRelationProvider implements RelationDataProvider
                 && null === $this->accessor->getValue($child, $foreignKey),
         ));
 
+        return $this->applyArrayFilters($children, $query);
+    }
+
+    /**
+     * Children linked to $parent through the pivot table (many-to-many), narrowed
+     * by the query filters (the target's scopeQuery).
+     *
+     * @return list<object>
+     */
+    private function relatedThroughPivot(RelationDescriptor $relation, object $parent, DataQuery $query): array
+    {
+        $relatedIds = $this->pivotRelatedIds($relation, $parent);
+        $children = array_values(array_filter(
+            $this->records[$relation->childEntityClass] ?? [],
+            fn (object $child): bool => \in_array($this->childId($child, $relation), $relatedIds, false),
+        ));
+
+        return $this->applyArrayFilters($children, $query);
+    }
+
+    /**
+     * Children NOT yet linked to $parent through the pivot (many-to-many linkable).
+     *
+     * @return list<object>
+     */
+    private function linkableThroughPivot(RelationDescriptor $relation, object $parent, DataQuery $query): array
+    {
+        $linkedIds = $this->pivotRelatedIds($relation, $parent);
+        $children = array_values(array_filter(
+            $this->records[$relation->childEntityClass] ?? [],
+            fn (object $child): bool => !\in_array($this->childId($child, $relation), $linkedIds, false),
+        ));
+
+        return $this->applyArrayFilters($children, $query);
+    }
+
+    /**
+     * Related child ids linked to $parent in the relation's pivot table.
+     *
+     * @return list<scalar|null>
+     */
+    private function pivotRelatedIds(RelationDescriptor $relation, object $parent): array
+    {
+        $parentId = $this->parentId($relation, $parent);
+        $ids = [];
+        foreach ($this->pivots[(string) $relation->pivotTable] ?? [] as $row) {
+            if ($row['parent'] === $parentId) {
+                $ids[] = $row['related'];
+            }
+        }
+
+        return $ids;
+    }
+
+    private function childId(object $child, RelationDescriptor $relation): mixed
+    {
+        return $this->accessor->getValue($child, $relation->childIdField);
+    }
+
+    private function scalarOrNull(mixed $value): string|int|float|bool|null
+    {
+        return \is_scalar($value) ? $value : null;
+    }
+
+    /**
+     * Narrow $children by every equality condition in the query's filters.
+     *
+     * @param list<object> $children
+     *
+     * @return list<object>
+     */
+    private function applyArrayFilters(array $children, DataQuery $query): array
+    {
         foreach ($query->filters as $field => $value) {
             $children = array_values(array_filter(
                 $children,
@@ -134,7 +229,14 @@ final class ArrayRelationProvider implements RelationDataProvider
     private function assertOneToMany(RelationDescriptor $relation): void
     {
         if (RelationKind::OneToMany !== $relation->kind) {
-            throw new \LogicException('Many-to-many relations are implemented in REL-M3.');
+            throw new \LogicException('This relation operation requires a one-to-many relation.');
+        }
+    }
+
+    private function assertManyToMany(RelationDescriptor $relation): void
+    {
+        if (RelationKind::ManyToMany !== $relation->kind) {
+            throw new \LogicException('This relation operation requires a many-to-many relation.');
         }
     }
 
