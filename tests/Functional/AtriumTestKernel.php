@@ -45,6 +45,7 @@ use Atrium\Tests\Fixtures\Resource\ViewFallbackTagResource;
 use Atrium\Tests\Fixtures\Resource\ViewTagResource;
 use Atrium\Tests\Fixtures\Resource\ViewWidgetTagResource;
 use Atrium\Tests\Fixtures\Resource\WizardTagResource;
+use Atrium\Tests\Fixtures\Twig\NotifyingComponent;
 use Atrium\Tests\Fixtures\Widget\CounterStatsWidget;
 use Atrium\Tests\Fixtures\Widget\HiddenWidget;
 use Atrium\Tests\Fixtures\Widget\ParamsStatsWidget;
@@ -108,6 +109,12 @@ class AtriumTestKernel extends Kernel
             'validation' => ['enabled' => true],
             'asset_mapper' => [
                 'paths' => ['%kernel.project_dir%/assets'],
+            ],
+        ]);
+
+        $container->extension('twig', [
+            'paths' => [
+                \dirname(__DIR__).'/Fixtures/Twig/templates' => 'AtriumTest',
             ],
         ]);
 
@@ -279,6 +286,12 @@ class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(ForbiddenDashboard::class)
+            ->autoconfigure()
+            ->autowire();
+
+        // NTF-M2: a fixture Live Component that raises a toast via
+        // InteractsWithNotifications, used to assert the live→host emit routing.
+        $services->set(NotifyingComponent::class)
             ->autoconfigure()
             ->autowire();
 
