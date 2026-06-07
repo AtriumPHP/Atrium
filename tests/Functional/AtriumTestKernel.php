@@ -40,6 +40,7 @@ use Atrium\Tests\Fixtures\Resource\TagRelResource;
 use Atrium\Tests\Fixtures\Resource\TagResource;
 use Atrium\Tests\Fixtures\Resource\TaskResource;
 use Atrium\Tests\Fixtures\Resource\UnlistedTagResource;
+use Atrium\Tests\Fixtures\Resource\UsingPostResource;
 use Atrium\Tests\Fixtures\Resource\ViewFallbackTagResource;
 use Atrium\Tests\Fixtures\Resource\ViewTagResource;
 use Atrium\Tests\Fixtures\Resource\ViewWidgetTagResource;
@@ -247,6 +248,11 @@ class AtriumTestKernel extends Kernel
             ->autowire();
 
         $services->set(TaskResource::class)
+            ->autoconfigure()
+            ->autowire();
+
+        // REL-19: a relation that extracts its table()/form() to a dedicated class.
+        $services->set(UsingPostResource::class)
             ->autoconfigure()
             ->autowire();
 

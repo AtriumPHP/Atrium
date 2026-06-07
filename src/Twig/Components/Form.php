@@ -20,6 +20,7 @@ use Atrium\Layout\LayoutComponent;
 use Atrium\Layout\Tab;
 use Atrium\Layout\Tabs;
 use Atrium\Page\PageContext;
+use Atrium\Relation\Relation;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -80,6 +81,17 @@ class Form
     #[LiveProp]
     public ?string $notifyEvent = null;
 
+    /**
+     * When hosted by a relation manager: the parent resource slug + the relation
+     * name, so the form can layer that relation's form override (a using() config
+     * class, else an inline Relation::form() closure) over the target form (REL-19).
+     */
+    #[LiveProp]
+    public string $relationResource = '';
+
+    #[LiveProp]
+    public string $relationName = '';
+
     #[LiveProp]
     public ?string $entityId = null;
 
@@ -136,7 +148,7 @@ class Form
     /**
      * @param array<string, scalar|null> $presetValues
      */
-    public function mount(string $resource, ?string $entityId = null, ?string $redirectAfterSave = null, string $pathPrefix = '', bool $embedded = false, array $presetValues = [], ?string $notifyEvent = null): void
+    public function mount(string $resource, ?string $entityId = null, ?string $redirectAfterSave = null, string $pathPrefix = '', bool $embedded = false, array $presetValues = [], ?string $notifyEvent = null, string $relationResource = '', string $relationName = ''): void
     {
         $this->resource = $resource;
         $this->entityId = $entityId;
@@ -145,6 +157,8 @@ class Form
         $this->embedded = $embedded;
         $this->presetValues = $presetValues;
         $this->notifyEvent = $notifyEvent;
+        $this->relationResource = $relationResource;
+        $this->relationName = $relationName;
         $this->formData = $this->initialFormData();
         $this->previousFormData = $this->formData;
     }
@@ -748,7 +762,37 @@ class Form
 
     protected function schema(): Schema
     {
-        return $this->schemaCache ??= $this->resourceObject()->form(new Schema());
+        if (null !== $this->schemaCache) {
+            return $this->schemaCache;
+        }
+
+        $schema = $this->resourceObject()->form(new Schema());
+
+        // When hosted by a relation manager, layer the relation's form override
+        // (a dedicated using() config, else the inline Relation::form() closure)
+        // over the target resource's form (REL-19).
+        $relation = $this->hostRelation();
+        if (null !== $relation) {
+            $configuration = $relation->resolveConfiguration();
+            $schema = null !== $configuration ? $configuration->form($schema) : $relation->applyForm($schema);
+        }
+
+        return $this->schemaCache = $schema;
+    }
+
+    private function hostRelation(): ?Relation
+    {
+        if ('' === $this->relationResource || '' === $this->relationName) {
+            return null;
+        }
+
+        foreach ($this->registry->getBySlug($this->relationResource)->relations() as $relation) {
+            if ($relation->getName() === $this->relationName) {
+                return $relation;
+            }
+        }
+
+        return null;
     }
 
     private function resourceObject(): AdminResource

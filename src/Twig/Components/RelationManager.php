@@ -142,6 +142,13 @@ final class RelationManager extends AbstractRecordTable
         $relation = $this->relation();
         $config = $this->target()->table(TableConfiguration::make());
 
+        // A dedicated config class (->using(), REL-19) takes precedence over an
+        // inline ->table() closure; otherwise the inline closure (if any) applies.
+        $configuration = $relation->resolveConfiguration();
+        if (null !== $configuration) {
+            return $configuration->table($config);
+        }
+
         return $relation->hasTable() ? $relation->applyTable($config) : $config;
     }
 
@@ -566,6 +573,10 @@ final class RelationManager extends AbstractRecordTable
             'presetValues' => $preset,
             'notifyEvent' => 'relation:saved',
             'pathPrefix' => $this->pathPrefix,
+            // Let the modal form apply this relation's form override (a using()
+            // config class, else an inline ->form() closure) over the target form.
+            'relationResource' => $this->resource,
+            'relationName' => $this->relationName,
         ];
     }
 
