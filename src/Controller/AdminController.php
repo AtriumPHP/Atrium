@@ -313,7 +313,9 @@ final readonly class AdminController
             'entityId' => $id,
             // After saving the child, return to its nested index under this parent.
             'redirectUrl' => $page?->getRedirectUrl($context) ?? $this->nestedIndexUrl($ctx, $parentId),
-            'presetValues' => [],
+            // Re-apply the parent FK on save (as on create) so a child can't be
+            // re-parented through a crafted form submit — it stays under this parent.
+            'presetValues' => [$ctx['resolved']->foreignKey => $this->parentScalarId($ctx)],
             'parentResourceSlug' => $parentResource,
             'parentRecordId' => $parentId,
             'breadcrumbs' => $this->nestedBreadcrumbs($ctx),

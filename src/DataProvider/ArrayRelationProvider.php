@@ -81,9 +81,21 @@ final class ArrayRelationProvider implements RelationDataProvider
     public function attach(RelationDescriptor $relation, object $parent, object $child, array $pivot = []): void
     {
         $this->assertManyToMany($relation);
-        $this->pivots[(string) $relation->pivotTable][] = [
-            'parent' => $this->scalarOrNull($this->parentId($relation, $parent)),
-            'related' => $this->scalarOrNull($this->childId($child, $relation)),
+        $table = (string) $relation->pivotTable;
+        $parentId = $this->scalarOrNull($this->parentId($relation, $parent));
+        $relatedId = $this->scalarOrNull($this->childId($child, $relation));
+
+        // Idempotent, mirroring a unique pivot key on the Doctrine side: re-attaching
+        // an already-linked pair is a no-op rather than a duplicate tuple.
+        foreach ($this->pivots[$table] ?? [] as $row) {
+            if ($row['parent'] === $parentId && $row['related'] === $relatedId) {
+                return;
+            }
+        }
+
+        $this->pivots[$table][] = [
+            'parent' => $parentId,
+            'related' => $relatedId,
             'columns' => $pivot,
         ];
     }

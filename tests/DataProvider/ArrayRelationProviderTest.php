@@ -91,6 +91,20 @@ final class ArrayRelationProviderTest extends TestCase
         self::assertCount(0, [...$provider->listRelated($this->pivotDescriptor(), $post, new DataQuery())]);
     }
 
+    public function testManyToManyAttachIsIdempotent(): void
+    {
+        // Re-attaching an already-linked pair must not create a duplicate pivot row
+        // (parity with a unique pivot key on the Doctrine side).
+        $post = new Post(1, 'First');
+        $tag = new Tag(5, 'New', 'new');
+        $provider = new ArrayRelationProvider([Tag::class => [$tag]], pivots: ['post_tag' => []]);
+
+        $provider->attach($this->pivotDescriptor(), $post, $tag);
+        $provider->attach($this->pivotDescriptor(), $post, $tag);
+
+        self::assertSame(1, $provider->countRelated($this->pivotDescriptor(), $post, new DataQuery()));
+    }
+
     public function testListRelatedReturnsOnlyChildrenOfTheParent(): void
     {
         $post = new Post(1, 'First');
