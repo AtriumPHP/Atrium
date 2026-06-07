@@ -58,4 +58,7 @@
 /* TextEntry::lineClamp(N) composes `line-clamp-N` in PHP (no literal in templates). */
 @source inline("line-clamp-{1,2,3,4,5,6}");
 @source inline("{dark:,}text-{gray,sky,green,amber,red,primary}-{300,400,600,700}");
+/* Toast status icon uses `text-{{ scale }}-500` (light) and `dark:text-{{ scale }}-400` (dark).
+   The -400 shades are already covered above; add the missing -500 shades here. */
+@source inline("text-{green,red,amber,sky,gray,primary}-500");
 @source inline("{dark:,}bg-{gray,sky,green,amber,red,primary}-{50,950}");
