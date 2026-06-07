@@ -81,7 +81,10 @@ final class AtriumBundle extends AbstractBundle
 
         $container->extension('framework', [
             'asset_mapper' => [
-                'paths' => [\dirname(__DIR__).'/assets/dist' => 'atrium'],
+                'paths' => [
+                    \dirname(__DIR__).'/assets/dist' => 'atrium',
+                    \dirname(__DIR__).'/assets/controllers' => 'atrium_controllers',
+                ],
             ],
         ]);
     }

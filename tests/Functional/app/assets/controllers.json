@@ -1,0 +1,11 @@
+{
+    "controllers": {
+        "@atriumphp/atrium": {
+            "notifications": {
+                "enabled": true,
+                "fetch": "eager"
+            }
+        }
+    },
+    "entrypoints": []
+}

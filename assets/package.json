@@ -1,0 +1,19 @@
+{
+    "name": "@atriumphp/atrium",
+    "description": "Atrium admin panel — shipped Stimulus controllers.",
+    "license": "MIT",
+    "type": "module",
+    "symfony": {
+        "controllers": {
+            "notifications": {
+                "main": "controllers/notifications_controller.js",
+                "name": "atrium--notifications",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0.0"
+        }
+    }
+}
