@@ -55,6 +55,10 @@ class Action implements ActionContract
 
     protected ?string $ability = null;
 
+    protected ?string $successNotificationTitle = null;
+
+    protected ?string $successNotificationBody = null;
+
     protected function __construct(
         protected readonly string $name,
     ) {
@@ -206,6 +210,29 @@ class Action implements ActionContract
         $this->ability = $ability;
 
         return $this;
+    }
+
+    /**
+     * Raise a success toast after this server action runs (no exception). The host
+     * component surfaces it on the live channel. The built-in delete actions set a
+     * default; call this to override the title/body or add one to a custom action.
+     */
+    public function successNotification(string $title, ?string $body = null): static
+    {
+        $this->successNotificationTitle = $title;
+        $this->successNotificationBody = $body;
+
+        return $this;
+    }
+
+    public function getSuccessNotificationTitle(): ?string
+    {
+        return $this->successNotificationTitle;
+    }
+
+    public function getSuccessNotificationBody(): ?string
+    {
+        return $this->successNotificationBody;
     }
 
     public function getName(): string

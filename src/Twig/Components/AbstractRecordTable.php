@@ -15,11 +15,13 @@ use Atrium\Resource\AdminResource;
 use Atrium\Table\Column;
 use Atrium\Table\Filter\Filter;
 use Atrium\Table\TableConfiguration;
+use Atrium\Twig\Components\Concern\InteractsWithNotifications;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\PreReRender;
+use Symfony\UX\LiveComponent\ComponentToolsTrait;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 /**
@@ -33,9 +35,11 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
  */
 abstract class AbstractRecordTable
 {
+    use ComponentToolsTrait;
     use DefaultActionTrait;
     use InteractsWithActions;
     use InteractsWithBulkActions;
+    use InteractsWithNotifications;
 
     #[LiveProp(writable: true, url: true, onUpdated: 'resetPage')]
     public string $search = '';
@@ -345,6 +349,8 @@ abstract class AbstractRecordTable
             $this->resource()->afterAction($name, $record);
         });
 
+        $this->notifyActionSuccess($action);
+
         // The row set may have shrunk (e.g. a delete) — refresh the count and
         // keep the page in range.
         $this->refreshRecords();
@@ -456,6 +462,8 @@ abstract class AbstractRecordTable
             }
             $this->resource()->afterBulkAction($name, $records);
         });
+
+        $this->notifyActionSuccess($action);
 
         // The selection has been consumed and the row set may have shrunk.
         $this->clearSelection();

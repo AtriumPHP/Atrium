@@ -9,13 +9,16 @@ use Atrium\Action\ActionContext;
 use Atrium\Action\Concern\InteractsWithActions;
 use Atrium\DataProvider\DataProviderInterface;
 use Atrium\DataProvider\DataWriterInterface;
+use Atrium\Notification\Notifier;
 use Atrium\Page\PageContext;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
+use Atrium\Twig\Components\Concern\InteractsWithNotifications;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
+use Symfony\UX\LiveComponent\ComponentToolsTrait;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 /**
@@ -34,8 +37,10 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 #[AsLiveComponent(name: 'Atrium:RecordActions', template: '@Atrium/components/record_actions.html.twig')]
 final class RecordActions
 {
+    use ComponentToolsTrait;
     use DefaultActionTrait;
     use InteractsWithActions;
+    use InteractsWithNotifications;
 
     #[LiveProp]
     public string $resource = '';
@@ -54,6 +59,7 @@ final class RecordActions
         private readonly ResourceRegistry $registry,
         private readonly DataProviderInterface $dataProvider,
         private readonly DataWriterInterface $writer,
+        private readonly Notifier $notifier,
     ) {
     }
 
@@ -143,10 +149,15 @@ final class RecordActions
         });
 
         // The record is gone (e.g. deleted) — there is nothing left to view, so
-        // return to the list; otherwise re-render the actions in place.
+        // return to the list; otherwise re-render the actions in place. Route the
+        // success toast to match: flash (survives the redirect) vs live (no reload).
         if (null === $this->loadEntity()) {
+            $this->flashActionSuccess($action, $this->notifier);
+
             return new RedirectResponse($this->pageContext()->indexUrl());
         }
+
+        $this->notifyActionSuccess($action);
 
         return null;
     }

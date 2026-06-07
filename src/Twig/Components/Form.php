@@ -19,10 +19,13 @@ use Atrium\Layout\Component;
 use Atrium\Layout\LayoutComponent;
 use Atrium\Layout\Tab;
 use Atrium\Layout\Tabs;
+use Atrium\Notification\Notification;
+use Atrium\Notification\Notifier;
 use Atrium\Page\PageContext;
 use Atrium\Relation\Relation;
 use Atrium\Resource\AdminResource;
 use Atrium\Resource\ResourceRegistry;
+use Atrium\Twig\Components\Concern\InteractsWithNotifications;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
@@ -55,6 +58,7 @@ class Form
     use ComponentToolsTrait;
     use DefaultActionTrait;
     use InteractsWithActions;
+    use InteractsWithNotifications;
 
     #[LiveProp]
     public string $resource = '';
@@ -142,6 +146,7 @@ class Form
         private readonly DataWriterInterface $writer,
         private readonly ValidatorInterface $validator,
         private readonly PropertyAccessorInterface $accessor,
+        private readonly Notifier $notifier,
     ) {
     }
 
@@ -257,9 +262,18 @@ class Form
             return null;
         }
 
+        $message = \sprintf('%s saved', $this->getResourceLabel());
+
         if (null !== $this->redirectAfterSave) {
+            // Redirecting away: queue the toast on the flash channel so it surfaces
+            // on the destination page (a live emit would be lost on navigation).
+            $this->notifier->send(Notification::make()->title($message)->success());
+
             return new RedirectResponse($this->redirectAfterSave);
         }
+
+        // Staying on the form: raise it on the live channel, no reload.
+        $this->notify(Notification::make()->title($message)->success());
 
         return null;
     }
@@ -394,9 +408,15 @@ class Form
         // Generic post-action redirect: if the record is gone (e.g. deleted),
         // there is nothing left to edit — return to the list. No per-action
         // special-casing; a non-destructive action leaves the record and re-renders.
+        // Route the success toast to match the outcome: flash on redirect (so it
+        // survives the navigation), live when we stay and re-render.
         if (null === $this->loadEntity()) {
+            $this->flashActionSuccess($action, $this->notifier);
+
             return new RedirectResponse($this->pageContext()->indexUrl());
         }
+
+        $this->notifyActionSuccess($action);
 
         return null;
     }
