@@ -1,11 +1,15 @@
-{# Toast stack. Fixed top-right; the shipped Stimulus controller times + animates. #}
+{# Toast stack. Fixed top-right; the shipped Stimulus controller times + animates.
+   The controller lives on an INNER wrapper, not the component root: the root
+   already carries the Live Component's own `data-controller="live"` (via
+   {{ attributes }}), and a second data-controller on the same element is dropped
+   by the browser — which would leave every toast stuck at opacity-0. #}
 <div
     {{ attributes }}
-    data-controller="atrium--notifications"
-    class="pointer-events-none fixed top-4 right-4 z-50 flex w-full max-w-sm flex-col gap-3"
+    class="pointer-events-none fixed top-4 right-4 z-50 w-full max-w-sm"
     aria-live="polite"
     aria-atomic="false"
 >
+    <div data-controller="atrium--notifications" class="flex flex-col gap-3">
     {% for n in this.notifications %}
         {% set scale = {
             'success': 'green', 'danger': 'red', 'warning': 'amber',
@@ -45,4 +49,5 @@
             </div>
         </div>
     {% endfor %}
+    </div>
 </div>
