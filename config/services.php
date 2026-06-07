@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Atrium\Controller\AdminController;
 use Atrium\Dashboard\DashboardRegistry;
 use Atrium\DataProvider\DataProviderInterface;
+use Atrium\Notification\Notifier;
 use Atrium\Relation\ParentRelationResolver;
 use Atrium\Relation\RelationResolver;
 use Atrium\Resource\ResourceRegistry;
@@ -51,6 +52,9 @@ return static function (ContainerConfigurator $container): void {
             service(DataProviderInterface::class)->ignoreOnInvalid(),
         ])
         ->tag('controller.service_arguments');
+
+    $services->set(Notifier::class)
+        ->args([service('request_stack')]);
 
     $services->set(RelationResolver::class)
         ->args([service(ResourceRegistry::class)]);
