@@ -111,7 +111,7 @@ Notification::make()                 // optional explicit id; auto-generated oth
 | Success | `circle-check` | `green` |
 | Danger | `circle-x` | `red` |
 | Warning | `triangle-alert` | `amber` |
-| Info | `info` | `blue` |
+| Info | `info` | `sky` |
 | *(none)* | `bell` | `gray` |
 
 Methods: `defaultIcon(): string`, `defaultColor(): string`. Colors resolve through
