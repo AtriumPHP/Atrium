@@ -125,6 +125,54 @@ tab strip** and mounts only the active relation's manager at a time (one tab's
 table is loaded per request). A single relation renders as one titled section. No
 configuration is needed — declare the relations and the tabs appear.
 
+## Extracting a relation: `->using()`
+
+A relation is configured inline by default — its `->table()` and `->form()` live on
+the `Relation` in `relations()`. When that grows large, move them into a dedicated
+class (the same inline-or-dedicated split `pages()` offers): subclass
+`RelationManagerConfiguration` and point the relation at it with `->using()`.
+
+```php
+use Atrium\Form\Field\TextField;
+use Atrium\Form\Field\TextareaField;
+use Atrium\Form\Schema;
+use Atrium\Relation\RelationManagerConfiguration;
+use Atrium\Table\Column;
+use Atrium\Table\TableConfiguration;
+
+final class CommentsRelation extends RelationManagerConfiguration
+{
+    public function table(TableConfiguration $table): TableConfiguration
+    {
+        return $table->columns([Column::make('author')->sortable(), Column::make('body')]);
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            TextField::make('author')->required(),
+            TextareaField::make('body')->required()->rows(4),
+        ]);
+    }
+}
+```
+
+```php
+public function relations(): array
+{
+    return [
+        Relation::make('comments')->oneToMany(CommentResource::class)
+            ->foreignKey('articleId')
+            ->using(CommentsRelation::class),   // table()/form() come from the class
+    ];
+}
+```
+
+The config class's `table()` replaces the target resource's columns for this
+relation's manager, and its `form()` is layered over the target resource's form in
+the owned create/edit modal. `->using()` and the inline `->table()`/`->form()`
+closures are alternatives — when `->using()` is set, it wins.
+
 ## API reference
 
 ### `Relation` (declared in `relations()`)
@@ -143,7 +191,8 @@ configuration is needed — declare the relations and the tabs appear.
 | `->emptyState(string $heading, ?string $description = null, ?string $icon = null)` | Empty-table message. |
 | `->readOnlyOnView(bool = true)` | Whether the manager is read-only on the View screen (default `true`). |
 | `->visible(bool\|\Closure $condition)` | Show the relation only when the predicate holds for the parent record. |
-| `->table(\Closure)` / `->form(\Closure)` | Override the target's `table()` / `form()` for this relation. |
+| `->table(\Closure)` / `->form(\Closure)` | Override the target's `table()` / `form()` for this relation (inline). |
+| `->using(string $class)` | Extract this relation's `table()`/`form()` to a dedicated `RelationManagerConfiguration` subclass (wins over the inline closures). |
 
 ### `AdminResource` — relation authorization (public API)
 

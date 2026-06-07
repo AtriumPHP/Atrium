@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Relation managers & nested resources — feature complete (`REL-01..22`).** The
+  relations & nesting feature is done across its five milestones: the shared table
+  core + descriptor + read-only one-to-many manager; one-to-many owned
+  create/edit/delete + associate/dissociate; many-to-many attach/detach + tabs;
+  nested resources; and this close-out (extraction, playground, browser-verify,
+  review). Dogfooded in the playground: Article → Comments (1:M, extracted via
+  `->using()`), Article ↔ Tags (M:N), Course → Lessons (nested).
+- **Extractable relation config — `->using()` (`REL-19`).** A relation configures
+  its `table()`/`form()` inline by default, or extracts them to a dedicated
+  **`RelationManagerConfiguration`** subclass referenced by
+  `Relation::using(MyConfig::class)` — the same inline-or-dedicated split `pages()`
+  offers. The manager uses the class's `table()` for its columns and layers its
+  `form()` over the target resource's form in the owned create/edit modal.
+  **(Behaviour change)** wiring this also activates a relation's inline
+  `->form()` closure in the modal — previously stored but ignored; a resource that
+  set `Relation::form(...)` will now see it applied. `Atrium:Form` gains optional
+  `relationResource`/`relationName` mount arguments (additive; defaults preserve
+  behaviour). See [Relations › Extracting a relation](docs/integration-guide/resources/relations.md).
 - **Nested resources (`REL-14..18`, `REL-20`).** A resource becomes **nested**
   under a parent record by declaring **`parent(): ?ParentRelation`** —
   `ParentRelation::make(ParentResource::class)->relationship('tasks')->foreignKey('projectId')->recordTitle('name')`,
