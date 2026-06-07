@@ -166,10 +166,10 @@ final class ArrayRelationProvider implements RelationDataProvider
      */
     private function relatedThroughPivot(RelationDescriptor $relation, object $parent, DataQuery $query): array
     {
-        $relatedIds = $this->pivotRelatedIds($relation, $parent);
+        $relatedIds = $this->pivotIdStrings($relation, $parent);
         $children = array_values(array_filter(
             $this->records[$relation->childEntityClass] ?? [],
-            fn (object $child): bool => \in_array($this->childId($child, $relation), $relatedIds, false),
+            fn (object $child): bool => null !== ($id = $this->childIdString($child, $relation)) && \in_array($id, $relatedIds, true),
         ));
 
         return $this->applyArrayFilters($children, $query);
@@ -182,13 +182,32 @@ final class ArrayRelationProvider implements RelationDataProvider
      */
     private function linkableThroughPivot(RelationDescriptor $relation, object $parent, DataQuery $query): array
     {
-        $linkedIds = $this->pivotRelatedIds($relation, $parent);
+        $linkedIds = $this->pivotIdStrings($relation, $parent);
         $children = array_values(array_filter(
             $this->records[$relation->childEntityClass] ?? [],
-            fn (object $child): bool => !\in_array($this->childId($child, $relation), $linkedIds, false),
+            fn (object $child): bool => null === ($id = $this->childIdString($child, $relation)) || !\in_array($id, $linkedIds, true),
         ));
 
         return $this->applyArrayFilters($children, $query);
+    }
+
+    /**
+     * The pivot's related ids for $parent, coerced to strings for type-safe
+     * (strict) matching against a child's id — mirroring the Doctrine adapter,
+     * where an integer FK and a string-typed id compare equal at the DB level.
+     *
+     * @return list<string>
+     */
+    private function pivotIdStrings(RelationDescriptor $relation, object $parent): array
+    {
+        return array_map(static fn (mixed $id): string => (string) $id, $this->pivotRelatedIds($relation, $parent));
+    }
+
+    private function childIdString(object $child, RelationDescriptor $relation): ?string
+    {
+        $id = $this->scalarOrNull($this->childId($child, $relation));
+
+        return null === $id ? null : (string) $id;
     }
 
     /**

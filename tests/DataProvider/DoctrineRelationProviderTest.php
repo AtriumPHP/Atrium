@@ -228,4 +228,24 @@ final class DoctrineRelationProviderTest extends TestCase
         $this->provider->detach($this->pivotDescriptor(), $course, $student);
         self::assertFalse($conn->fetchOne('SELECT role FROM course_student WHERE course_id = ? AND student_id = ?', [$course->id, $student->id]));
     }
+
+    public function testManyToManyAttachIsIdempotent(): void
+    {
+        $course = new Course('Math');
+        $student = new Student('Ada');
+        $this->entityManager->persist($course);
+        $this->entityManager->persist($student);
+        $this->entityManager->flush();
+
+        // Re-attaching an already-linked pair is a no-op (no duplicate pivot row),
+        // matching the array adapter — even though course_student has no unique key.
+        $this->provider->attach($this->pivotDescriptor(), $course, $student);
+        $this->provider->attach($this->pivotDescriptor(), $course, $student);
+
+        $conn = $this->entityManager->getConnection();
+        self::assertEquals(
+            1,
+            $conn->fetchOne('SELECT COUNT(*) FROM course_student WHERE course_id = ? AND student_id = ?', [$course->id, $student->id]),
+        );
+    }
 }

@@ -113,9 +113,29 @@ final class DoctrineRelationProvider implements RelationDataProvider
     public function attach(RelationDescriptor $relation, object $parent, object $child, array $pivot = []): void
     {
         $this->assertManyToMany($relation);
+        $connection = $this->entityManager->getConnection();
+        $parentValue = $this->accessor->getValue($parent, $relation->parentIdField);
+        $relatedValue = $this->accessor->getValue($child, $relation->childIdField);
+
+        // Idempotent (parity with the array adapter, and safe against a unique pivot
+        // key): re-attaching an already-linked pair is a no-op rather than a
+        // duplicate-row insert or a unique-constraint 500.
+        $existing = $connection->fetchOne(
+            \sprintf(
+                'SELECT 1 FROM %s WHERE %s = ? AND %s = ?',
+                $connection->quoteIdentifier((string) $relation->pivotTable),
+                $connection->quoteIdentifier((string) $relation->pivotParentKey),
+                $connection->quoteIdentifier((string) $relation->pivotRelatedKey),
+            ),
+            [$parentValue, $relatedValue],
+        );
+        if (false !== $existing) {
+            return;
+        }
+
         $data = [
-            (string) $relation->pivotParentKey => $this->accessor->getValue($parent, $relation->parentIdField),
-            (string) $relation->pivotRelatedKey => $this->accessor->getValue($child, $relation->childIdField),
+            (string) $relation->pivotParentKey => $parentValue,
+            (string) $relation->pivotRelatedKey => $relatedValue,
         ];
         foreach ($relation->pivotColumns as $column) {
             $data[$column] = $pivot[$column] ?? null;
@@ -123,7 +143,7 @@ final class DoctrineRelationProvider implements RelationDataProvider
 
         // Connection::insert quotes identifiers and binds every value as a
         // parameter; column/table names come from the trusted descriptor.
-        $this->entityManager->getConnection()->insert((string) $relation->pivotTable, $data);
+        $connection->insert((string) $relation->pivotTable, $data);
     }
 
     public function detach(RelationDescriptor $relation, object $parent, object $child): void
@@ -184,15 +204,19 @@ final class DoctrineRelationProvider implements RelationDataProvider
         }
 
         $parentId = $this->accessor->getValue($parent, $relation->parentIdField);
+        $connection = $this->entityManager->getConnection();
+        // Quote identifiers (the descriptor's pivot table/columns are trusted dev
+        // config, but quoting keeps reserved-word names portable across MySQL/PG);
+        // the parent id is bound as a parameter.
         $sql = \sprintf(
             'SELECT %s FROM %s WHERE %s = ?',
-            $relation->pivotRelatedKey,
-            $relation->pivotTable,
-            $relation->pivotParentKey,
+            $connection->quoteIdentifier((string) $relation->pivotRelatedKey),
+            $connection->quoteIdentifier((string) $relation->pivotTable),
+            $connection->quoteIdentifier((string) $relation->pivotParentKey),
         );
 
         return array_values(array_filter(
-            $this->entityManager->getConnection()->fetchFirstColumn($sql, [$parentId]),
+            $connection->fetchFirstColumn($sql, [$parentId]),
             static fn (mixed $value): bool => \is_scalar($value),
         ));
     }
