@@ -6,6 +6,7 @@
             <div class="mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
                 {% for relation in relations %}
                     <button type="button" role="tab"
+                            aria-selected="{{ relation.name == active ? 'true' : 'false' }}"
                             data-action="live#action" data-live-action-param="selectTab"
                             data-live-relation-param="{{ relation.name }}"
                             class="-mb-px inline-flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium transition-colors {{ relation.name == active ? 'border-primary-600 text-primary-700 dark:border-primary-400 dark:text-primary-300' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}">
@@ -17,7 +18,7 @@
         {% endif %}
 
         {% for relation in relations|filter(r => r.name == active) %}
-            <section class="space-y-3">
+            <section class="space-y-3" {{ relations|length > 1 ? 'role="tabpanel"' : '' }}>
                 {% if relations|length == 1 %}
                     <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
                         {% if relation.icon %}{{ atrium_icon(relation.icon, { class: 'h-4 w-4' }) }}{% endif %}

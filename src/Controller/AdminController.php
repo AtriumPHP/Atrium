@@ -280,8 +280,10 @@ final readonly class AdminController
             'redirectUrl' => $page?->getRedirectUrl($context) ?? $this->nestedIndexUrl($ctx, $parentId),
             // Preset the FK so the created child is linked to this parent in one save.
             // Read the parent's *typed* id from the resolved record (not the raw URL
-            // string) so PropertyAccess can set an int-typed FK (e.g. Task.projectId).
-            'presetValues' => [$ctx['resolved']->foreignKey => $this->parentScalarId($ctx)],
+            // string) so PropertyAccess can set an int-typed FK (e.g. Task.projectId);
+            // fall back to the raw URL id when no data provider resolved a parent, so
+            // the FK is never silently preset to null (which would orphan the child).
+            'presetValues' => [$ctx['resolved']->foreignKey => $this->parentScalarId($ctx) ?? $parentId],
             'parentResourceSlug' => $parentResource,
             'parentRecordId' => $parentId,
             'breadcrumbs' => $this->nestedBreadcrumbs($ctx),
