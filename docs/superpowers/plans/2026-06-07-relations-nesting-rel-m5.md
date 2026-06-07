@@ -1023,6 +1023,33 @@ git commit -m "Document using() extraction; close out relations feature (REL-19,
 
 ---
 
+## Accepted / deferred findings from the full-solution code review
+
+The five-agent final review (slices: data layer, components, controller/DI, API
+surface, templates) drove the hardening fixes recorded in the CHANGELOG. These
+remaining findings were reviewed and **deliberately deferred** as low-severity or
+consistent with existing design choices — recorded here so they are not lost:
+
+- **M:N detach doesn't verify pivot membership** before `canDetach`/`detach`. A
+  forged detach with an in-scope-but-unlinked child runs `canDetach($parent, $child)`
+  then a keyed DB delete that is a **no-op** (no row to remove) — no corruption. A
+  clean fix adds a `RelationDataProvider::isAttached()` contract method; deferred
+  rather than expand the seam for an edge with no data impact.
+- **`assertNoSlugCollisions()` runs per request and throws a raw `\LogicException`.**
+  It only fires on a genuine dashboard/resource slug collision (a developer
+  config error that *should* fail loud); the per-request cost is trivial. Consistent
+  with the lazy-validation approach used across the panel. Could become a compiler
+  pass later.
+- **403 vs 404 slug enumeration.** A forbidden-but-registered slug returns 403 while
+  an unknown slug returns 404. Acceptable for an admin panel whose slugs derive from
+  entity names; uniform 404 would close the side-channel if ever required.
+- **Misconfigured nested `parent()` surfaces a `\LogicException` (500), not 404.** A
+  developer config error; the clear message in dev is desirable. Left fail-loud.
+- **Minor consistency nits:** `ParentRelation` not `final`; some `Field` subclass
+  fluent setters return `self` not `static`; `getLabel()` naive pluralization
+  (documented — override); `view/text.html.twig` duplicates the entry shell; two
+  loading spinners omit a `dark:` text variant. Fold into normal maintenance.
+
 ## Out of scope (deferred, noted not silently dropped)
 
 - **`canAttachAny($parent)` hook** (REL-M3 review H2) — still deferred; the Attach button shows even when `canAttach` would deny every child (execution is still refused). A clean fix needs a child-less hook; out of scope for M5.

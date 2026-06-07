@@ -145,6 +145,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Hardening from the full-solution code review.** Several defense-in-depth fixes,
+  none affecting a correctly-configured Doctrine install:
+  - **Record screens fail closed without a data provider.** On a no-Doctrine
+    install (`DataProviderInterface` absent), `edit`/`view` and their nested
+    variants now return **404** instead of rendering form/view chrome that could
+    neither load nor authorize its record. `create`/list (which need no record)
+    are unaffected.
+  - **`Form::save()` authorizes before developer hooks.** `canCreate()`/`canEdit()`
+    now run *before* `mutateFormDataBeforeValidate()`/`afterValidate()`, so a forged
+    Live-action POST can no longer trigger those side-effect hooks unauthorized.
+  - **Action URLs are scheme-guarded.** A custom `Action::url(fn …)` result is now
+    passed through the same `javascript:`/`data:`-rejecting guard as table row URLs
+    and view entries before reaching an `href`.
+  - **Many-to-many adapter parity.** The Doctrine `attach()` is now idempotent
+    (no duplicate pivot row / unique-constraint 500), its pivot lookup quotes
+    identifiers (reserved-word/portability safe), and the array adapter matches
+    pivot ids by strict, type-coerced comparison — both adapters now agree.
+  - **`TextEntry::lineClamp()` works.** The `line-clamp-N` utilities are now
+    compiled into the shipped stylesheet (previously purged, so the class had no
+    effect). Relation/confirmation modals and the relation tab strip gained
+    `aria-labelledby` / `aria-selected` / `role="tabpanel"`.
 - **`path_prefix` is now authoritative for route matching, not just link
   generation.** The parametric routes (`config/routes.php`) previously hardcoded
   `/admin`, while `path_prefix` only changed the URLs the panel *generated* — so

@@ -95,20 +95,25 @@ final readonly class AdminController
         $resourceObject = $this->requireResource($resource);
         $this->denyUnless($resourceObject->canAccess());
 
-        if (null !== $this->dataProvider) {
-            // Scoped resolution: an id outside the resource's scope is a 404 here,
-            // the same as it is absent from the list.
-            $record = $this->dataProvider->find(
-                $resourceObject->getEntityClass(),
-                $id,
-                $resourceObject->scopeFilters(),
-                $resourceObject->getIdentifierField(),
-            );
-            if (null === $record) {
-                throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
-            }
-            $this->denyUnless($resourceObject->canEdit($record));
+        // A record-scoped screen needs a data provider to load AND authorize its
+        // record; without one it can do neither, so it must not render (fail closed —
+        // create needs no record and is unaffected).
+        if (null === $this->dataProvider) {
+            throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
         }
+
+        // Scoped resolution: an id outside the resource's scope is a 404 here,
+        // the same as it is absent from the list.
+        $record = $this->dataProvider->find(
+            $resourceObject->getEntityClass(),
+            $id,
+            $resourceObject->scopeFilters(),
+            $resourceObject->getIdentifierField(),
+        );
+        if (null === $record) {
+            throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
+        }
+        $this->denyUnless($resourceObject->canEdit($record));
 
         $page = $resourceObject->resolvePage('edit');
         $context = $this->pageContext($resourceObject, $resource, $id);
@@ -137,19 +142,22 @@ final readonly class AdminController
             throw new NotFoundHttpException(\sprintf('The "%s" resource has no view screen.', $resource));
         }
 
-        $record = null;
-        if (null !== $this->dataProvider) {
-            $record = $this->dataProvider->find(
-                $resourceObject->getEntityClass(),
-                $id,
-                $resourceObject->scopeFilters(),
-                $resourceObject->getIdentifierField(),
-            );
-            if (null === $record) {
-                throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
-            }
-            $this->denyUnless($resourceObject->canView($record));
+        // A record-scoped screen needs a data provider to load AND authorize its
+        // record; without one it can do neither, so it must not render (fail closed).
+        if (null === $this->dataProvider) {
+            throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
         }
+
+        $record = $this->dataProvider->find(
+            $resourceObject->getEntityClass(),
+            $id,
+            $resourceObject->scopeFilters(),
+            $resourceObject->getIdentifierField(),
+        );
+        if (null === $record) {
+            throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
+        }
+        $this->denyUnless($resourceObject->canView($record));
 
         $context = $this->pageContext($resourceObject, $resource, $id);
 
@@ -235,13 +243,15 @@ final readonly class AdminController
             throw new NotFoundHttpException(\sprintf('The "%s" resource has no view screen.', $resource));
         }
 
-        $record = $this->findNestedRecord($child, $ctx['resolved'], $parentId, $id);
-        if (null !== $this->dataProvider) {
-            if (null === $record) {
-                throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
-            }
-            $this->denyUnless($child->canView($record));
+        // Fail closed: a record screen needs a provider to load + authorize its record.
+        if (null === $this->dataProvider) {
+            throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
         }
+        $record = $this->findNestedRecord($child, $ctx['resolved'], $parentId, $id);
+        if (null === $record) {
+            throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
+        }
+        $this->denyUnless($child->canView($record));
 
         $context = $this->nestedPageContext($ctx, $id);
 
@@ -296,13 +306,15 @@ final readonly class AdminController
         $ctx = $this->resolveNested($parentResource, $parentId, $resource);
         $child = $ctx['child'];
 
-        $record = $this->findNestedRecord($child, $ctx['resolved'], $parentId, $id);
-        if (null !== $this->dataProvider) {
-            if (null === $record) {
-                throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
-            }
-            $this->denyUnless($child->canEdit($record));
+        // Fail closed: a record screen needs a provider to load + authorize its record.
+        if (null === $this->dataProvider) {
+            throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
         }
+        $record = $this->findNestedRecord($child, $ctx['resolved'], $parentId, $id);
+        if (null === $record) {
+            throw new NotFoundHttpException(\sprintf('No %s found for id "%s".', $resource, $id));
+        }
+        $this->denyUnless($child->canEdit($record));
 
         $page = $child->resolvePage('edit');
         $context = $this->nestedPageContext($ctx, $id);
