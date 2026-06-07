@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-07
+
+This release adds the **relations & nesting** feature (relation managers +
+nested resources, `REL-01..22`) and **record View pages** (`VIEW-*`), a
+configurable record identifier field, the migration of panel icons to Symfony UX
+Icons, and makes `path_prefix` authoritative for route matching. Pre-1.0 — the
+public API may still change in a 0.x minor; API-affecting items are flagged below.
+
 ### Added
 
 - **Relation managers & nested resources — feature complete (`REL-01..22`).** The
