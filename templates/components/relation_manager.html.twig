@@ -33,9 +33,9 @@
     {% if this.isModalOpen and this.modalMode in ['create', 'edit'] %}
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <button type="button" data-action="live#action" data-live-action-param="closeModal"
-                    aria-label="Close" class="absolute inset-0 bg-black/40"></button>
+                    aria-label="Close" class="absolute inset-0 cursor-default bg-gray-900/50 backdrop-blur-sm"></button>
             <div role="dialog" aria-modal="true"
-                 class="relative z-10 w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
+                 class="relative z-10 w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
                 <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
                     {{ this.modalMode == 'create' ? 'New ' : 'Edit ' }}{{ this.singularLabel }}
                 </h2>
@@ -47,9 +47,9 @@
     {% if this.isModalOpen and this.modalMode == 'associate' %}
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <button type="button" data-action="live#action" data-live-action-param="closeModal"
-                    aria-label="Close" class="absolute inset-0 bg-black/40"></button>
+                    aria-label="Close" class="absolute inset-0 cursor-default bg-gray-900/50 backdrop-blur-sm"></button>
             <div role="dialog" aria-modal="true"
-                 class="relative z-10 w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
+                 class="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
                 <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Attach existing {{ this.singularLabel }}</h2>
                 <select data-model="associateId"
                         class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
@@ -75,9 +75,9 @@
     {% if this.isModalOpen and this.modalMode == 'attach' %}
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <button type="button" data-action="live#action" data-live-action-param="closeModal"
-                    aria-label="Close" class="absolute inset-0 bg-black/40"></button>
+                    aria-label="Close" class="absolute inset-0 cursor-default bg-gray-900/50 backdrop-blur-sm"></button>
             <div role="dialog" aria-modal="true"
-                 class="relative z-10 w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
+                 class="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
                 <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Attach existing {{ this.singularLabel }}</h2>
                 <select data-model="attachId"
                         class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
