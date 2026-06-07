@@ -332,7 +332,7 @@ class Action implements ActionContract
             'color' => $this->color,
             'style' => $this->style,
             'badge' => $this->badge,
-            'url' => $this->getUrl($subject, $context),
+            'url' => self::safeUrl($this->getUrl($subject, $context)),
             'id' => $id,
             'confirm' => $this->requiresConfirmation,
         ];
@@ -356,10 +356,31 @@ class Action implements ActionContract
             'color' => $this->color,
             'style' => $this->style,
             'badge' => $this->badge,
-            'url' => $this->getStandaloneUrl($context),
+            'url' => self::safeUrl($this->getStandaloneUrl($context)),
             'id' => null,
             'confirm' => $this->requiresConfirmation,
         ];
+    }
+
+    /**
+     * Guard a URL before it reaches an `href`: a custom `->url()` closure may
+     * derive it from record data, so reject any explicit scheme other than
+     * http(s)/mailto/tel (e.g. `javascript:`, `data:`); relative/anchor/query
+     * paths pass. Mirrors the same guard on {@see \Atrium\View\Entry} and the
+     * table row URL.
+     */
+    private static function safeUrl(?string $url): ?string
+    {
+        if (null === $url || '' === trim($url)) {
+            return null;
+        }
+
+        $candidate = ltrim($url);
+        if (preg_match('#^(?:https?:|mailto:|tel:|/|\#|\?|\.)#i', $candidate)) {
+            return $url;
+        }
+
+        return preg_match('#^[a-z][a-z0-9+.\-]*:#i', $candidate) ? null : $url;
     }
 
     /**

@@ -170,6 +170,22 @@ class Form
         $resource = $this->resourceObject();
         $operation = $this->operation();
 
+        // Authorize server-side FIRST: the page guard can be bypassed by posting
+        // straight to this Live action, so re-check the ability here — before any
+        // developer hook (mutateFormDataBeforeValidate / afterValidate, which may
+        // log or have side effects) runs for an unauthorized request.
+        if ('create' === $operation) {
+            if (!$resource->canCreate()) {
+                return null;
+            }
+            $entity = null; // built after validation
+        } else {
+            $entity = $this->loadEntity();
+            if (null === $entity || !$resource->canEdit($entity)) {
+                return null; // record gone, or the caller may not edit it
+            }
+        }
+
         // Let the resource normalise the raw input before validation sees it.
         // This writes back to formData (validation reads field values from it),
         // so the normalised value is also what the form shows after submit.
@@ -187,20 +203,8 @@ class Form
         // Validation passed — let the resource react to the validated data.
         $resource->afterValidate($normalized, $operation);
 
-        if (null === $this->entityId) {
+        if (null === $entity) {
             $entity = $this->newEntity();
-        } else {
-            $entity = $this->loadEntity();
-            if (null === $entity) {
-                return null; // the record vanished between load and save — never write a blank one
-            }
-        }
-
-        // Authorize server-side: the page guard can be bypassed by posting
-        // straight to this Live action, so re-check the ability here.
-        $authorized = 'create' === $operation ? $resource->canCreate() : $resource->canEdit($entity);
-        if (!$authorized) {
-            return null;
         }
 
         // Let the resource reshape the submitted data before it is written.
