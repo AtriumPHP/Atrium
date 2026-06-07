@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Notifications subsystem — live toasts + flash bridge (`NTF-01`, `NTF-02`).**
+  A new `Atrium\Notification` layer delivers transient toast messages through
+  two channels without consumer JavaScript. The **`Notification`** fluent builder
+  (`make()->title()->body()->success()/danger()/warning()/info()`, auto-dismiss
+  `duration()` / `persistent()`, optional `actions([])`) is the common value
+  object for both channels. Five **`NotificationStatus`** cases (`Success`,
+  `Danger`, `Warning`, `Info`, `Neutral`) each supply a default Lucide icon and
+  semantic colour, overridable per-notification via `->icon()`/`->color()`. An
+  **`Atrium:Notifications`** Live Component hosts the toast stack in the panel
+  shell. The **live channel** (`InteractsWithNotifications` trait: `notify()`,
+  `notifySuccess()`, `notifyDanger()`) emits toasts in-place with no reload from
+  any Live Component (also `use ComponentToolsTrait`). The **flash channel**
+  (`Notifier` service, `send()`) queues notifications in the Symfony flash bag so
+  they survive a redirect; emit-type in-toast actions are stripped on the flash
+  path (they have no live listener after a reload). **`NotificationAction`**
+  provides link (`->url()`, scheme-guarded, both channels) and emit
+  (`->emit(event, payload)`, live channel only) action buttons inside toasts.
+  Atrium ships its **first Stimulus controller** (`@atriumphp/atrium/notifications`),
+  auto-discovered by StimulusBundle; consumers enable it with one line in
+  `assets/controllers.json` (a Flex recipe will automate this later). Integration
+  guide: [`docs/integration-guide/notifications/overview.md`](docs/integration-guide/notifications/overview.md).
+
+### Changed
+
+- **(Pre-1.0 BC)** The form's inline "saved successfully" notice (and the
+  wizard's equivalent) is replaced by a success toast raised on the live
+  channel. The built-in table and header delete actions now raise a success toast
+  instead of relying on a page reload to signal completion. Resources that
+  customised the old inline-notice HTML will need to use the notification API
+  instead.
+
 ## [0.2.0] - 2026-06-07
 
 This release adds the **relations & nesting** feature (relation managers +

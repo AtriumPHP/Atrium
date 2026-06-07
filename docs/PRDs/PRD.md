@@ -444,10 +444,14 @@ stat card and one chart widget.
 *Acceptance:* a resource exposes a view page; the dashboard renders widgets.
 
 ### Phase 6 — Notifications & Plugin system
-Implement `NTF-*` and the `PluginInterface` + discovery. Provide one example
-plugin that registers a resource and a widget.
-*Acceptance:* toasts fire from actions; the example plugin loads with only a
-`composer require` + its own autoconfiguration.
+**`NTF-01` and `NTF-02` are delivered:** the `Notification` builder, the live
+channel (`InteractsWithNotifications` trait), the flash bridge (`Notifier`
+service), in-toast link/emit actions, `NotificationStatus` icons/colours, and
+the bundle's first shipped Stimulus controller. Form saves, wizards and delete
+actions now raise toasts. `NTF-03` (persisted notifications with an unread
+indicator) and the `PluginInterface` + example plugin remain outstanding.
+*Remaining acceptance:* the plugin system loads with only a `composer require` +
+its own autoconfiguration; persisted toasts survive a full page reload.
 
 ### Phase 7 — Monorepo split, docs, release
 Extract packages per §7 with `symplify/monorepo-builder`; verify each is

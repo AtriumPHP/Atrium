@@ -24,6 +24,7 @@ The guide is split by module (these mirror the planned package split):
 | [`pages/`](pages/overview.md) | [`Page`](pages/overview.md) and the default List/Create/Edit pages, the opt-in [read-only View screen](pages/view.md), post-save redirects |
 | [`widgets/`](widgets/overview.md) | [Overview](widgets/overview.md), [stats widget](widgets/stats-widget.md), [chart widget](widgets/chart-widget.md), [dashboards](widgets/dashboards.md), [embedding](widgets/embedding.md) |
 | [`panel/`](panel/customization.md) | [Customising the panel](panel/customization.md) — brand, theme colour, dark mode, shell/template overrides, the `/admin` landing screen |
+| [`notifications/`](notifications/overview.md) | [Notifications overview](notifications/overview.md) — live toasts, flash bridge, in-toast actions, statuses |
 | [`data/`](data/providers.md) | [`DataProviderInterface`, `DataWriterInterface`, `DataQuery`](data/providers.md), [query scoping](data/query-scoping.md) |
 
 ## Page format (canonical template)
