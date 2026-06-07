@@ -28,6 +28,18 @@ final class PageContextNestedTest extends TestCase
         self::assertSame('/admin/project/1/task/7', $context->nestedUrl('view', '7'));
     }
 
+    public function testNestedUrlEncodesTheChildRecordId(): void
+    {
+        $context = new PageContext(
+            'task', '/admin', null, 'Task', 'Tasks',
+            parentResourceSlug: 'project', parentRecordId: '1',
+        );
+
+        // A natural-key id with reserved characters must be percent-encoded.
+        self::assertSame('/admin/project/1/task/a%20b/edit', $context->nestedUrl('edit', 'a b'));
+        self::assertSame('/admin/project/1/task/a%2Fb', $context->nestedUrl('view', 'a/b'));
+    }
+
     public function testNestedUrlFallsBackToFlatWhenNotNested(): void
     {
         $context = new PageContext('task', '/admin', '7', 'Task', 'Tasks');

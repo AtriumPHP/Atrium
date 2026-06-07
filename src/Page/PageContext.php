@@ -67,12 +67,13 @@ final readonly class PageContext
         }
 
         $base = rtrim($this->pathPrefix, '/').'/'.$this->parentResourceSlug.'/'.rawurlencode($this->parentRecordId).'/'.$this->resourceSlug;
+        $record = rawurlencode((string) $id);
 
         return match ($action) {
             'index' => $base,
             'create' => $base.'/new',
-            'edit' => $base.'/'.(string) $id.'/edit',
-            default => $base.'/'.(string) $id,
+            'edit' => $base.'/'.$record.'/edit',
+            default => $base.'/'.$record,
         };
     }
 

@@ -216,7 +216,11 @@ final readonly class AdminController
             return null;
         }
 
-        $filters = $child->scopeFilters() + [$resolved->foreignKey => $parentId];
+        // Assignment, not union: the URL's parent segment must always win, even if
+        // the child's scopeQuery() also constrains the FK column (a `+` union would
+        // keep the scope value and silently drop the parent segment).
+        $filters = $child->scopeFilters();
+        $filters[$resolved->foreignKey] = $parentId;
 
         return $this->dataProvider->find($child->getEntityClass(), $id, $filters, $child->getIdentifierField());
     }
@@ -407,19 +411,36 @@ final readonly class AdminController
             $parentId = $this->stringId($parent, $record);
             $titleValue = $this->accessor->getValue($record, $ctx['resolved']->recordTitleAttribute);
             $title = \is_scalar($titleValue) ? (string) $titleValue : $parentId;
-            // Link to the parent's view page if it has one, else its edit page.
-            $suffix = null !== $parent->resolvePage('view') ? '' : '/edit';
-            $crumbs[] = [
-                'label' => $title,
-                'url' => $base.'/'.$parent->getSlug().'/'.rawurlencode($parentId).$suffix,
-            ];
-            $crumbs[] = [
-                'label' => $ctx['child']->getLabel(),
-                'url' => $base.'/'.$parent->getSlug().'/'.rawurlencode($parentId).'/'.$ctx['child']->getSlug(),
-            ];
+
+            if ('' === $parentId) {
+                // A non-scalar parent id can't form a URL; show labels only.
+                $crumbs[] = ['label' => $title, 'url' => null];
+                $crumbs[] = ['label' => $ctx['child']->getLabel(), 'url' => null];
+            } else {
+                $recordRoot = $base.'/'.$parent->getSlug().'/'.rawurlencode($parentId);
+                $crumbs[] = ['label' => $title, 'url' => $this->parentRecordUrl($parent, $recordRoot)];
+                $crumbs[] = ['label' => $ctx['child']->getLabel(), 'url' => $recordRoot.'/'.$ctx['child']->getSlug()];
+            }
         }
 
         return $crumbs;
+    }
+
+    /**
+     * Where the parent-record breadcrumb crumb links: the parent's View page (the
+     * bare record URL) if it has one, else its Edit page, else nowhere (a view-only
+     * or list-only parent leaves the crumb unlinked rather than pointing at a 404).
+     */
+    private function parentRecordUrl(AdminResource $parent, string $recordRoot): ?string
+    {
+        if (null !== $parent->resolvePage('view')) {
+            return $recordRoot;
+        }
+        if (null !== $parent->resolvePage('edit')) {
+            return $recordRoot.'/edit';
+        }
+
+        return null;
     }
 
     private function stringId(AdminResource $resource, object $record): string
