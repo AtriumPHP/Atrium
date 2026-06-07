@@ -44,8 +44,10 @@ final class Relation
     private bool|\Closure $visible = true;
     private bool $readOnlyOnView = true;
 
-    /** @var class-string|null */
+    /** @var class-string<RelationManagerConfiguration>|null */
     private ?string $using = null;
+
+    private ?RelationManagerConfiguration $resolvedConfiguration = null;
 
     private ?string $emptyHeading = null;
     private ?string $emptyDescription = null;
@@ -169,7 +171,7 @@ final class Relation
         return $this;
     }
 
-    /** @param class-string $class */
+    /** @param class-string<RelationManagerConfiguration> $class */
     public function using(string $class): self
     {
         $this->using = $class;
@@ -271,10 +273,29 @@ final class Relation
         return $this->visible instanceof \Closure ? (bool) ($this->visible)($parent) : $this->visible;
     }
 
-    /** @return class-string|null */
+    /** @return class-string<RelationManagerConfiguration>|null */
     public function getUsing(): ?string
     {
         return $this->using;
+    }
+
+    /**
+     * Instantiate the dedicated configuration class set via {@see using()}, or null
+     * when the relation configures its table/form inline. Memoised.
+     */
+    public function resolveConfiguration(): ?RelationManagerConfiguration
+    {
+        if (null === $this->using) {
+            return null;
+        }
+
+        if (null === $this->resolvedConfiguration) {
+            /** @var class-string<RelationManagerConfiguration> $class */
+            $class = $this->using;
+            $this->resolvedConfiguration = new $class();
+        }
+
+        return $this->resolvedConfiguration;
     }
 
     public function getEmptyHeading(): ?string
