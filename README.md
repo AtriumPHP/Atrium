@@ -9,12 +9,55 @@ Tailwind.
 
 ![The Atrium admin panel: a dashboard with stat widgets and a bar chart, configured entirely in PHP](docs/assets/dashboard.png)
 
-> **Status: pre-1.0, under active development.** The reactive panel, tables,
-> forms (fields, layout, tabs/wizards, validation, reactivity), actions, query
-> scoping and the full resource lifecycle are implemented and tested. See the
-> **[integration guide](docs/integration-guide/)** to build with it, the
-> [`CHANGELOG`](CHANGELOG.md) for what's landed, and [`docs/PRDs/PRD.md`](docs/PRDs/PRD.md)
-> for the roadmap.
+## Features
+
+- **Server-driven, zero-JS-build reactivity.** Search, sort, filter, inline
+  validation, dependent fields, modals and toasts all run through Symfony UX Live
+  Components — no React/Vue, no JSON API, no asset pipeline for the consumer.
+- **Resources, auto-discovered.** One PHP class per entity describes its table,
+  form, pages and abilities; Atrium finds it (no tags, no YAML) and serves full
+  CRUD. Inline small resources, or split into `Tables/`, `Schemas/`, `Pages/`.
+- **Tables.** Searchable / sortable / paginated lists with **filters**, **relation
+  (dotted-path) columns** (`author.name`), row / header / **bulk** actions, column
+  formatting (badge, boolean, money, alignment, width), configurable empty states,
+  default sort and page-size selector.
+- **Forms.** A fluent field schema (text, number, select with dependent
+  `optionsUsing`, checkbox, toggle, radio, date/time, colour, **tags**,
+  **key-value**, …) on a real **layout tree** — `Grid` / `Section` / `Fieldset` /
+  `Flex`, plus **Tabs** and multi-step **Wizards** — with conditional visibility,
+  cross-field reactivity (`afterStateUpdated`) and Symfony-constraint validation.
+- **Actions.** View-agnostic row / header / bulk / page actions with no-JS
+  confirmation modals and dropdown groups; built-in View/Edit/Delete/bulk-delete
+  plus custom server actions, all authorizable.
+- **Record View (infolists).** Read-only View screens declared with an **entry
+  family** — Text, Icon, Image, Colour, KeyValue, Code, Repeatable — laid out with
+  the very same layout components as forms.
+- **Relations & nesting.** **Relation managers** (one-to-many and many-to-many with
+  a server-driven tab strip) for create/edit/delete, associate/dissociate and
+  attach/detach, plus **nested resources** scoped under a parent record
+  (`/admin/course/12/lesson/…`).
+- **Dashboards & widgets.** Routable dashboards arranging **stat cards** and
+  **Chart.js charts** with the same layout primitives; widgets are embeddable
+  anywhere and refresh independently (manual or polling).
+- **Notifications.** Server-driven **toasts** raised from any component or
+  controller, over a live channel (no reload) or a flash bridge (surviving a
+  redirect), with optional in-toast link/event actions.
+- **Authorization & scoping.** Per-resource / per-action gates plus
+  `scopeQuery()` for multi-tenancy, ownership or soft-deletes — applied to lists,
+  counts, bulk actions **and** single-record resolution.
+- **Lifecycle hooks & atomic saves.** Record, form-validation and action lifecycle
+  hooks; bring your own persistence (`handleRecordCreation` / a command bus) inside
+  a single transaction.
+- **Self-contained & storage-agnostic.** Ships precompiled Tailwind CSS and an icon
+  set (Symfony UX Icons / Lucide, any Iconify name) — no Tailwind config required.
+  The core holds **no Doctrine types**; data access goes through a swappable
+  `DataProvider` (Doctrine adapter included).
+
+> **Status: pre-1.0, under active development.** Everything above is implemented
+> and tested; the public API may still change in a 0.x minor (changes are flagged).
+> See the **[integration guide](docs/integration-guide/)** to build with it, the
+> [`CHANGELOG`](CHANGELOG.md) for what's landed in each release, and
+> [`docs/PRDs/PRD.md`](docs/PRDs/PRD.md) for the roadmap.
 
 ## Documentation
 
